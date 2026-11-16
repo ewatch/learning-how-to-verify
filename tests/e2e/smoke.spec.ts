@@ -88,3 +88,26 @@ test('code walkthrough opens, advances and closes with Escape', async ({ page })
   await page.keyboard.press('Escape');
   await expect(block.locator('[data-fc-guide]')).toBeHidden();
 });
+
+test('evidence findings stay hidden until the sources disclosure is opened', async ({ page }) => {
+  await page.goto('/en/practices/mutation-tests/');
+  const details = page.locator('.evidence details');
+  const finding = details.locator('li').first();
+  await expect(finding).toBeHidden();
+  await details.locator('summary').click();
+  await expect(finding).toBeVisible();
+});
+
+test('clicking a code badge opens its note popover, Escape closes it', async ({ page }) => {
+  await page.goto('/en/practices/load-tests/');
+  const btn = page.locator('[data-fc]:visible .badge-btn').first();
+  await expect(btn).toHaveAttribute('aria-expanded', 'false');
+  await btn.click();
+  await expect(btn).toHaveAttribute('aria-expanded', 'true');
+  const pop = page.locator(`#${await btn.getAttribute('aria-controls')}`);
+  await expect(pop).toBeVisible();
+  expect((await pop.textContent())!.length).toBeGreaterThan(10);
+  await page.keyboard.press('Escape');
+  await expect(pop).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+});

@@ -25,6 +25,14 @@ const idx = PRACTICES.indexOf(p);
 const prev = PRACTICES[idx - 1], next = PRACTICES[idx + 1];
 const socratic = socraticPrompt(p, lang, 'js', practiceMarkdown(p, lang)).replace('JavaScript / TypeScript', '__PROGLANG__');
 const gl = glosser(lang); // first occurrence of each glossary term per page
+const firstSentence = (s: string): [string, string] => {
+  const m = s.match(/^(.+?[\p{L}\p{N})`%]{3}[.!?])\s+(?=[\p{Lu}`])([\s\S]+)$/u);
+  return m ? [m[1], m[2]] : [s, ''];
+};
+const [aiHead, aiRest] = firstSentence(p.ai[lang]);
+const worthShown = p.worth.slice(0, 3), worthMore = p.worth.slice(3);
+const limitsShown = p.limits.slice(0, 2), limitsMore = p.limits.slice(2);
+const thinkMore = p.think.slice(1);
 let n = 0;
 const num = () => String(++n).padStart(2, '0');
 ---
@@ -52,10 +60,28 @@ const num = () => String(++n).padStart(2, '0');
 
     <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'worthIt')}</h2>
       <div class="grid cols-2">
-        <div><ul class="checks">{p.worth.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
-        <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
+        <div>
+          <ul class="checks">{worthShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
+          {worthMore.length > 0 && (
+            <details class="more"><summary>+{worthMore.length} {t(lang, 'moreN')}</summary>
+              <ul class="checks">{worthMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
+            </details>
+          )}
+        </div>
+        <div><h3>{t(lang, 'limits')}</h3>
+          <ul class="limits">{limitsShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
+          {limitsMore.length > 0 && (
+            <details class="more"><summary>+{limitsMore.length} {t(lang, 'moreN')}</summary>
+              <ul class="limits">{limitsMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
+            </details>
+          )}
+        </div>
       </div>
-      <div class="ai card"><h3>{t(lang, 'withAgents')}</h3><p set:html={gl(p.ai[lang])} /></div>
+      <aside class="ai" aria-labelledby="ai-h">
+        <p class="ai-label" id="ai-h"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="11" rx="2" /><path d="M12 4v4M9 13h.01M15 13h.01M9 16h6" /></svg>{t(lang, 'withAgents')}</p>
+        <p class="ai-text" set:html={gl(aiHead)} />
+        {aiRest && <details class="more"><summary>{t(lang, 'moreText')}</summary><p class="ai-text" set:html={gl(aiRest)} /></details>}
+      </aside>
       {p.variants?.length ? (
         <details class="disclose variants"><summary>{t(lang, 'variants')} ({p.variants.length})</summary>
           <div class="body"><dl>{p.variants.map((v) => <><dt>{v.name[lang]}</dt><dd set:html={gl(v.text[lang])} /></>)}</dl></div>
@@ -72,9 +98,18 @@ const num = () => String(++n).padStart(2, '0');
     <section class="layer-section" id="deeper"><h2><span class="num">{num()}</span>{t(lang, 'goDeeper')}</h2>
       <h3>{t(lang, 'thinkFirst')}</h3>
       <div class="think">
-        {p.think.map((q) => (
+        {p.think.slice(0, 1).map((q) => (
           <details class="disclose"><summary set:html={inline(q.q[lang])} /><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
         ))}
+        {thinkMore.length > 0 && (
+          <details class="more"><summary>+{thinkMore.length} {t(lang, 'moreQuestions')}</summary>
+            <div class="think">
+              {thinkMore.map((q) => (
+                <details class="disclose"><summary set:html={inline(q.q[lang])} /><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
       <div class="socratic card">
         <div>
@@ -117,8 +152,14 @@ const num = () => String(++n).padStart(2, '0');
   .catches { color: var(--ink-2); }
   ul.checks li::marker { content: '✓  '; color: var(--ok); }
   ul.limits li::marker { content: '–  '; color: var(--ink-3); }
-  .ai { margin: 18px 0; border-left: 4px solid var(--c); }
-  .ai p { margin: 0; }
+  .ai { margin: 16px 0; padding: 10px 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }
+  .ai-label { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-weight: 700; font-size: .92rem; color: var(--ink); }
+  .ai-label svg { color: var(--c); flex: none; }
+  .ai-text { margin: 0; font-size: .95rem; }
+  .more > summary { cursor: pointer; display: inline-block; font-size: .85rem; color: var(--ink-3); padding: 4px 0; text-decoration: underline dotted; }
+  .more > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .more[open] > summary { margin-bottom: 4px; }
+  .more .think { margin: 6px 0 0; }
   .variants { margin: 14px 0; }
   .variants dt { font-weight: 700; margin-top: 8px; }
   .variants dd { margin: 2px 0 0; color: var(--ink-2); }

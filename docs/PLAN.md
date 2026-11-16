@@ -37,6 +37,15 @@ Inclusion rule for new practices: widely recognised **and** catches a distinct b
 
 One new concept per screen; glossary popovers instead of inline definitions.
 
+## Design rule: show, don't tell (decided 2026-11-16)
+
+Human pages minimise reading; visual and interactive guidance comes first. The Markdown twins, `llms.txt` and agent prompts keep the full text.
+- Above the fold: name, one sentence, what it catches, the funnel position, then "Try it" / "See it".
+- Long content is collapsed by default (details, notes on demand, sources behind a disclosure).
+- Evidence is shown as two compact meters; the findings and citations open on request.
+- Code notes appear on the marked lines (badge → note) and in the walkthrough, not as a list under the code.
+- New explanations are a visual, animation or interaction first, a sentence second.
+
 ## Getting-started guides (per tool)
 
 Structure: outcome → install (per OS / in-browser) → first spec/test on the petstore example → run & read annotated output → break it on purpose → 3–5 beginner mistakes → next steps (official tutorials) → "Copy for your agent" setup prompt. Real recorded output, re-checked in CI.

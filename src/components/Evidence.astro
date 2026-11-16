@@ -7,33 +7,47 @@ interface Props { general: Evidence; ai: Evidence; lang: Locale }
 const { general, ai, lang } = Astro.props;
 const n = { strong: 3, moderate: 2, weak: 1, none: 0 } as const;
 const rows = [['evidenceGeneral', general], ['evidenceAi', ai]] as const;
+const count = general.findings.length + ai.findings.length;
 ---
-<div class="evidence grid cols-2">
-  {rows.map(([k, e]) => (
-    <div class="ev card">
-      <p class="eyebrow">{t(lang, k)}</p>
-      <p class="rating"><span class="meter" data-n={n[e.rating]}><i /><i /><i /></span>{RATING_LABEL[e.rating][lang]}</p>
-      {e.findings.length === 0 ? <p class="muted small">{t(lang, 'evidenceNone')}</p> : (
-        <ul>
-          {e.findings.map((fi) => {
-            const s = SOURCE_BY_ID.get(fi.src)!;
-            return (
-              <li>
-                {fi.text[lang]}{' '}
-                <a class="src" href={s.url} rel="noopener">{s.authors.split(',')[0]}{s.authors.includes(',') ? ' et al.' : ''}, {s.venue} {s.year}</a>
-                {s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+<div class="evidence">
+  <div class="meters">
+    {rows.map(([k, e]) => (
+      <p class="rating"><span class="lbl">{t(lang, k)}</span> <span class="meter" data-n={n[e.rating]} aria-hidden="true"><i /><i /><i /></span> <strong>{e.findings.length === 0 && e.rating === 'none' ? t(lang, 'noStudy') : RATING_LABEL[e.rating][lang]}</strong></p>
+    ))}
+  </div>
+  <details class="disclose">
+    <summary>{t(lang, 'sourcesFindings')} ({count})</summary>
+    <div class="body">
+      {rows.map(([k, e]) => (
+        <div class="ev">
+          <p class="eyebrow">{t(lang, k)}</p>
+          {e.findings.length === 0 ? <p class="muted small">{t(lang, 'evidenceNone')}</p> : (
+            <ul>
+              {e.findings.map((fi) => {
+                const s = SOURCE_BY_ID.get(fi.src)!;
+                return (
+                  <li>
+                    {fi.text[lang]}{' '}
+                    <a class="src" href={s.url} rel="noopener">{s.authors.split(',')[0]}{s.authors.includes(',') ? ' et al.' : ''}, {s.venue} {s.year}</a>
+                    {s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      ))}
     </div>
-  ))}
+  </details>
 </div>
 <style>
+  .meters { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 10px; }
+  .rating { margin: 0; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .lbl { color: var(--ink-3); font-size: .9rem; }
   .ev ul { padding-left: 1.1em; margin: 0; font-size: .95rem; }
   .ev li { margin-bottom: .6em; }
+  .ev + .ev { margin-top: 12px; }
+  .ev .eyebrow { margin-bottom: 6px; }
   .src { font-size: .85rem; color: var(--ink-3); }
   .badge { margin-left: 4px; vertical-align: 1px; }
-  .rating { margin-bottom: 10px; }
 </style>

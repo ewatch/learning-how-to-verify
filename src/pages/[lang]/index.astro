@@ -9,14 +9,14 @@ export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 const n = PRACTICES.length;
-const sims = PRACTICES.filter((p) => p.sim).length;
+const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
 ---
 <Base lang={lang} path="" nav="funnel"
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
   description={en ? `How to verify software, especially when AI agents write it: ${n} practices along a funnel from cheap to expensive, with tools per language and runnable examples.` : `Wie man Software verifiziert, besonders wenn KI-Agenten sie schreiben: ${n} Praktiken entlang eines Trichters von billig nach teuer, mit Werkzeugen pro Sprache und ausführbaren Beispielen.`}>
   <div class="wrap">
     <section class="hero">
-      <p class="eyebrow">{en ? `${n} practices · ${sims} runnable in your browser · English & Deutsch` : `${n} Praktiken · ${sims} im Browser ausführbar · Deutsch & English`}</p>
+      <p class="eyebrow">{en ? `${n} practices · ${sims} simulators in your browser · English & Deutsch` : `${n} Praktiken · ${sims} Simulatoren im Browser · Deutsch & English`}</p>
       <h1>{en ? <>Catch it early.<br />Catch it cheap.</> : <>Früh finden.<br />Billig finden.</>}</h1>
       <p class="lede">
         {en

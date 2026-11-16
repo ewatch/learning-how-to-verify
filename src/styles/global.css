@@ -164,7 +164,8 @@ button { font: inherit; color: inherit; }
 @media (max-width: 760px) {
   .site-header { position: static; }
   .site-header .wrap { padding-top: 8px; padding-bottom: 8px; }
-  .nav { margin-left: 0; width: 100%; }
+  .nav { margin-left: 0; width: calc(100% + 2 * var(--gutter)); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .nav a, .nav button { white-space: nowrap; }
 }
 
 main { padding: 36px 0 80px; }

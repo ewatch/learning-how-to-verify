@@ -187,6 +187,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'static-analysis',
+    viz: { kind: 'pipeline', mode: 'static-analysis' },
     name: l('Static analysis', 'Statische Analyse'),
     layer: 'static',
     phases: ['pre'],
@@ -316,6 +317,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'ci',
+    viz: { kind: 'pipeline', mode: 'ci' },
     name: l('Continuous integration', 'Continuous Integration (CI)'),
     layer: 'static',
     phases: ['pre', 'deploy'],

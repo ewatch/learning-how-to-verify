@@ -164,6 +164,7 @@ function allocate(int $amount, array $weights): array
   },
   {
     id: 'sanitizers',
+    viz: { kind: 'pipeline', mode: 'sanitizers' },
     name: l('Sanitizers', 'Sanitizer'),
     layer: 'verification',
     phases: ['pre'],
@@ -205,6 +206,7 @@ add_link_options(-fsanitize=address,undefined)
   },
   {
     id: 'tap-compare',
+    viz: { kind: 'traffic', mode: 'tap-compare' },
     name: l('Tap compare', 'Tap Compare'),
     layer: 'verification',
     phases: ['deploy'],
@@ -251,6 +253,7 @@ test('candidate preserves the reservation owner', () => {
   },
   {
     id: 'shadowing',
+    viz: { kind: 'traffic', mode: 'shadowing' },
     name: l('Shadowing', 'Shadowing (Schattenbetrieb)'),
     layer: 'verification',
     phases: ['deploy'],
@@ -337,6 +340,7 @@ route:
   },
   {
     id: 'traffic-shaping',
+    viz: { kind: 'traffic', mode: 'traffic-shaping' },
     name: l('Traffic shaping', 'Traffic Shaping (Verkehrssteuerung)'),
     layer: 'verification',
     phases: ['release'],
@@ -423,6 +427,7 @@ export async function reserve(petId: PetId, person: PersonId) {
   },
   {
     id: 'monitoring',
+    viz: { kind: 'observe', mode: 'monitoring' },
     name: l('Monitoring', 'Monitoring'),
     layer: 'verification',
     phases: ['release', 'post'],
@@ -476,6 +481,7 @@ export async function reserve(petId: PetId, person: PersonId) {
   },
   {
     id: 'exception-tracking',
+    viz: { kind: 'observe', mode: 'exception-tracking' },
     name: l('Exception tracking', 'Exception Tracking'),
     layer: 'verification',
     phases: ['release'],
@@ -525,6 +531,7 @@ export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
   },
   {
     id: 'teeing',
+    viz: { kind: 'traffic', mode: 'teeing' },
     name: l('Teeing', 'Teeing'),
     layer: 'verification',
     phases: ['post'],
@@ -582,6 +589,7 @@ encoding.codec = "json"
   },
   {
     id: 'profiling',
+    viz: { kind: 'observe', mode: 'profiling' },
     name: l('Profiling', 'Profiling'),
     layer: 'verification',
     phases: ['post'],
@@ -626,6 +634,7 @@ py-spy record --pid 12345 --duration 30 --output reservation.svg
   },
   {
     id: 'logs-events',
+    viz: { kind: 'observe', mode: 'logs-events' },
     name: l('Logs & events', 'Logs & Events'),
     layer: 'verification',
     phases: ['post'],
@@ -669,6 +678,7 @@ logReservation('rex', 'taken', 'local-example-1');
   },
   {
     id: 'chaos-testing',
+    viz: { kind: 'traffic', mode: 'chaos-testing' },
     name: l('Chaos testing', 'Chaos Engineering'),
     layer: 'verification',
     phases: ['post'],
@@ -709,6 +719,7 @@ toxiproxy-cli toxic remove -n latency_downstream petstore-db`, focus: [{ line: 3
   },
   {
     id: 'ab-tests',
+    viz: { kind: 'observe', mode: 'ab-tests' },
     name: l('A/B tests', 'A/B-Tests'),
     layer: 'verification',
     phases: ['post'],
@@ -773,6 +784,7 @@ test('a missing participant ID is excluded', () => {
   },
   {
     id: 'tracing',
+    viz: { kind: 'observe', mode: 'tracing' },
     name: l('Tracing', 'Tracing'),
     layer: 'verification',
     phases: ['post'],
@@ -824,6 +836,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
   },
   {
     id: 'dynamic-exploration',
+    viz: { kind: 'traffic', mode: 'dynamic-exploration' },
     name: l('Dynamic exploration', 'Dynamische Exploration'),
     layer: 'verification',
     phases: ['post'],
@@ -869,6 +882,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
   },
   {
     id: 'real-user-monitoring',
+    viz: { kind: 'observe', mode: 'real-user-monitoring' },
     name: l('Real user monitoring', 'Real User Monitoring (RUM)'),
     layer: 'verification',
     phases: ['post'],
@@ -922,6 +936,7 @@ onLCP(report);
   },
   {
     id: 'auditing',
+    viz: { kind: 'observe', mode: 'auditing' },
     name: l('Auditing', 'Auditing'),
     layer: 'verification',
     phases: ['post'],

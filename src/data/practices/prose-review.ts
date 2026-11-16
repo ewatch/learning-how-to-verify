@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const proseReview: Practice[] = [
   {
     id: 'agent-rules',
+    viz: { kind: 'process', mode: 'agent-rules' },
     name: l('Rules, skills & AGENTS.md', 'Regeln, Skills & AGENTS.md'),
     layer: 'prose',
     phases: ['pre'],
@@ -63,6 +64,7 @@ export const proseReview: Practice[] = [
   },
   {
     id: 'evals',
+    viz: { kind: 'process', mode: 'evals' },
     name: l('Evals for your agent setup', 'Evals für das Agenten-Setup'),
     layer: 'prose',
     phases: ['pre'],
@@ -126,6 +128,7 @@ Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note:
   },
   {
     id: 'code-review',
+    viz: { kind: 'process', mode: 'code-review' },
     name: l('Code review', 'Code-Review'),
     layer: 'review',
     phases: ['pre'],
@@ -192,6 +195,7 @@ List assumptions you could not verify. Do not invent findings.`, focus: [{ line:
   },
   {
     id: 'penetration-tests',
+    viz: { kind: 'process', mode: 'penetration-tests' },
     name: l('Penetration tests', 'Penetrationstests'),
     layer: 'review',
     phases: ['pre'],
@@ -235,6 +239,7 @@ docker run --rm -t ghcr.io/zaproxy/zaproxy:stable   zap-baseline.py -t http://ho
   },
   {
     id: 'usability-tests',
+    viz: { kind: 'process', mode: 'usability-tests' },
     name: l('Usability tests', 'Usability-Tests'),
     layer: 'review',
     phases: ['pre'],
@@ -284,6 +289,7 @@ Separate observed behaviour from your interpretation.`, focus: [{ line: [2,3], n
   },
   {
     id: 'oncall-experience',
+    viz: { kind: 'process', mode: 'oncall-experience' },
     name: l('On-call experience', 'On-Call-Erfahrung'),
     layer: 'review',
     phases: ['post'],

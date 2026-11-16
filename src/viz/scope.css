@@ -1,0 +1,33 @@
+.scope { display: grid; gap: 10px; max-width: 460px; }
+.scope-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.scope-svg { width: 100%; height: auto; display: block; font-family: var(--font-mono); }
+.scope-svg text { font-size: 13px; fill: var(--ink); }
+.scope-svg .rail { stroke: var(--rule); stroke-width: 2; }
+.scope-svg .stop { fill: var(--rule); }
+.scope-svg .box rect { fill: var(--card); stroke: var(--ink-2); stroke-width: 1.5; transition: stroke .2s, fill .2s, opacity .2s; }
+.scope-svg .box.fake rect { fill: none; stroke: var(--ink-3); stroke-dasharray: 5 4; }
+.scope-svg .box.inner rect { fill: var(--paper); stroke: var(--ink-3); }
+.scope-svg .box.inner text.bl { fill: var(--ink-3); }
+.scope-svg .box.off { opacity: .4; }
+.scope-svg .box.off rect { stroke: var(--rule); stroke-dasharray: 2 4; fill: none; }
+.scope-svg .box.off text { fill: var(--ink-3); }
+.scope-svg .box.hit rect { stroke: var(--l-verification); stroke-width: 2.5; }
+.scope-svg .tag { font-size: 12px; fill: var(--ink-2); }
+.scope-svg .tag.fake { fill: var(--warn); font-weight: 700; }
+.scope-svg .note { font-size: 12px; fill: var(--ink-2); opacity: 0; transition: opacity .3s; }
+.scope-svg .note.on { opacity: 1; }
+.scope-svg .bolt { opacity: 0; transition: opacity .3s; }
+.scope-svg .bolt.on { opacity: 1; }
+.scope-svg .bolt-ico { font-size: 14px; fill: var(--warn); }
+.scope-svg .bolt-lbl { font-size: 12.5px; fill: var(--ink); font-weight: 700; }
+.scope-svg .brace { fill: none; stroke: var(--warn); stroke-width: 2; }
+.scope-svg .frame { fill: none; stroke: var(--l-review); stroke-width: 2; stroke-dasharray: 10 6; }
+.scope-svg .dot { fill: var(--l-verification); stroke: var(--paper); stroke-width: 2; }
+.scope-svg .dot.ping { fill: var(--ok); }
+.scope-svg.moving .dot { transition: transform .42s ease-in-out; }
+.scope-take { margin: 0; min-height: 1.5em; font-weight: 600; color: var(--ink); opacity: 0; transition: opacity .3s; }
+.scope-take.on { opacity: 1; }
+.scope-cap { margin-top: 6px; color: var(--ink-2); font-size: .9rem; max-width: 460px; }
+@media (prefers-reduced-motion: reduce) {
+  .scope-svg *, .scope-take { transition: none !important; }
+}

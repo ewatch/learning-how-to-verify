@@ -1,0 +1,54 @@
+.pv { margin: 0; display: grid; gap: 0.5rem; }
+.pv-stage svg { width: 100%; height: auto; max-width: 480px; display: block; margin: 0 auto; overflow: visible; }
+.pv svg text { font: 12px/1 inherit; font-family: inherit; fill: var(--ink-2); }
+.pv svg .tb { fill: var(--ink); font-weight: 600; }
+.pv svg .bad-t { fill: var(--bad); font-weight: 600; }
+.pv svg .warn-t { fill: var(--warn); font-weight: 600; }
+.pv svg .box { fill: var(--card); stroke: var(--rule-strong); stroke-width: 1.5; }
+.pv svg .okc { fill: color-mix(in srgb, var(--ok) 18%, var(--card)); stroke: var(--ok); stroke-width: 1.5; }
+.pv svg .badc { fill: color-mix(in srgb, var(--bad) 18%, var(--card)); stroke: var(--bad); stroke-width: 1.5; }
+.pv svg .warnc { fill: color-mix(in srgb, var(--warn) 20%, var(--card)); stroke: var(--warn); stroke-width: 1.5; }
+.pv svg .fill-ok { fill: var(--ok); }
+.pv svg .fill-l { fill: var(--l-verification); }
+.pv svg .band { fill: var(--ink); opacity: 0.75; }
+.pv svg .line { stroke: var(--ink-3); stroke-width: 1.5; fill: none; }
+.pv svg .line.hot, .pv svg .bad-l { stroke: var(--bad); }
+.pv svg .ok-l { stroke: var(--ok); }
+.pv svg .tang { stroke: var(--bad); opacity: 0.55; }
+.pv svg .cut { stroke: var(--ok); stroke-width: 3; }
+.pv svg .axis { stroke: var(--rule-strong); stroke-width: 1.5; }
+.pv svg .boundary { stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.pv svg .curve { stroke: var(--l-static); stroke-width: 2.5; fill: none; }
+.pv svg .curve-ok { stroke: var(--ok); stroke-width: 2.5; fill: none; }
+.pv svg .dot { fill: var(--l-static); stroke: var(--card); stroke-width: 2; }
+.pv svg .dot-ok { fill: var(--ok); stroke: var(--card); stroke-width: 2; }
+.pv svg .dot-bad { fill: var(--bad); stroke: var(--card); stroke-width: 2; }
+.pv svg .dim { opacity: 0.35; }
+.pv svg .hide { opacity: 0; }
+.pv svg .pv-badge circle { fill: var(--l-prose); stroke: var(--card); stroke-width: 2; cursor: pointer; }
+.pv svg .pv-badge text { fill: var(--card); font-weight: 700; pointer-events: none; }
+.pv svg .pv-badge.sel circle { fill: var(--bad); }
+.pv svg [role='button'] { cursor: pointer; outline: none; }
+.pv svg [role='button']:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.pv-detail { min-height: 1.5rem; font-size: 0.9rem; }
+.pv-detail p { margin: 0; }
+.pv-hint { color: var(--ink-3); }
+.pv .chip { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 0.75rem; border: 1px solid var(--rule-strong); background: var(--card); margin: 0.1rem 0; }
+.pv .chip.ok { border-color: var(--ok); } .pv .chip.bad { border-color: var(--bad); }
+.pv-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.pv-btn { font: inherit; font-size: 0.9rem; min-height: 40px; padding: 0.3rem 0.8rem; border-radius: 0.5rem; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); cursor: pointer; }
+.pv-btn[aria-pressed='true'] { background: color-mix(in srgb, var(--focus) 18%, var(--card)); border-color: var(--focus); }
+.pv-btn:focus-visible, .pv-range input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.pv-range { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; flex: 1 1 220px; }
+.pv-range input { flex: 1; min-width: 100px; }
+.pv-take { margin: 0; font-weight: 600; }
+.pv-cap { color: var(--ink-3); font-size: 0.85rem; }
+@keyframes pv-pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
+@keyframes pv-rise { from { transform: translateY(var(--from, 40px)); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes pv-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes pv-fall { from { transform: translateY(-12px); } to { transform: none; } }
+.pv .pv-pop { animation: pv-pop 0.35s ease-out both; transform-box: fill-box; transform-origin: center; }
+.pv .pv-rise { animation: pv-rise 0.8s ease-out both; }
+.pv .pv-flash { animation: pv-flash 1s ease-in-out 3; }
+.pv .pv-fall { animation: pv-fall 0.5s ease-in both; }
+@media (prefers-reduced-motion: reduce) { .pv *, .pv-stage * { animation: none !important; transition: none !important; } }

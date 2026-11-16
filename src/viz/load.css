@@ -1,0 +1,34 @@
+.ld { display: grid; gap: .6rem; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: .75rem; }
+.ld-svg { width: 100%; height: auto; display: block; }
+.ld-svg text { font: 15px var(--font-body); fill: var(--ink-2); }
+.ld-svg text.bad { fill: var(--bad); }
+.ld-svg text.q { fill: var(--l-review); }
+.ld-svg .ax { stroke: var(--rule-strong); stroke-width: 1; }
+.ld-svg .ref, .ld-svg .ref-p { stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+.ld-svg .ghost { fill: none; stroke: var(--rule-strong); stroke-width: 2; }
+.ld-svg .line { fill: none; stroke: var(--l-static); stroke-width: 3; stroke-linejoin: round; }
+.ld-svg .line.bad-l, .ld-svg .ref.bad-l { stroke: var(--bad); }
+.ld-svg .line.ok-l { stroke: var(--ok); }
+.ld-svg .line.l-lin { stroke: var(--l-static); }
+.ld-svg .line.l-quad { stroke: var(--l-review); }
+.ld-svg .dot { fill: var(--ink); }
+.ld-svg .dot.bad-d { fill: var(--bad); }
+.ld-svg .band { fill: var(--bad); }
+.ld-svg .win { fill: var(--ok); opacity: .25; }
+.ld-svg .bar { fill: var(--l-static); opacity: .75; }
+.ld-svg .mk { stroke: var(--ink); stroke-width: 1.5; }
+.ld-svg .mk.warn-l { stroke: var(--warn); stroke-width: 2.5; }
+.ld-svg .mk.bad-l { stroke: var(--bad); stroke-width: 2.5; }
+.ld-svg.anim .line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ld-draw 1.4s ease-out forwards; }
+.ld-svg.anim .bar { transform-box: fill-box; transform-origin: bottom; animation: ld-grow .8s ease-out both; }
+@keyframes ld-draw { to { stroke-dashoffset: 0; } }
+@keyframes ld-grow { from { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .ld-svg .line, .ld-svg .bar { animation: none !important; stroke-dasharray: none; stroke-dashoffset: 0; } }
+.ld-controls { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.ld-ctl { display: inline-flex; align-items: center; gap: .35rem; font-size: .95rem; color: var(--ink); min-height: 32px; }
+.ld-ctl input[type=range] { width: min(220px, 50vw); }
+.ld-out { font-variant-numeric: tabular-nums; min-width: 4.5ch; color: var(--ink-2); }
+.ld-live { margin: 0; font-size: .95rem; color: var(--ink-2); }
+.ld-live.bad { color: var(--bad); font-weight: 600; }
+.ld-take { margin: 0; font-weight: 600; color: var(--ink); }
+.ld-cap { margin: 0; font-size: .9rem; color: var(--ink-3); }

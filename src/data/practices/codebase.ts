@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const codebase: Practice[] = [
   {
     id: 'architecture',
+    viz: { kind: 'process', mode: 'architecture' },
     name: l('API design & architecture', 'API-Design & Architektur'),
     layer: 'codebase',
     phases: ['pre'],
@@ -84,6 +85,7 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
   },
   {
     id: 'refactoring',
+    viz: { kind: 'process', mode: 'refactoring' },
     name: l('Refactoring', 'Refactoring'),
     layer: 'codebase',
     phases: ['pre'],
@@ -155,6 +157,7 @@ test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
   },
   {
     id: 'threat-modeling',
+    viz: { kind: 'process', mode: 'threat-modeling' },
     name: l('Threat modeling', 'Threat Modeling (Bedrohungsmodellierung)'),
     layer: 'codebase',
     phases: ['pre'],

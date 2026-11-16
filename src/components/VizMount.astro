@@ -1,0 +1,32 @@
+---
+import type { Locale, VizKind } from '../data/types';
+interface Props { kind: VizKind; mode: string; lang: Locale }
+const { kind, mode, lang } = Astro.props;
+---
+<figure class="viz-mount" data-viz={kind} data-mode={mode} data-lang={lang}>
+  <noscript><p class="muted">{lang === 'en' ? 'This diagram needs JavaScript.' : 'Dieses Diagramm braucht JavaScript.'}</p></noscript>
+</figure>
+<style>
+  .viz-mount { margin: 0; min-height: 160px; }
+</style>
+<script>
+  type Mod = { mount: (el: HTMLElement, lang: 'en' | 'de', mode: string) => void };
+  const loaders: Record<string, () => Promise<Mod>> = {
+    scope: () => import('../viz/scope'),
+    pipeline: () => import('../viz/pipeline'),
+    traffic: () => import('../viz/traffic'),
+    load: () => import('../viz/load'),
+    observe: () => import('../viz/observe'),
+    process: () => import('../viz/process'),
+  };
+  for (const el of document.querySelectorAll<HTMLElement>('[data-viz]')) {
+    const load = loaders[el.dataset.viz!];
+    if (!load) continue;
+    const io = new IntersectionObserver(async (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      (await load()).mount(el, el.dataset.lang === 'de' ? 'de' : 'en', el.dataset.mode ?? '');
+    }, { rootMargin: '300px' });
+    io.observe(el);
+  }
+</script>

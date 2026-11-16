@@ -114,6 +114,7 @@ final class FeeTest extends TestCase
   },
   {
     id: 'functional-tests',
+    viz: { kind: 'scope', mode: 'functional-tests' },
     name: l('Functional tests', 'Funktionale Tests'),
     layer: 'static',
     phases: ['pre'],
@@ -181,6 +182,7 @@ test('a second person cannot take a reserved pet', () => {
   },
   {
     id: 'component-tests',
+    viz: { kind: 'scope', mode: 'component-tests' },
     name: l('Component tests', 'Komponententests'),
     layer: 'static',
     phases: ['pre'],
@@ -240,6 +242,7 @@ test('sends the chosen pet, not a hard-coded one', () => {
   },
   {
     id: 'integration-tests',
+    viz: { kind: 'scope', mode: 'integration-tests' },
     name: l('Integration tests', 'Integrationstests'),
     layer: 'static',
     phases: ['deploy'],
@@ -308,6 +311,7 @@ test('competing reservations leave exactly one owner', async () => {
   },
   {
     id: 'e2e-tests',
+    viz: { kind: 'scope', mode: 'e2e-tests' },
     name: l('End-to-end tests', 'End-to-End-Tests'),
     layer: 'static',
     phases: ['pre', 'deploy'],
@@ -358,6 +362,7 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
   },
   {
     id: 'acceptance-tests',
+    viz: { kind: 'scope', mode: 'acceptance-tests' },
     name: l('Acceptance tests', 'Akzeptanztests'),
     layer: 'static',
     phases: ['pre'],
@@ -460,6 +465,7 @@ test('regression: a rejected reservation preserves the first owner', () => {
   },
   {
     id: 'smoke-tests',
+    viz: { kind: 'scope', mode: 'smoke-tests' },
     name: l('Smoke tests', 'Smoke-Tests'),
     layer: 'static',
     phases: ['pre', 'deploy'],
@@ -631,6 +637,7 @@ test('provider payload meets the consumer contract', () => {
   },
   {
     id: 'ui-ux-tests',
+    viz: { kind: 'scope', mode: 'ui-ux-tests' },
     name: l('UI/UX tests (visual, accessibility)', 'UI/UX-Tests (visuell, Barrierefreiheit)'),
     layer: 'static',
     phases: ['pre'],

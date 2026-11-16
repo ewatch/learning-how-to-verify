@@ -42,6 +42,8 @@ export interface ThinkFirst {
   a: L;
 }
 
+export type VizKind = 'scope' | 'pipeline' | 'traffic' | 'load' | 'observe' | 'process';
+
 export interface Practice {
   id: string;
   name: L;
@@ -73,6 +75,8 @@ export interface Practice {
   variants?: { name: L; text: L }[];
   /** id of an interactive simulator or animation */
   sim?: string;
+  /** an animated diagram ("See it"): reusable diagram kind + practice-specific mode */
+  viz?: { kind: VizKind; mode: string };
   /** ids of getting-started guides */
   guides?: string[];
 }

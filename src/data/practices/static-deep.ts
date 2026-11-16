@@ -262,6 +262,7 @@ tests_dir = ["tests/"]
   },
   {
     id: 'coverage',
+    viz: { kind: 'pipeline', mode: 'coverage' },
     name: l('Coverage tests', 'Coverage (Testabdeckung)'),
     layer: 'static',
     phases: ['pre'],
@@ -377,6 +378,7 @@ final class PriceComparisonTest extends TestCase
   },
   {
     id: 'benchmark-tests',
+    viz: { kind: 'load', mode: 'benchmark-tests' },
     name: l('Benchmark tests', 'Benchmarks'),
     layer: 'static',
     phases: ['pre'],
@@ -429,6 +431,7 @@ console.table(bench.table());`, focus: [{ line: 3, note: l('Realistic data size 
   },
   {
     id: 'performance-tests',
+    viz: { kind: 'load', mode: 'performance-tests' },
     name: l('Performance tests', 'Performancetests'),
     layer: 'static',
     phases: ['pre'],
@@ -482,6 +485,7 @@ export default function () {
   },
   {
     id: 'load-tests',
+    viz: { kind: 'load', mode: 'load-tests' },
     name: l('Load tests', 'Lasttests'),
     layer: 'static',
     phases: ['deploy'],
@@ -533,6 +537,7 @@ export default function () {
   },
   {
     id: 'soak-tests',
+    viz: { kind: 'load', mode: 'soak-tests' },
     name: l('Soak tests', 'Dauerlasttests (Soak)'),
     layer: 'static',
     phases: ['deploy'],
@@ -586,6 +591,7 @@ export default function () {
   },
   {
     id: 'config-tests',
+    viz: { kind: 'pipeline', mode: 'config-tests' },
     name: l('Config tests', 'Konfigurationstests'),
     layer: 'static',
     phases: ['deploy'],

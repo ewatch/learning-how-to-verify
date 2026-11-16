@@ -3,6 +3,7 @@ import Base from '../../../../layouts/Base.astro';
 import WhereItSits from '../../../../components/WhereItSits.astro';
 import Evidence from '../../../../components/Evidence.astro';
 import LangTabs from '../../../../components/LangTabs.astro';
+import VizMount from '../../../../components/VizMount.astro';
 import SimMount from '../../../../components/SimMount.astro';
 import PracticeCard from '../../../../components/PracticeCard.astro';
 import type { Locale, Practice } from '../../../../data/types';
@@ -54,6 +55,12 @@ const num = () => String(++n).padStart(2, '0');
     </header>
 
     <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'whereItSits')}</h2><WhereItSits p={p} lang={lang} /></section>
+
+    {!p.sim && p.viz && (
+      <section class="layer-section" id="see"><h2><span class="num">{num()}</span>{t(lang, 'seeIt')}</h2>
+        <VizMount kind={p.viz.kind} mode={p.viz.mode} lang={lang} />
+      </section>
+    )}
 
     {p.sim && (
       <section class="layer-section" id="try"><h2><span class="num">{num()}</span>{t(lang, 'tryIt')}</h2>

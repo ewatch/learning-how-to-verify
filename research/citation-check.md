@@ -46,7 +46,7 @@ Status values:
 | id | status | citation (as in source file) | canonical URL | preprint | notes |
 |---|---|---|---|---|---|
 | tornhill2022 | as-reported | Tornhill & Borg, "Code Red: The Business Impact of Code Quality…", TechDebt 2022 | https://doi.org/10.1145/3524843.3528091 | no | Also arXiv 2203.04374. |
-| gloaguen2026 | as-reported | Gloaguen et al., "Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?", ICLR 2026 | https://arxiv.org/abs/2602.11988 | no (if ICLR acceptance holds; otherwise yes) | ICLR acceptance not re-checked. |
+| gloaguen2026 | corrected (P2 re-check) | Gloaguen et al., "Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?", MemAgents workshop at ICLR 2026 | https://arxiv.org/abs/2602.11988 | no (workshop publication) | Re-checked the arXiv record and the authors’ SRI Lab publication page. The lab identifies MemAgents and supplies a workshop BibTeX entry; main-conference acceptance is not established. OpenReview required browser verification. |
 | mundler2025 | as-reported | Mündler, He, Wang, Sen, Song, Vechev, "Type-Constrained Code Generation with Language Models", PLDI 2025 | https://doi.org/10.1145/3729274 | no | arXiv 2504.09246. |
 | habib2018 | as-reported | Habib & Pradel, "How Many of All Bugs Do We Find? A Study of Static Bug Detectors", ASE 2018 | https://doi.org/10.1145/3238147.3238213 | no | |
 | sadowski2018tools | as-reported | Sadowski et al., "Lessons from Building Static Analysis Tools at Google", CACM 2018 | https://doi.org/10.1145/3188720 | no | |
@@ -89,3 +89,13 @@ Status values:
 | googlepatcheval2025 | as-reported | Google patch-evaluation study (title not given in source file) | https://arxiv.org/abs/2511.10865 | yes | The source file gives no title or authors. |
 | dora2024 | as-reported | DORA / Google Cloud, *2024 Accelerate State of DevOps Report* | https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report | no (industry report) | |
 | becker2025 | as-reported | Becker et al. (METR), "Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity" | https://arxiv.org/abs/2507.09089 | yes | |
+
+## P2 evidence interpretation review (2026-11-16)
+
+Re-checked the registry sources `metr2026`, `patchdiff2026`, `dora2024`, `secsmell2026` and `gloaguen2026` against their primary pages. Source URLs remain centralized in `src/data/sources.ts`.
+
+- E2E and acceptance tests: mark the AI evidence weak and explicitly indirect. The benchmark findings expose test limitations; neither source measures the effect of adding the practice. The METR sample includes 296 reviewed agent PRs, rather than 296 test-passing PRs.
+- Monitoring: mark the AI evidence weak and indirect. A survey correlation about AI adoption and delivery stability does not establish monitoring effectiveness for agent-written code.
+- Configuration tests: remove the credential finding and show no AI effect study found. The security-smell study is not specific to configuration tests. Its finding already appears under security scanning, where it remains without duplication.
+- Missing evidence: describe the result of this research pass, without claiming that no measurement exists anywhere.
+- Gloaguen: use the precise workshop venue and remove the preprint badge. The arXiv link remains available; venue and badge describe the confirmed workshop publication.

@@ -35,7 +35,7 @@ export const staticDeep: Practice[] = [
       { name: l('Metamorphic testing', 'Metamorphes Testen'), text: l('Properties that relate outputs of related inputs, e.g. "filtering by price < 50 never returns more pets than price < 100". Useful when there is no oracle.', 'Eigenschaften über Ausgaben verwandter Eingaben, z. B. „Filtern nach Preis < 50 liefert nie mehr Tiere als Preis < 100“. Nützlich ohne Orakel.') },
       { name: l('Model-based / stateful testing', 'Modellbasiertes / zustandsbehaftetes Testen'), text: l('Generate random sequences of operations and compare the system against a simple model after every step.', 'Zufällige Folgen von Operationen erzeugen und das System nach jedem Schritt mit einem einfachen Modell vergleichen.') },
     ],
-    tools: { js: ['fast-check'], python: ['hypothesis'], java: ['jqwik'], dotnet: ['fscheck'], go: ['rapid'], rust: ['proptest'], cpp: ['rapidcheck'] },
+    tools: { php: ['eris'], js: ['fast-check'], python: ['hypothesis'], java: ['jqwik'], dotnet: ['fscheck'], go: ['rapid'], rust: ['proptest'], cpp: ['rapidcheck'] },
     sim: 'pbt',
     snippets: [
       { lang: 'js', file: 'allocate.property.test.ts', code: `import fc from 'fast-check';
@@ -65,6 +65,35 @@ def test_shares_add_up(weights, raw):
     shares = allocate(amount, weights)
     assert sum(shares) == (0 if total == 0 else amount)
     assert all(s <= w for s, w in zip(shares, weights))` },
+      { lang: 'php', file: 'AllocateTest.php', code: `<?php declare(strict_types=1);
+// composer require --dev phpunit/phpunit giorgiosironi/eris
+use Eris\\Generators;
+use Eris\\TestTrait;
+use PHPUnit\\Framework\\TestCase;
+
+final class AllocateTest extends TestCase
+{
+    use TestTrait;
+
+    public function testSharesAddUp(): void
+    {
+        $this->forAll(
+            Generators::choose(0, 10000),
+            Generators::choose(0, 10000),
+            Generators::choose(0, 20000),
+        )->then(function (int $a, int $b, int $raw): void {
+            $total = $a + $b;
+            $amount = $total === 0 ? 0 : $raw % ($total + 1);
+            $shares = allocate($amount, [$a, $b]);
+            self::assertCount(2, $shares);
+            self::assertSame($amount, array_sum($shares));
+            foreach ($shares as $i => $share) {
+                self::assertGreaterThanOrEqual(0, $share);
+                self::assertLessThanOrEqual([$a, $b][$i], $share);
+            }
+        });
+    }
+}` },
     ],
     steps: [
       l('Pick one function with clear rules (parser, calculation, data transformation).', 'Eine Funktion mit klaren Regeln wählen (Parser, Berechnung, Datentransformation).'),
@@ -114,7 +143,7 @@ def test_shares_add_up(weights, raw):
         f('googlefuzz2024', 'LLM-written fuzz targets found 26 new vulnerabilities, including one in OpenSSL, and added coverage in 272 projects.', 'LLM-geschriebene Fuzz-Targets fanden 26 neue Schwachstellen, darunter eine in OpenSSL, und erhöhten die Abdeckung in 272 Projekten.'),
         f('fuzz4all2024', 'An LLM-based fuzzer for six input languages beat language-specific fuzzers on coverage and found 98 bugs, 64 confirmed as new.', 'Ein LLM-basierter Fuzzer für sechs Eingabesprachen schlug sprachspezifische Fuzzer bei der Abdeckung und fand 98 Fehler, 64 davon als neu bestätigt.')),
     },
-    tools: { js: ['jazzer-js'], python: ['atheris'], java: ['jazzer'], dotnet: ['sharpfuzz'], go: ['go-fuzz'], rust: ['cargo-fuzz'], cpp: ['libfuzzer', 'aflplusplus'], any: ['oss-fuzz', 'restler', 'schemathesis'] },
+    tools: { php: ['php-fuzzer'], js: ['jazzer-js'], python: ['atheris'], java: ['jazzer'], dotnet: ['sharpfuzz'], go: ['go-fuzz'], rust: ['cargo-fuzz'], cpp: ['libfuzzer', 'aflplusplus'], any: ['oss-fuzz', 'restler', 'schemathesis'] },
     sim: 'fuzz',
     snippets: [
       { lang: 'js', file: 'search.fuzz.js', code: `// npx jazzer search.fuzz.js
@@ -191,7 +220,7 @@ module.exports.fuzz = (data) => {
       ai: ev('moderate', f('foster2025', 'Meta\'s ACH generated mutants and LLM tests for 10,795 Kotlin classes; engineers accepted 73% of the resulting tests.', 'Metas ACH erzeugte Mutanten und LLM-Tests für 10.795 Kotlin-Klassen; Entwickler übernahmen 73 % der entstandenen Tests.')),
     },
     variants: [{ name: l('Agent-generated tests', 'Von Agenten erzeugte Tests'), text: l('Let an agent write tests, but keep only those that compile, pass, and kill at least one surviving mutant.', 'Einen Agenten Tests schreiben lassen, aber nur die behalten, die kompilieren, bestehen und mindestens einen überlebenden Mutanten töten.') }],
-    tools: { js: ['stryker-js'], python: ['mutmut', 'cosmic-ray'], java: ['pitest'], dotnet: ['stryker-net'], go: ['gremlins'], rust: ['cargo-mutants'], cpp: ['mull'] },
+    tools: { php: ['infection'], js: ['stryker-js'], python: ['mutmut', 'cosmic-ray'], java: ['pitest'], dotnet: ['stryker-net'], go: ['gremlins'], rust: ['cargo-mutants'], cpp: ['mull'] },
     sim: 'mutation',
     snippets: [
       { lang: 'js', file: 'stryker.config.json', code: `{
@@ -241,7 +270,7 @@ tests_dir = ["tests/"]
         f('ivankovic2019', 'At Google coverage is widely adopted and developers find it useful in code review (adoption and perception data).', 'Bei Google ist Coverage weit verbreitet, und Entwickler finden sie im Code-Review nützlich (Nutzungs- und Wahrnehmungsdaten).')),
       ai: ev('moderate', f('foster2025', 'At Meta, 277 of 571 useful LLM-generated tests would have been discarded if line coverage had been the acceptance criterion.', 'Bei Meta wären 277 von 571 nützlichen LLM-generierten Tests verworfen worden, wäre Zeilenabdeckung das Abnahmekriterium gewesen.')),
     },
-    tools: { js: ['c8', 'vitest'], python: ['coveragepy'], java: ['jacoco'], dotnet: ['coverlet'], go: ['go-cover'], rust: ['cargo-llvm-cov'], cpp: ['lcov'] },
+    tools: { php: ['php-code-coverage', 'phpunit'], js: ['c8', 'vitest'], python: ['coveragepy'], java: ['jacoco'], dotnet: ['coverlet'], go: ['go-cover'], rust: ['cargo-llvm-cov'], cpp: ['lcov'] },
     steps: [l('Enable branch coverage (not just line coverage) and generate a report.', 'Zweigabdeckung (nicht nur Zeilenabdeckung) aktivieren und einen Bericht erzeugen.'), l('List uncovered branches in domain logic and decide for each: add a test or delete the code.', 'Nicht abgedeckte Zweige in der Fachlogik auflisten und für jeden entscheiden: Test ergänzen oder Code löschen.'), l('Show coverage of the changed lines in pull requests; do not enforce a global percentage.', 'Die Abdeckung der geänderten Zeilen in Pull Requests anzeigen; keinen globalen Prozentsatz erzwingen.')],
     done: l('Every uncovered branch in domain logic is either tested or removed; PRs show diff coverage.', 'Jeder nicht abgedeckte Zweig in der Fachlogik ist getestet oder entfernt; PRs zeigen die Diff-Abdeckung.'),
     think: [q('Why is "coverage went down" a more useful signal than "coverage is 85%"?', 'Warum ist „Abdeckung ist gesunken“ ein nützlicheres Signal als „Abdeckung ist 85 %“?', 'A drop points at specific new code without tests. A global number hides where the gaps are and invites gaming.', 'Ein Rückgang zeigt auf konkreten neuen Code ohne Tests. Eine globale Zahl verbirgt, wo die Lücken sind, und lädt zum Schönen ein.')],
@@ -265,7 +294,7 @@ tests_dir = ["tests/"]
       general: ev('strong', f('csmith2011', 'Differential testing of C compilers found more than 325 previously unknown bugs in GCC and LLVM; CompCert\'s verified middle-end was the only part where no wrong-code bugs were found.', 'Differential Testing von C-Compilern fand über 325 unbekannte Fehler in GCC und LLVM; die verifizierte Mittelschicht von CompCert war der einzige Teil ohne Fehlübersetzungen.')),
       ai: ev('moderate', f('patchdiff2026', 'Differential patch testing showed that 29.6% of agent patches that pass the tests behave differently from the reference fix.', 'Differenzielles Patch-Testing zeigte, dass sich 29,6 % der Agenten-Patches, die die Tests bestehen, anders verhalten als die Referenzlösung.')),
     },
-    tools: { js: ['fast-check'], python: ['hypothesis'], java: ['jqwik'], go: ['rapid'], rust: ['proptest'], any: ['diffy'] },
+    tools: { php: ['eris', 'phpunit'], js: ['fast-check'], python: ['hypothesis'], java: ['jqwik'], go: ['rapid'], rust: ['proptest'], any: ['diffy'] },
     sim: 'differential',
     snippets: [{ lang: 'js', file: 'price.differential.test.ts', code: `import fc from 'fast-check';
 import { priceCartOld } from './legacy/price';
@@ -275,7 +304,30 @@ test('new pricing agrees with the old one on every cart', () => {
   fc.assert(fc.property(arbitraryCart(), arbitraryVoucher(), (cart, voucher) => {
     expect(priceCart(cart, voucher)).toEqual(priceCartOld(cart, voucher));
   }), { numRuns: 5_000 });
-});` }],
+});` },
+      { lang: 'php', file: 'PriceComparisonTest.php', code: `<?php declare(strict_types=1);
+use Eris\\Generators;
+use Eris\\TestTrait;
+use PHPUnit\\Framework\\TestCase;
+
+final class PriceComparisonTest extends TestCase
+{
+    use TestTrait;
+
+    public function testRefactorKeepsPrices(): void
+    {
+        $this->forAll(Generators::choose(0, 100000))
+            ->then(function (int $cents): void {
+                foreach (['', 'ADOPT10', 'adopt10'] as $voucher) {
+                    self::assertSame(
+                        oldPrice($cents, $voucher),
+                        newPrice($cents, $voucher),
+                    );
+                }
+            });
+    }
+}` },
+    ],
     steps: [l('Keep the old implementation (or a simple reference) importable next to the new one.', 'Die alte Implementierung (oder eine einfache Referenz) neben der neuen importierbar halten.'), l('Write one property: for generated inputs, both give the same result (or both reject).', 'Eine Eigenschaft schreiben: Für erzeugte Eingaben liefern beide dasselbe Ergebnis (oder lehnen beide ab).'), l('List intended differences explicitly and exclude only those.', 'Gewollte Unterschiede ausdrücklich auflisten und nur diese ausnehmen.')],
     done: l('The differential property passes 5,000+ runs; every intended difference is listed with a reason.', 'Die differenzielle Eigenschaft besteht 5.000+ Läufe; jeder gewollte Unterschied ist mit Begründung gelistet.'),
     think: [q('Old and new pricing agree on 5,000 random carts. What could they still both get wrong?', 'Alte und neue Preisberechnung stimmen bei 5.000 Zufallswarenkörben überein. Was könnten beide trotzdem falsch machen?', 'Anything they share: the same wrong rounding rule, the same misunderstanding of a voucher. Agreement is evidence of equivalence, not of correctness.', 'Alles, was sie teilen: dieselbe falsche Rundungsregel, dasselbe Missverständnis eines Gutscheins. Übereinstimmung belegt Gleichwertigkeit, nicht Korrektheit.')],
@@ -295,7 +347,7 @@ test('new pricing agrees with the old one on every cart', () => {
     limits: [l('Noisy on shared CI machines; compare relative changes, not absolute numbers.', 'Auf geteilten CI-Maschinen verrauscht; relative Änderungen vergleichen, keine absoluten Zahlen.')],
     ai: l('Agents optimise for "tests pass", not for speed, and readily write quadratic loops. A benchmark with a regression threshold makes performance part of "done".', 'Agenten optimieren auf „Tests grün“, nicht auf Geschwindigkeit, und schreiben bereitwillig quadratische Schleifen. Ein Benchmark mit Regressionsschwelle macht Performance zum Teil von „fertig“.'),
     evidence: { general: ev('weak', f('jin2012', 'A study of 109 real performance bugs showed recurring patterns; rules extracted from 25 fixes found 332 previously unknown performance problems.', 'Eine Studie über 109 echte Performancefehler zeigte wiederkehrende Muster; aus 25 Korrekturen abgeleitete Regeln fanden 332 unbekannte Performanceprobleme.')), ai: none() },
-    tools: { js: ['tinybench', 'vitest'], python: ['pytest-benchmark'], java: ['jmh'], dotnet: ['benchmarkdotnet'], go: ['go-bench'], rust: ['criterion'], cpp: ['google-benchmark'], any: ['hyperfine'] },
+    tools: { php: ['phpbench'], js: ['tinybench', 'vitest'], python: ['pytest-benchmark'], java: ['jmh'], dotnet: ['benchmarkdotnet'], go: ['go-bench'], rust: ['criterion'], cpp: ['google-benchmark'], any: ['hyperfine'] },
     steps: [l('Write benchmarks for the 2–3 hottest functions with realistic input sizes, including a large one.', 'Benchmarks für die 2–3 heißesten Funktionen mit realistischen Eingabegrößen schreiben, darunter eine große.'), l('Store a baseline and fail when a change is more than X% slower on the same machine.', 'Eine Baseline speichern und scheitern, wenn eine Änderung auf derselben Maschine mehr als X % langsamer ist.')],
     done: l('Benchmarks run reproducibly; a deliberately quadratic change is flagged as a regression.', 'Benchmarks laufen reproduzierbar; eine absichtlich quadratische Änderung wird als Regression gemeldet.'),
     think: [q('Your search benchmark uses 10 pets. Why might it miss the regression that hurts production?', 'Dein Such-Benchmark nutzt 10 Tiere. Warum übersieht er womöglich die Regression, die in Produktion weh tut?', 'At n = 10, O(n) and O(n²) look the same. Benchmark at production sizes, or at several sizes to see the growth curve.', 'Bei n = 10 sehen O(n) und O(n²) gleich aus. In Produktionsgrößen messen, oder in mehreren Größen, um die Wachstumskurve zu sehen.')],
@@ -390,10 +442,10 @@ export default function () {
     feedback: 'seconds',
     worth: [l('Configuration changes cause a large share of outages and are often deployed with no tests at all.', 'Konfigurationsänderungen verursachen einen großen Teil der Ausfälle und werden oft ganz ohne Tests ausgerollt.'), l('Schema validation and policy checks (OPA) are cheap and fast.', 'Schemaprüfung und Policy-Checks (OPA) sind billig und schnell.')],
     limits: [l('A valid config can still be wrong for the situation; test it in context.', 'Eine gültige Konfiguration kann für die Lage trotzdem falsch sein; im Kontext testen.')],
-    ai: l('Agents edit config files as readily as code, but config usually has no tests. Hard-coded credentials are the most common critical smell in agent PRs.', 'Agenten ändern Konfigurationsdateien so bereitwillig wie Code, aber Konfiguration hat meist keine Tests. Fest kodierte Zugangsdaten sind der häufigste kritische Mangel in Agenten-PRs.'),
+    ai: l('Treat agent changes to configuration as code changes: validate schemas, enforce policies and test changed settings in context. Check for secrets separately with security scanning.', 'Konfigurationsänderungen von Agenten wie Codeänderungen behandeln: Schemas validieren, Policies prüfen und geänderte Einstellungen im Kontext testen. Secrets separat mit Security Scanning prüfen.'),
     evidence: {
       general: ev('moderate', f('sun2020ctest', 'Connecting configuration values to existing tests ("ctests") caught real failure-inducing configuration changes before deployment.', 'Konfigurationswerte mit bestehenden Tests zu verbinden („ctests“) fing echte fehlerauslösende Konfigurationsänderungen vor dem Deployment.')),
-      ai: ev('weak', f('secsmell2026', 'In agent-generated pull requests, hard-coded credentials made up 99.6% of critical-severity security smells (preprint).', 'In von Agenten erzeugten Pull Requests machten fest kodierte Zugangsdaten 99,6 % der kritischen Sicherheitsmängel aus (Preprint).')),
+      ai: none(),
     },
     tools: { any: ['conftest', 'kubeconform', 'checkov', 'cue'] },
     snippets: [{ lang: 'any', file: 'policy/deployment.rego', code: `package main

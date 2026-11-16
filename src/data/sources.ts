@@ -37,7 +37,7 @@ export const SOURCES: Source[] = [
   s('revmate2024', 'Olewicki, Da Silva, Mujahid, et al.', 'Impact of LLM-based Review Comment Generation in Practice', 'arXiv', 2024, 'https://arxiv.org/abs/2411.07091', true),
   s('impossiblebench2026', 'Zhong, Raghunathan, Carlini', "ImpossibleBench: Measuring LLMs' Propensity of Exploiting Test Cases", 'ICLR', 2026, 'https://arxiv.org/abs/2510.20270'),
   s('tornhill2022', 'Tornhill, Borg', 'Code Red: The Business Impact of Code Quality', 'TechDebt', 2022, 'https://doi.org/10.1145/3524843.3528091'),
-  s('gloaguen2026', 'Gloaguen et al.', 'Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?', 'arXiv / ICLR', 2026, 'https://arxiv.org/abs/2602.11988', true),
+  s('gloaguen2026', 'Gloaguen et al.', 'Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?', 'MemAgents workshop at ICLR', 2026, 'https://arxiv.org/abs/2602.11988'),
   s('mundler2025', 'Mündler, He, Wang, Sen, Song, Vechev', 'Type-Constrained Code Generation with Language Models', 'PLDI', 2025, 'https://doi.org/10.1145/3729274'),
   s('habib2018', 'Habib, Pradel', 'How Many of All Bugs Do We Find? A Study of Static Bug Detectors', 'ASE', 2018, 'https://doi.org/10.1145/3238147.3238213'),
   s('sadowski2018tools', 'Sadowski, Aftandilian, Eagle, Miller-Cushon, Jaspan', 'Lessons from Building Static Analysis Tools at Google', 'CACM', 2018, 'https://doi.org/10.1145/3188720'),

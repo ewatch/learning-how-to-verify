@@ -31,7 +31,7 @@ export const UI = {
   evidence: { en: 'Evidence', de: 'Evidenz' },
   evidenceGeneral: { en: 'In software engineering', de: 'In der Softwaretechnik' },
   evidenceAi: { en: 'With AI agents', de: 'Mit KI-Agenten' },
-  evidenceNone: { en: 'No study of its effect found. That does not mean it does not work; nobody has measured it.', de: 'Keine Studie zur Wirkung gefunden. Das heißt nicht, dass es nicht wirkt; niemand hat es gemessen.' },
+  evidenceNone: { en: 'We found no study of its effect. This does not mean the practice is ineffective.', de: 'Wir haben keine Studie zur Wirkung gefunden. Das bedeutet nicht, dass die Praxis unwirksam ist.' },
   preprint: { en: 'preprint', de: 'Preprint' },
   variants: { en: 'Variants on this page', de: 'Varianten auf dieser Seite' },
   yourLanguage: { en: 'Your language', de: 'Deine Sprache' },

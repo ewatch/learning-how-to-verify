@@ -29,7 +29,7 @@ export const staticChecks: Practice[] = [
       general: ev('moderate', f('gao2017', 'Of 400 public JavaScript bugs, TypeScript or Flow would each have caught about 15%, even though these bugs had already survived testing and review.', 'Von 400 öffentlichen JavaScript-Fehlern hätten TypeScript oder Flow jeweils etwa 15 % gefunden, obwohl diese Fehler Tests und Review schon überstanden hatten.')),
       ai: ev('moderate', f('mundler2025', '94% of compile errors in LLM-generated TypeScript were type errors; type-constrained decoding cut compile errors by more than half and improved functional correctness.', '94 % der Compilerfehler in LLM-generiertem TypeScript waren Typfehler; typbeschränktes Decoding senkte die Compilerfehler um mehr als die Hälfte und verbesserte die funktionale Korrektheit.')),
     },
-    tools: { js: ['typescript'], python: ['mypy', 'pyright'], java: ['nullaway'], dotnet: ['roslyn'], go: ['go-vet'], rust: ['rustc'], cpp: ['clang'] },
+    tools: { php: ['phpstan', 'psalm'], js: ['typescript'], python: ['mypy', 'pyright'], java: ['nullaway'], dotnet: ['roslyn'], go: ['go-vet'], rust: ['rustc'], cpp: ['clang'] },
     snippets: [
       { lang: 'js', file: 'tsconfig.json', code: `{
   "compilerOptions": {
@@ -43,6 +43,22 @@ export const staticChecks: Practice[] = [
 strict = true
 warn_unreachable = true
 disallow_any_explicit = true` },
+      { lang: 'php', file: 'Reservation.php', code: `<?php declare(strict_types=1);
+// composer require --dev phpstan/phpstan
+// vendor/bin/phpstan analyse --level=max src
+final readonly class Reservation
+{
+    public function __construct(
+        public string $petId,
+        public string $person,
+    ) {}
+}
+
+function owner(Reservation $reservation): string
+{
+    return $reservation->person;
+}
+// owner(null); // PHPStan reports: Reservation expected, null given.` },
     ],
     steps: [
       l('Enable the strictest compiler/type-checker settings listed below and run the check.', 'Die strengsten Compiler-/Typprüfer-Einstellungen unten aktivieren und die Prüfung laufen lassen.'),
@@ -83,7 +99,7 @@ disallow_any_explicit = true` },
       general: none(),
       ai: ev('moderate', f('sweagent2024', 'In SWE-agent\'s ablation, removing the linting guardrail from the edit command lowered SWE-bench Lite success from 18.0% to 15.0%.', 'In der Ablation von SWE-agent sank die Erfolgsquote auf SWE-bench Lite von 18,0 % auf 15,0 %, als der Linter-Schutz am Edit-Befehl entfernt wurde.')),
     },
-    tools: { js: ['eslint', 'typescript-eslint', 'biome'], python: ['ruff'], java: ['checkstyle', 'detekt'], dotnet: ['roslyn-analyzers'], go: ['golangci-lint'], rust: ['clippy'], cpp: ['clang-tidy'], any: ['pre-commit'] },
+    tools: { php: ['phpcs', 'php-cs-fixer'], js: ['eslint', 'typescript-eslint', 'biome'], python: ['ruff'], java: ['checkstyle', 'detekt'], dotnet: ['roslyn-analyzers'], go: ['golangci-lint'], rust: ['clippy'], cpp: ['clang-tidy'], any: ['pre-commit'] },
     snippets: [
       { lang: 'js', file: 'eslint.config.js', code: `import tseslint from 'typescript-eslint';
 
@@ -144,7 +160,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
         f('sadowski2018tools', 'At Google, analysers were only used when built into the workflow (compiler, code review) and kept to a low effective false-positive rate.', 'Bei Google wurden Analysatoren nur genutzt, wenn sie im Arbeitsablauf (Compiler, Code-Review) steckten und kaum Fehlalarme lieferten.')),
       ai: ev('moderate', f('blyth2025', 'Feeding Bandit/Pylint findings back to GPT-4o cut outputs with security issues from over 40% to 13% within 10 iterations (preprint).', 'Bandit-/Pylint-Funde an GPT-4o zurückzugeben senkte den Anteil von Ausgaben mit Sicherheitsproblemen in 10 Iterationen von über 40 % auf 13 % (Preprint).')),
     },
-    tools: { java: ['error-prone', 'spotbugs', 'infer'], go: ['staticcheck'], cpp: ['clang-analyzer', 'cppcheck', 'infer'], any: ['semgrep'] },
+    tools: { php: ['phpstan', 'psalm'], java: ['error-prone', 'spotbugs', 'infer'], go: ['staticcheck'], cpp: ['clang-analyzer', 'cppcheck', 'infer'], any: ['semgrep'] },
     snippets: [
       { lang: 'any', file: '.semgrep/no-client-price.yml', code: `rules:
   - id: trust-client-price
@@ -199,7 +215,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
       { name: l('Supply chain (SBOM, provenance, pinning)', 'Lieferkette (SBOM, Herkunftsnachweis, Pinning)'), text: l('Record what went into a build and verify where artefacts came from. Lockfiles plus an SBOM are the minimum.', 'Festhalten, was in einen Build einging, und prüfen, woher Artefakte stammen. Lockfiles plus SBOM sind das Minimum.') },
       { name: l('DAST', 'DAST'), text: l('Dynamic scanning attacks the running app from outside (e.g. ZAP baseline scan in a staging deploy).', 'Dynamische Scans greifen die laufende Anwendung von außen an (z. B. ZAP-Baseline-Scan beim Staging-Deploy).') },
     ],
-    tools: { python: ['bandit'], go: ['gosec', 'govulncheck'], rust: ['cargo-audit'], any: ['gitleaks', 'osv-scanner', 'trivy', 'semgrep', 'syft', 'zap'] },
+    tools: { php: ['composer', 'psalm'], python: ['bandit'], go: ['gosec', 'govulncheck'], rust: ['cargo-audit'], any: ['gitleaks', 'osv-scanner', 'trivy', 'semgrep', 'syft', 'zap'] },
     snippets: [
       { lang: 'any', file: '.pre-commit-config.yaml', code: `repos:
   - repo: https://github.com/gitleaks/gitleaks
@@ -310,7 +326,7 @@ jobs:
         f('mathews2024', 'Giving GPT-4 and Llama 3 the tests together with the problem statement raised success on MBPP and HumanEval.', 'Bekamen GPT-4 und Llama 3 die Tests zusammen mit der Aufgabenstellung, stieg der Erfolg auf MBPP und HumanEval.'),
         f('reflexion2023', 'Iterating on unit-test feedback raised HumanEval pass@1 to 91%.', 'Iteration auf Unit-Test-Feedback hob pass@1 auf HumanEval auf 91 %.')),
     },
-    tools: { js: ['vitest'], python: ['pytest'], java: ['junit'], dotnet: ['xunit'], go: ['go-test'], rust: ['cargo-test'], cpp: ['googletest'], any: ['spec-kit'] },
+    tools: { php: ['phpunit', 'pest'], js: ['vitest'], python: ['pytest'], java: ['junit'], dotnet: ['xunit'], go: ['go-test'], rust: ['cargo-test'], cpp: ['googletest'], any: ['spec-kit'] },
     snippets: [
       { lang: 'js', file: 'reserve.test.ts', code: `// Written and approved by a human BEFORE the agent implements reserve().
 describe('reserve', () => {
@@ -324,6 +340,20 @@ describe('reserve', () => {
     expect(reserve(pets, 'rex', 'ben')).toEqual({ ok: false, reason: 'taken' });
   });
 });` },
+      { lang: 'php', file: 'ReservationTest.php', code: `<?php declare(strict_types=1);
+// Write this test first. Implement PetStore only after seeing it fail.
+use PHPUnit\\Framework\\TestCase;
+
+final class ReservationTest extends TestCase
+{
+    public function testPetCannotBeReservedTwice(): void
+    {
+        $store = new PetStore(['rex']);
+        $store->reserve('rex', 'anna');
+        $this->expectException(PetAlreadyReserved::class);
+        $store->reserve('rex', 'ben');
+    }
+}` },
     ],
     steps: [
       l('Write the acceptance tests or the spec for the next change and get them approved before any implementation.', 'Die Akzeptanztests oder die Spezifikation für die nächste Änderung schreiben und vor jeder Implementierung freigeben lassen.'),

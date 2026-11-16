@@ -80,7 +80,7 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
         try { localStorage.setItem('theme', root.dataset.theme); } catch {}
       });
       // copy buttons: <button data-copy="id"> copies the text of #id
-      const LANG_NAMES: Record<string, string> = { js: 'JavaScript / TypeScript', python: 'Python', java: 'Java / Kotlin', dotnet: 'C# / .NET', go: 'Go', rust: 'Rust', cpp: 'C / C++' };
+      const LANG_NAMES: Record<string, string> = { js: 'JavaScript / TypeScript', python: 'Python', php: 'PHP', java: 'Java / Kotlin', dotnet: 'C# / .NET', go: 'Go', rust: 'Rust', cpp: 'C / C++' };
       document.addEventListener('click', async (e) => {
         const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-copy]');
         if (!btn) return;

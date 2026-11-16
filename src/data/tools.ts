@@ -7,9 +7,30 @@ function t(id: string, name: string, url: string, repo: string, license: string,
 
 /**
  * Open-source tools only. `license` is the SPDX id as reported by the repository.
- * `npm run verify:data` checks GitHub-hosted repos against the GitHub API.
+ * `npm run check:licenses` checks GitHub-hosted repos against the GitHub API.
  */
 export const TOOLS: Tool[] = [
+  // ---------- PHP ----------
+  t('phpunit', 'PHPUnit', 'https://phpunit.de', 'sebastianbergmann/phpunit', 'BSD-3-Clause', ['php']),
+  t('pest', 'Pest', 'https://pestphp.com', 'pestphp/pest', 'MIT', ['php']),
+  t('phpstan', 'PHPStan', 'https://phpstan.org', 'phpstan/phpstan', 'MIT', ['php']),
+  t('psalm', 'Psalm', 'https://psalm.dev', 'vimeo/psalm', 'MIT', ['php']),
+  t('eris', 'Eris', 'https://eris.readthedocs.io', 'giorgiosironi/eris', 'MIT', ['php']),
+  t('infection', 'Infection', 'https://infection.github.io', 'infection/infection', 'BSD-3-Clause', ['php']),
+  t('composer', 'Composer (audit)', 'https://getcomposer.org/doc/03-cli.md#audit', 'composer/composer', 'MIT', ['php']),
+  t('phpcs', 'PHP_CodeSniffer', 'https://github.com/PHPCSStandards/PHP_CodeSniffer', 'PHPCSStandards/PHP_CodeSniffer', 'BSD-3-Clause', ['php']),
+  t('php-cs-fixer', 'PHP CS Fixer', 'https://cs.symfony.com', 'PHP-CS-Fixer/PHP-CS-Fixer', 'MIT', ['php']),
+  t('deptrac', 'Deptrac', 'https://deptrac.github.io/deptrac/', 'deptrac/deptrac', 'MIT', ['php']),
+  t('rector', 'Rector', 'https://getrector.com', 'rectorphp/rector', 'MIT', ['php']),
+  t('codeception', 'Codeception', 'https://codeception.com', 'Codeception/Codeception', 'MIT', ['php']),
+  t('behat', 'Behat', 'https://docs.behat.org', 'Behat/Behat', 'MIT', ['php']),
+  t('php-code-coverage', 'php-code-coverage (via PHPUnit)', 'https://docs.phpunit.de/en/12.5/code-coverage.html', 'sebastianbergmann/php-code-coverage', 'BSD-3-Clause', ['php']),
+  t('phpbench', 'PHPBench', 'https://phpbench.readthedocs.io', 'phpbench/phpbench', 'MIT', ['php']),
+  t('webmozart-assert', 'Webmozart Assert', 'https://github.com/webmozarts/assert', 'webmozarts/assert', 'MIT', ['php']),
+  t('php-fuzzer', 'PHP-Fuzzer (experimental)', 'https://github.com/nikic/PHP-Fuzzer', 'nikic/PHP-Fuzzer', 'MIT', ['php']),
+  t('pact-php', 'Pact PHP', 'https://github.com/pact-foundation/pact-php', 'pact-foundation/pact-php', 'Apache-2.0', ['php']),
+  t('phpunit-snapshots', 'PHPUnit Snapshot Assertions', 'https://github.com/spatie/phpunit-snapshot-assertions', 'spatie/phpunit-snapshot-assertions', 'MIT', ['php']),
+
   // ---------- test runners ----------
   t('vitest', 'Vitest', 'https://vitest.dev', 'vitest-dev/vitest', 'MIT', ['js']),
   t('jest', 'Jest', 'https://jestjs.io', 'jestjs/jest', 'MIT', ['js']),

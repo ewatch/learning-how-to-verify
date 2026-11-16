@@ -102,7 +102,7 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
       ai: ev('weak', f('clover2024', 'Indirect: requires/ensures contracts served as the spec that LLM-generated code had to satisfy, and consistency checks rejected all adversarial wrong programs.', 'Indirekt: requires/ensures-Verträge dienten als Spezifikation für LLM-generierten Code, und Konsistenzprüfungen wiesen alle absichtlich falschen Programme ab.')),
     },
     variants: [{ name: l('Runtime verification', 'Laufzeitverifikation'), text: l('Check production logs or traces against a formal spec (e.g. AWS checks logs against P specifications).', 'Produktionslogs oder Traces gegen eine formale Spezifikation prüfen (z. B. prüft AWS Logs gegen P-Spezifikationen).') }],
-    tools: { js: ['zod'], python: ['icontract', 'deal', 'crosshair'], java: ['openjml'], rust: ['kani', 'prusti'], cpp: ['gsl'], any: ['dafny'] },
+    tools: { php: ['webmozart-assert'], js: ['zod'], python: ['icontract', 'deal', 'crosshair'], java: ['openjml'], rust: ['kani', 'prusti'], cpp: ['gsl'], any: ['dafny'] },
     snippets: [
       { lang: 'js', file: 'allocate.ts', code: `import assert from 'node:assert/strict';
 
@@ -121,6 +121,29 @@ export function allocate(amount: number, weights: number[]): number[] {
 @icontract.ensure(lambda weights, result: all(s <= w for s, w in zip(result, weights)))
 def allocate(amount: int, weights: list[int]) -> list[int]:
     ...` },
+      { lang: 'php', file: 'allocate.php', code: `<?php declare(strict_types=1);
+// composer require webmozart/assert
+use Webmozart\\Assert\\Assert;
+
+/** @param list<int> $weights @return list<int> */
+function allocate(int $amount, array $weights): array
+{
+    Assert::isList($weights);
+    Assert::allInteger($weights);
+    Assert::allGreaterThanEq($weights, 0);
+    $total = array_sum($weights);
+    Assert::range($amount, 0, $total);
+    $shares = computeShares($amount, $weights, $total);
+    Assert::count($shares, count($weights));
+    Assert::allInteger($shares);
+    Assert::allGreaterThanEq($shares, 0);
+    Assert::same(array_sum($shares), $amount);
+    foreach ($shares as $i => $share) {
+        Assert::lessThanEq($share, $weights[$i]);
+    }
+    return $shares;
+}
+// Unlike PHP's built-in assert(), these checks remain active in production.` },
     ],
     steps: [l('For 2–3 core functions, write the pre- and postconditions in plain words.', 'Für 2–3 Kernfunktionen die Vor- und Nachbedingungen in Worten aufschreiben.'), l('Encode them as assertions or contract decorators that run in tests and staging.', 'Sie als Assertions oder Vertragsdekoratoren kodieren, die in Tests und Staging laufen.'), l('Run property-based tests or fuzzing against the functions so the contracts get exercised.', 'Property-Based Tests oder Fuzzing gegen die Funktionen laufen lassen, damit die Verträge geprüft werden.')],
     done: l('Contracts are in place, documented in words, and a generated-input test run triggers no contract violation.', 'Verträge sind vorhanden und in Worten dokumentiert, und ein Testlauf mit erzeugten Eingaben löst keine Vertragsverletzung aus.'),
@@ -290,7 +313,7 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Monitoring is where you find out that a check earlier in the funnel was missing. Feed incidents back: each one should produce a test, a lint rule or a contract.', 'Im Monitoring merkt man, dass eine Prüfung weiter oben im Trichter fehlte. Vorfälle zurückführen: Jeder sollte einen Test, eine Lint-Regel oder einen Vertrag hervorbringen.'),
     evidence: {
       general: ev('moderate', f('accelerate2018', 'Monitoring and observability are among the capabilities that predict delivery performance (survey-based, correlational).', 'Monitoring und Observability gehören zu den Fähigkeiten, die Liefer-Performance vorhersagen (Umfragedaten, korrelativ).')),
-      ai: ev('moderate', f('dora2024', 'Each 25% increase in AI adoption was associated with an estimated 7.2% drop in delivery stability, so watching production matters more, not less.', 'Jede Zunahme der KI-Nutzung um 25 % ging mit geschätzt 7,2 % weniger Lieferstabilität einher; Produktion zu beobachten wird wichtiger, nicht unwichtiger.')),
+      ai: ev('weak', f('dora2024', 'Indirect evidence: DORA associated higher AI adoption with lower delivery stability (survey-based correlation). It did not measure whether monitoring improves the reliability of agent-written code.', 'Indirekte Evidenz: DORA fand einen Zusammenhang zwischen höherer KI-Nutzung und geringerer Lieferstabilität (Korrelation aus Umfragedaten). Ob Monitoring die Zuverlässigkeit von Agenten-Code verbessert, wurde nicht gemessen.')),
     },
     tools: { any: ['prometheus', 'grafana', 'alertmanager', 'opentelemetry'] },
     steps: [l('Instrument the four golden signals and one business metric for the main service.', 'Die vier goldenen Signale und eine Geschäftsmetrik für den Hauptdienst instrumentieren.'), l('Define an SLO (e.g. 99.5% of reservations succeed within 1 s) and alert on burn rate.', 'Ein SLO definieren (z. B. 99,5 % der Reservierungen gelingen binnen 1 s) und auf die Burn Rate alarmieren.'), l('Link every alert to a runbook.', 'Jeden Alarm mit einem Runbook verknüpfen.')],

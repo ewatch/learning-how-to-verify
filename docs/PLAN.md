@@ -53,7 +53,7 @@ Home (interactive funnel) · Lifecycle map · My stack (pick language) · Start 
 
 ## Languages
 
-- Programming languages in tables: JS/TS, Python, Java/Kotlin, C#/.NET, Go, Rust, C/C++ (+ others only where tooling is notable). Open-source tools only, single data file, each with license + repo.
+- Programming languages in tables: JS/TS, Python, PHP, Java/Kotlin, C#/.NET, Go, Rust, C/C++ (+ others only where tooling is notable). Open-source tools only, single data file, each with license + repo.
 - Site languages: EN and DE at full parity, `/en/…` and `/de/…`; switch keeps the page. EN authored first, DE reviewed by the owner. Technical terms stay English with German gloss.
 
 ## Tech

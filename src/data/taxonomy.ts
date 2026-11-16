@@ -80,6 +80,7 @@ export interface ProgLang {
 export const LANGS: ProgLang[] = [
   { id: 'js', name: 'JavaScript / TypeScript', short: 'JS/TS' },
   { id: 'python', name: 'Python', short: 'Python' },
+  { id: 'php', name: 'PHP', short: 'PHP' },
   { id: 'java', name: 'Java / Kotlin', short: 'Java' },
   { id: 'dotnet', name: 'C# / .NET', short: 'C#' },
   { id: 'go', name: 'Go', short: 'Go' },

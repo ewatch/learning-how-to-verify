@@ -6,7 +6,7 @@ export type L = { en: string; de: string };
 
 export type LayerId = 'codebase' | 'static' | 'verification' | 'prose' | 'review';
 export type PhaseId = 'pre' | 'deploy' | 'release' | 'post';
-export type LangId = 'js' | 'python' | 'java' | 'dotnet' | 'go' | 'rust' | 'cpp' | 'any';
+export type LangId = 'js' | 'python' | 'php' | 'java' | 'dotnet' | 'go' | 'rust' | 'cpp' | 'any';
 export type Rating = 'strong' | 'moderate' | 'weak' | 'none';
 
 export interface Finding {

@@ -1,7 +1,7 @@
 import type { Practice } from '../types';
 import { ev, f, l, none, q } from './_h';
 
-const RUNNERS = { js: ['vitest', 'jest', 'node-test'], python: ['pytest'], java: ['junit', 'kotest'], dotnet: ['xunit', 'nunit'], go: ['go-test'], rust: ['cargo-test'], cpp: ['googletest', 'catch2'] };
+const RUNNERS = { php: ['phpunit', 'pest'], js: ['vitest', 'jest', 'node-test'], python: ['pytest'], java: ['junit', 'kotest'], dotnet: ['xunit', 'nunit'], go: ['go-test'], rust: ['cargo-test'], cpp: ['googletest', 'catch2'] };
 
 export const staticTests: Practice[] = [
   {
@@ -57,6 +57,25 @@ def test_senior_pets_pay_half():
 def test_negative_age_is_rejected():
     with pytest.raises(ValueError):
         adoption_fee(species="dog", age_years=-1)` },
+      { lang: 'php', file: 'FeeTest.php', code: `<?php declare(strict_types=1);
+// composer require --dev phpunit/phpunit
+// vendor/bin/phpunit tests/FeeTest.php --bootstrap vendor/autoload.php
+use PHPUnit\\Framework\\TestCase;
+
+final class FeeTest extends TestCase
+{
+    public function testSeniorBoundary(): void
+    {
+        self::assertSame(12000, adoptionFee('dog', 7));
+        self::assertSame(6000, adoptionFee('dog', 8));
+    }
+
+    public function testNegativeAgeIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        adoptionFee('dog', -1);
+    }
+}` },
     ],
     steps: [
       l('Pick one module with business logic and list its behaviours, including every error case.', 'Ein Modul mit Fachlogik wählen und seine Verhaltensweisen auflisten, inklusive jedes Fehlerfalls.'),
@@ -117,7 +136,7 @@ def test_negative_age_is_rejected():
     limits: [l('Fakes can drift from the real neighbours. Back them with contract tests.', 'Fakes können sich von den echten Nachbarn entfernen. Mit Contract-Tests absichern.')],
     ai: l('Agents frequently break wiring (a forgotten provider, a renamed prop). Component tests catch that faster than end-to-end tests.', 'Agenten zerbrechen oft die Verdrahtung (vergessener Provider, umbenannte Prop). Komponententests fangen das schneller als End-to-End-Tests.'),
     evidence: { general: none(), ai: none() },
-    tools: { js: ['testing-library', 'storybook', 'vitest'], python: ['pytest'], java: ['junit', 'testcontainers'], dotnet: ['xunit', 'testcontainers'], go: ['go-test', 'testcontainers'] },
+    tools: { php: ['phpunit', 'codeception'], js: ['testing-library', 'storybook', 'vitest'], python: ['pytest'], java: ['junit', 'testcontainers'], dotnet: ['xunit', 'testcontainers'], go: ['go-test', 'testcontainers'] },
     steps: [l('Choose a component and fake only what crosses its boundary (HTTP, database, clock).', 'Eine Komponente wählen und nur fälschen, was ihre Grenze überquert (HTTP, Datenbank, Uhr).'), l('Test its behaviour through its own interface, e.g. render the UI component and interact by role.', 'Ihr Verhalten über ihre eigene Schnittstelle testen, z. B. die UI-Komponente rendern und über Rollen interagieren.')],
     done: l('The component\'s main behaviours are tested with fakes only at its boundary.', 'Die wichtigsten Verhaltensweisen der Komponente sind getestet, mit Fakes nur an ihrer Grenze.'),
     think: [q('Why query a button by its accessible name rather than by a CSS class?', 'Warum einen Button über seinen zugänglichen Namen statt über eine CSS-Klasse suchen?', 'Users and screen readers find it by name, not by class. The test then fails when the button becomes unusable, not when someone renames a class.', 'Nutzer und Screenreader finden ihn über den Namen, nicht über die Klasse. Der Test scheitert dann, wenn der Button unbenutzbar wird, nicht wenn jemand eine Klasse umbenennt.')],
@@ -137,7 +156,7 @@ def test_negative_age_is_rejected():
     limits: [l('Slower and flakier than unit tests; keep them few and focused on boundaries.', 'Langsamer und wackeliger als Unit-Tests; wenige, auf Grenzen fokussierte.')],
     ai: l('Agents write mocks that agree with their own code. An integration test against the real database is an oracle the agent cannot bend.', 'Agenten schreiben Mocks, die ihrem eigenen Code zustimmen. Ein Integrationstest gegen die echte Datenbank ist ein Orakel, das der Agent nicht verbiegen kann.'),
     evidence: { general: none(), ai: none() },
-    tools: { js: ['testcontainers', 'vitest'], python: ['testcontainers', 'pytest'], java: ['testcontainers', 'junit'], dotnet: ['testcontainers', 'xunit'], go: ['testcontainers', 'go-test'], rust: ['testcontainers', 'cargo-test'] },
+    tools: { php: ['phpunit', 'codeception'], js: ['testcontainers', 'vitest'], python: ['testcontainers', 'pytest'], java: ['testcontainers', 'junit'], dotnet: ['testcontainers', 'xunit'], go: ['testcontainers', 'go-test'], rust: ['testcontainers', 'cargo-test'] },
     steps: [l('Start the real dependency (e.g. Postgres) in a container per test run.', 'Die echte Abhängigkeit (z. B. Postgres) pro Testlauf in einem Container starten.'), l('Test the boundary code (repository, client) against it, including a concurrent case: two reservations of the same pet at once.', 'Den Grenzcode (Repository, Client) dagegen testen, inklusive eines nebenläufigen Falls: zwei gleichzeitige Reservierungen desselben Tiers.')],
     done: l('Integration tests run in CI against real containers, including one concurrency test.', 'Integrationstests laufen in der CI gegen echte Container, inklusive eines Nebenläufigkeitstests.'),
     think: [q('Your mock repository makes the double-booking test pass. Why might production still double-book?', 'Dein Mock-Repository lässt den Doppelbuchungstest bestehen. Warum könnte die Produktion trotzdem doppelt buchen?', 'The mock runs one call at a time. The real database runs two transactions in parallel; without a unique constraint or row lock both can read "available" and both write.', 'Der Mock verarbeitet einen Aufruf nach dem anderen. Die echte Datenbank führt zwei Transaktionen parallel aus; ohne Unique-Constraint oder Zeilensperre lesen beide „frei“ und schreiben beide.')],
@@ -156,8 +175,8 @@ def test_negative_age_is_rejected():
     worth: [l('The only test that sees what the user sees.', 'Der einzige Test, der sieht, was der Nutzer sieht.'), l('A handful of critical journeys (search, reserve, pay) gives a lot of confidence.', 'Eine Handvoll kritischer Abläufe (suchen, reservieren, bezahlen) gibt viel Sicherheit.')],
     limits: [l('Slow, brittle and imprecise; keep the number small and push detail down to cheaper tests.', 'Langsam, brüchig und unpräzise; wenige halten und Details in billigere Tests verlagern.')],
     ai: l('Agents can make every unit test pass while the assembled app is broken. One end-to-end run of the main journey catches that, and Playwright traces give the agent a readable failure.', 'Agenten können jeden Unit-Test grün machen, während die zusammengesetzte App kaputt ist. Ein End-to-End-Lauf des Hauptablaufs fängt das, und Playwright-Traces geben dem Agenten einen lesbaren Fehler.'),
-    evidence: { general: none(), ai: ev('moderate', f('metr2026', 'Maintainers would merge only about half of 296 agent PRs that passed the automated tests, a reminder that unit-level green is not the same as working.', 'Maintainer würden nur etwa die Hälfte von 296 Agenten-PRs mergen, die die automatischen Tests bestanden: Grün auf Unit-Ebene ist nicht dasselbe wie funktionierend.')) },
-    tools: { js: ['playwright', 'cypress'], python: ['playwright'], java: ['playwright'], dotnet: ['playwright'] },
+    evidence: { general: none(), ai: ev('weak', f('metr2026', 'Indirect evidence: METR had maintainers review 296 agent PRs; roughly half of test-passing SWE-bench Verified PRs would not be merged after adjusting for noise in maintainer decisions. This shows limits of benchmark tests, not the effect of adding E2E tests.', 'Indirekte Evidenz: Bei METR reviewten Maintainer 296 Agenten-PRs; nach Bereinigung um Schwankungen der Maintainer-Entscheidungen würde etwa die Hälfte der testbestehenden SWE-bench-Verified-PRs nicht gemergt. Das zeigt Grenzen der Benchmark-Tests, nicht die Wirkung zusätzlicher E2E-Tests.')) },
+    tools: { php: ['codeception'], js: ['playwright', 'cypress'], python: ['playwright'], java: ['playwright'], dotnet: ['playwright'] },
     snippets: [{ lang: 'js', file: 'reserve.spec.ts', code: `import { test, expect } from '@playwright/test';
 
 test('a visitor can reserve a pet, and it disappears from the list', async ({ page }) => {
@@ -187,8 +206,8 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     worth: [l('Written in domain language (Gherkin or plain tests), readable by non-developers.', 'In Fachsprache geschrieben (Gherkin oder einfache Tests), auch für Nicht-Entwickler lesbar.'), l('A natural contract between the person asking and the one (or the agent) building.', 'Ein natürlicher Vertrag zwischen Auftraggeber und dem, der baut, ob Mensch oder Agent.')],
     limits: [l('Gherkin layers can become a maintenance burden; plain tests with good names often suffice.', 'Gherkin-Schichten können zur Wartungslast werden; einfache Tests mit guten Namen genügen oft.')],
     ai: l('Acceptance tests are the natural "spec" to hand an agent. SWE-bench\'s fail-to-pass tests are exactly this. Keep them human-approved and protected.', 'Akzeptanztests sind die natürliche „Spezifikation“ für einen Agenten. Die Fail-to-Pass-Tests von SWE-bench sind genau das. Von Menschen freigegeben und geschützt halten.'),
-    evidence: { general: none(), ai: ev('moderate', f('patchdiff2026', '29.6% of agent patches that passed SWE-bench\'s acceptance tests behaved differently from the reference fix: acceptance tests are necessary, not sufficient.', '29,6 % der Agenten-Patches, die die Akzeptanztests von SWE-bench bestanden, verhielten sich anders als die Referenzlösung: Akzeptanztests sind notwendig, nicht hinreichend.')) },
-    tools: { js: ['cucumber', 'playwright'], python: ['behave', 'pytest'], java: ['cucumber'], dotnet: ['reqnroll'], go: ['cucumber'] },
+    evidence: { general: none(), ai: ev('weak', f('patchdiff2026', 'Indirect evidence: PatchDiff found behavioral differences from reference fixes in 29.6% of test-passing agent patches. This exposes gaps in benchmark tests; it does not measure whether adding acceptance tests improves agent code.', 'Indirekte Evidenz: PatchDiff fand bei 29,6 % der testbestehenden Agenten-Patches Verhaltensunterschiede zur Referenzlösung. Das zeigt Lücken in Benchmark-Tests; die Wirkung zusätzlicher Akzeptanztests auf Agenten-Code wurde nicht gemessen.')) },
+    tools: { php: ['behat', 'codeception'], js: ['cucumber', 'playwright'], python: ['behave', 'pytest'], java: ['cucumber'], dotnet: ['reqnroll'], go: ['cucumber'] },
     snippets: [{ lang: 'any', file: 'reserve.feature', code: `Feature: Reserving a pet for adoption
   Scenario: A pet cannot be reserved twice
     Given Rex is available
@@ -235,7 +254,7 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     limits: [l('Proves only that it is alive, not that it is right.', 'Beweist nur, dass es lebt, nicht dass es stimmt.')],
     ai: l('Cheap insurance against an agent change that breaks startup (a renamed env variable, a missing import).', 'Billige Versicherung gegen eine Agentenänderung, die den Start zerbricht (umbenannte Umgebungsvariable, fehlender Import).'),
     evidence: { general: none(), ai: none() },
-    tools: { js: ['playwright', 'vitest'], any: ['k6', 'hyperfine'] },
+    tools: { php: ['codeception'], js: ['playwright', 'vitest'], any: ['k6', 'hyperfine'] },
     snippets: [{ lang: 'any', file: 'smoke.sh', code: `#!/usr/bin/env sh
 set -e
 curl -fsS "$BASE_URL/health"                 # service is up
@@ -260,11 +279,29 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data` }],
     ai: l('Excellent guard for agent refactorings ("behaviour must not change"). Forbid the agent from updating snapshots in the same change; a snapshot update should be a separate, reviewed step.', 'Ausgezeichneter Schutz bei Agenten-Refactorings („Verhalten darf sich nicht ändern“). Dem Agenten verbieten, Snapshots in derselben Änderung zu aktualisieren; ein Snapshot-Update sollte ein eigener, reviewter Schritt sein.'),
     evidence: { general: none(), ai: none() },
     variants: [{ name: l('Golden master / approval tests', 'Golden Master / Approval Tests'), text: l('Same idea with a human-approved file next to the test. Characterization tests are snapshots taken deliberately before changing legacy code.', 'Dieselbe Idee mit einer von Menschen freigegebenen Datei neben dem Test. Charakterisierungstests sind Snapshots, die man bewusst vor Änderungen an Altcode aufnimmt.') }],
-    tools: { js: ['vitest', 'jest'], python: ['syrupy', 'approvaltests'], java: ['approvaltests'], dotnet: ['verify', 'approvaltests'], rust: ['insta'], cpp: ['approvaltests'] },
+    tools: { php: ['phpunit-snapshots'], js: ['vitest', 'jest'], python: ['syrupy', 'approvaltests'], java: ['approvaltests'], dotnet: ['verify', 'approvaltests'], rust: ['insta'], cpp: ['approvaltests'] },
     snippets: [{ lang: 'js', file: 'invoice.test.ts', code: `it('renders the adoption invoice exactly as before', () => {
   expect(renderInvoice(sampleAdoption)).toMatchSnapshot();
 });
-// Update only deliberately:  npx vitest -u   (and review the diff)` }],
+// Update only deliberately:  npx vitest -u   (and review the diff)` },
+      { lang: 'php', file: 'InvoiceTest.php', code: `<?php declare(strict_types=1);
+// composer require --dev spatie/phpunit-snapshot-assertions
+use PHPUnit\\Framework\\TestCase;
+use Spatie\\Snapshots\\MatchesSnapshots;
+
+final class InvoiceTest extends TestCase
+{
+    use MatchesSnapshots;
+
+    public function testAdoptionInvoice(): void
+    {
+        $invoice = renderAdoptionInvoice(['pet' => 'Rex', 'feeCents' => 12000]);
+        $this->assertMatchesHtmlSnapshot($invoice);
+    }
+}
+// Review newly created snapshots before committing them.
+// Update deliberately: vendor/bin/update-snapshots tests/InvoiceTest.php` },
+    ],
     steps: [l('Before refactoring, write snapshot tests over a representative set of inputs for the code you will change.', 'Vor dem Refactoring Snapshot-Tests über eine repräsentative Menge Eingaben für den betroffenen Code schreiben.'), l('Refactor; the snapshots must stay unchanged.', 'Refaktorieren; die Snapshots müssen unverändert bleiben.'), l('If a snapshot must change, do it in a separate commit and explain why.', 'Muss sich ein Snapshot ändern, in einem eigenen Commit mit Begründung.')],
     done: l('Snapshot files are unchanged by the refactoring commit(s).', 'Die Snapshot-Dateien sind durch die Refactoring-Commits unverändert.'),
     think: [q('A snapshot test fails after a change. What two very different things can that mean?', 'Ein Snapshot-Test scheitert nach einer Änderung. Welche zwei sehr verschiedenen Dinge kann das bedeuten?', 'Either you broke something, or you improved something on purpose. The test cannot tell; a human has to look at the diff.', 'Entweder man hat etwas kaputt gemacht oder absichtlich verbessert. Der Test kann das nicht unterscheiden; ein Mensch muss den Diff ansehen.')],
@@ -284,7 +321,7 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data` }],
     limits: [l('Checks the shape of messages, not the business meaning.', 'Prüft die Form der Nachrichten, nicht ihre fachliche Bedeutung.')],
     ai: l('Agents rename fields happily ("priceCents" → "price") and update the callers they can see. Contract tests catch the callers they cannot see.', 'Agenten benennen Felder gern um („priceCents“ → „price“) und passen die Aufrufer an, die sie sehen. Contract-Tests fangen die, die sie nicht sehen.'),
     evidence: { general: none(), ai: none() },
-    tools: { js: ['pact', 'zod'], python: ['pact'], java: ['pact'], dotnet: ['pact'], go: ['pact'], rust: ['pact'], any: ['specmatic', 'schemathesis'] },
+    tools: { php: ['pact-php'], js: ['pact', 'zod'], python: ['pact'], java: ['pact'], dotnet: ['pact'], go: ['pact'], rust: ['pact'], any: ['specmatic', 'schemathesis'] },
     steps: [l('Write the API contract (OpenAPI schema or consumer pacts) and commit it.', 'Den API-Vertrag (OpenAPI-Schema oder Consumer-Pacts) schreiben und committen.'), l('Verify the provider against the contract in its CI; verify consumers against it in theirs.', 'Den Anbieter in seiner CI gegen den Vertrag prüfen, die Konsumenten in ihrer.')],
     done: l('Removing a field the consumer uses makes the provider\'s CI fail.', 'Entfernt man ein vom Konsumenten genutztes Feld, scheitert die CI des Anbieters.'),
     think: [q('Why not just run both services and test them together?', 'Warum nicht einfach beide Dienste laufen lassen und zusammen testen?', 'You can, but it is slow, needs a shared environment and fails for many reasons. A contract test checks just the agreement, in seconds, in each team\'s own pipeline.', 'Kann man, aber es ist langsam, braucht eine gemeinsame Umgebung und scheitert aus vielen Gründen. Ein Contract-Test prüft nur die Vereinbarung, in Sekunden, in der eigenen Pipeline jedes Teams.')],
@@ -305,7 +342,7 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data` }],
     ai: l('An agent cannot see the UI it changes unless you give it screenshots. Visual diffs and axe reports turn "looks broken" into a signal it can read.', 'Ein Agent sieht die Oberfläche nicht, die er ändert, außer man gibt ihm Screenshots. Visuelle Diffs und axe-Berichte machen aus „sieht kaputt aus“ ein Signal, das er lesen kann.'),
     evidence: { general: none(), ai: none() },
     variants: [{ name: l('Visual regression', 'Visuelle Regression'), text: l('Pixel or DOM comparison against an approved baseline.', 'Pixel- oder DOM-Vergleich gegen eine freigegebene Baseline.') }, { name: l('Accessibility testing', 'Barrierefreiheitstests'), text: l('axe-core, Lighthouse or Pa11y in CI, plus manual keyboard and screen-reader checks.', 'axe-core, Lighthouse oder Pa11y in der CI, plus manuelle Tastatur- und Screenreader-Prüfung.') }],
-    tools: { js: ['playwright', 'axe-core', 'storybook'], python: ['playwright'], any: ['lighthouse', 'pa11y', 'backstopjs'] },
+    tools: { php: ['codeception'], js: ['playwright', 'axe-core', 'storybook'], python: ['playwright'], any: ['lighthouse', 'pa11y', 'backstopjs'] },
     snippets: [{ lang: 'js', file: 'pets.a11y.spec.ts', code: `import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 

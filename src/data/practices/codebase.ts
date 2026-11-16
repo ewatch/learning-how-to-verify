@@ -33,6 +33,7 @@ export const codebase: Practice[] = [
       ai: ev('weak', f('mundler2025', 'Indirect: giving a model machine-checkable interface information (types) during generation cut compile errors by more than half.', 'Indirekt: Bekommt ein Modell bei der Generierung maschinell prüfbare Schnittstelleninformation (Typen), sinken die Compilerfehler um mehr als die Hälfte.')),
     },
     tools: {
+      php: ['deptrac', 'phpstan'],
       js: ['dependency-cruiser', 'typescript'],
       python: ['import-linter'],
       java: ['archunit'],
@@ -101,6 +102,7 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
       ai: none(),
     },
     tools: {
+      php: ['rector'],
       js: ['jscodeshift', 'typescript'],
       python: ['libcst'],
       java: ['openrewrite'],

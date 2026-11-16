@@ -18,9 +18,18 @@ Completed on branch `fix/p1-review`. Browser probes reproduced all three stuck-b
 
 ## P2 · Honesty of the evidence
 
-- [ ] **S** "None found" text: change "nobody has measured it" to "we found no study of its effect" (EN and DE, `src/i18n/ui.ts`).
-- [ ] **M** Re-rate AI evidence that shows tests are *insufficient*, not that the practice helps: e2e (METR) and acceptance (PatchDiff) to "weak / indirect". Monitoring (DORA correlation): same. Config tests: move the hard-coded-credentials finding to security scanning.
-- [ ] **S** `gloaguen2026`: decide between ICLR and preprint, and make venue and badge consistent.
+- [x] **S** "None found" text: change "nobody has measured it" to "we found no study of its effect" (EN and DE, `src/i18n/ui.ts`).
+- [x] **M** Re-rate AI evidence that shows tests are *insufficient*, not that the practice helps: e2e (METR) and acceptance (PatchDiff) to "weak / indirect". Monitoring (DORA correlation): same. Config tests: move the hard-coded-credentials finding to security scanning.
+- [x] **S** `gloaguen2026`: decide between ICLR and preprint, and make venue and badge consistent.
+
+Completed on branch `fix/p1-review`. AI findings for E2E tests, acceptance tests and monitoring are weak and explicitly indirect; config tests show no AI effect study found. The credential finding was already present in security scanning and remains there without duplication. Gloaguen is identified as a MemAgents workshop publication at ICLR, with no preprint badge. See the P2 interpretation notes in `research/citation-check.md`. Full `npm run ci` passed (206 tests, 147 pages, 30 browser tests); generated EN/DE HTML, Markdown and LLM exports were checked. Existing tests were unchanged.
+
+## PHP stack support (additional request)
+
+- [x] Add PHP to language selection, stack pages, saved selection, agent prompts, Socratic prompts and Markdown/LLM exports in EN/DE.
+- [x] Add 19 open-source tools with GitHub-verified SPDX licenses, practice mappings and 7 native PHP snippets.
+
+Verified: full `npm run ci` (206 tests, 149 pages, 30 browser tests); `npm run check:licenses` (all licenses match, with the checker’s existing manual/non-GitHub exceptions); targeted desktop/mobile browser checks for PHP selection, routes, snippets, copied prompts and persistence. All 7 snippets passed `php -l`; temporary PHP dependencies and representative domain fixtures exercised the examples (8 tests / 1,308 assertions plus a reviewed snapshot test). Repository dependencies and existing tests were unchanged.
 
 ## P3 · Requirement gaps
 

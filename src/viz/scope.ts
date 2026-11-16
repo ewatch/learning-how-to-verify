@@ -1,9 +1,10 @@
 import { h, segmented, sleep, reducedMotion } from '../sim/ui/kit';
 import { BOXES, COMPARE, COMPARE_LABELS, COMPARE_SPECS, UI, compareKeyFor, specFor, type CompareKey, type Lang, type ScopeSpec } from './scope/data';
+import './frame.css';
 import './scope.css';
 
 const NS = 'http://www.w3.org/2000/svg';
-const W = 390, BX = 64, BW = 190, BH = 44, STEP = 68, TOP = 18, RAIL = 36, RX = 262;
+const W = 410, BX = 64, BW = 190, BH = 44, STEP = 68, TOP = 18, RAIL = 36, RX = 262;
 const boxY = (i: number) => TOP + i * STEP;
 const cy = (i: number) => boxY(i) + BH / 2;
 
@@ -21,9 +22,9 @@ export function mount(el: HTMLElement, lang: Lang, mode: string) {
   const H = 5 * STEP - (STEP - BH) + TOP * 2;
 
   const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'scope-svg', role: 'img', 'aria-hidden': 'true', focusable: 'false' });
-  const caption = h('figcaption', { class: 'scope-cap' });
-  const takeaway = h('p', { class: 'scope-take', 'aria-live': 'polite' });
-  const btn = h('button', { class: 'btn scope-play', type: 'button', onclick: () => void play() }, L(UI.play));
+  const caption = h('figcaption', { class: 'vz-cap' });
+  const takeaway = h('p', { class: 'vz-take scope-take', 'aria-live': 'polite' });
+  const btn = h('button', { class: 'btn ghost sm scope-play', type: 'button', onclick: () => void play() }, L(UI.play));
   const key = compareKeyFor(mode);
   const seg = segmented<CompareKey>(
     L(UI.compare),
@@ -32,7 +33,7 @@ export function mount(el: HTMLElement, lang: Lang, mode: string) {
     (v) => { spec = COMPARE_SPECS[v]; draw(); void play(); },
   );
   seg.classList.add('scope-seg');
-  el.replaceChildren(h('div', { class: 'scope' }, h('div', { class: 'scope-bar' }, seg, btn), svg, takeaway), caption);
+  el.replaceChildren(h('div', { class: 'vz-controls' }, seg, btn), h('div', { class: 'vz-stage scope' }, svg), takeaway, caption);
   // figcaption belongs inside the figure; mount target is the <figure>
   let dot: SVGElement, marks: Record<string, SVGElement> = {};
 
@@ -58,12 +59,13 @@ export function mount(el: HTMLElement, lang: Lang, mode: string) {
     });
     if (spec.frame) svg.append(s('rect', { x: BX - 5, y: boxY(0) - 5, width: BW + 10, height: BH + 10, rx: 11, class: 'frame' }));
     for (const n of spec.notes ?? []) {
-      const t = s('text', { x: RX, y: cy(n.box) + 4, class: 'note' }, L(n.label));
+      const shared = !spec.catch.span && spec.catch.box === n.box; // note and bolt label share a row: stack them
+      const t = s('text', { x: RX, y: cy(n.box) + (shared ? -3 : 4), class: 'note' }, L(n.label));
       marks[`n${n.box}`] = t;
       svg.append(t);
     }
     const c = spec.catch;
-    const by = c.span ? (cy(c.span[0]) + cy(c.span[1])) / 2 : cy(c.box);
+    const by = c.span ? (cy(c.span[0]) + cy(c.span[1])) / 2 : cy(c.box) + ((spec.notes ?? []).some((n) => n.box === c.box) ? 15 : 0);
     const bolt = s('g', { class: 'bolt' });
     bolt.append(s('text', { x: RX, y: by + 5, class: 'bolt-ico' }, '⚡'), s('text', { x: RX + 20, y: by + 5, class: 'bolt-lbl' }, L(c.label)));
     if (c.span) bolt.append(s('path', { d: `M${BX + BW + 4} ${cy(c.span[0])} h6 V${cy(c.span[1])} h-6`, class: 'brace' }));

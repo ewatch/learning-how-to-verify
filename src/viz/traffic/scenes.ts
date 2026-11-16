@@ -24,12 +24,12 @@ function slider(label: string, min: number, max: number, step: number, val: numb
   const out = h('output', {}, fmt(val));
   const inp = h('input', { type: 'range', min, max, step, value: val, 'aria-label': label });
   inp.addEventListener('input', () => { const v = Number(inp.value); out.textContent = fmt(v); on(v); });
-  return h('label', { class: 'tv-ctl' }, h('span', {}, label), inp, out);
+  return h('label', { class: 'vz-ctl' }, h('span', {}, label), inp, out);
 }
 function toggle(label: string, val: boolean, on: (v: boolean) => void) {
   const inp = h('input', { type: 'checkbox', checked: val });
   inp.addEventListener('change', () => on(inp.checked));
-  return h('label', { class: 'tv-ctl tv-tog' }, inp, h('span', {}, label));
+  return h('label', { class: 'vz-ctl' }, inp, h('span', {}, label));
 }
 function stats(panel: HTMLElement, defs: [string, string][]) {
   const els: Record<string, HTMLElement> = {};
@@ -253,7 +253,7 @@ function teeing(c: Ctx): Scene {
   const set = stats(c.panel, [['rec', t('recorded')], ['rep', t('replayed')]]);
   const sample = h('code', { class: 'tv-sample' }, '');
   c.panel.append(h('p', { class: 'tv-sampleline' }, h('span', { class: 'muted' }, `${t('lastRec')}: `), sample));
-  const btn = h('button', { type: 'button', class: 'btn sm', disabled: true }, t('replayTape'));
+  const btn = h('button', { type: 'button', class: 'btn ghost sm', disabled: true }, t('replayTape'));
   const show = () => { set('rec', rec.tape.length); set('rep', replayed); recT.textContent = rec.tape.length ? `${t('tape')} ${rec.tape.length}` : ''; btn.disabled = replaying || rec.tape.length === 0; };
   const startReplay = () => {
     if (replaying || !rec.tape.length) return;
@@ -310,7 +310,7 @@ function chaos(c: Ctx): Scene {
   c.bg.append(text(136, 182, t('threads'), 'tv-mut tv-sm opt', 'start'), latT);
   const pageEl = h('span', { class: 'tv-chip' }, '');
   c.panel.append(h('p', { class: 'tv-pagerow' }, h('span', { class: 'muted' }, `${t('page')}: `), pageEl));
-  const set = stats(c.panel, [['ok', 'ok'], ['pending', 'pending'], ['failed', 'failed']]);
+  const set = stats(c.panel, [['wait', t('inflight')], ['ok', 'ok'], ['pending', 'pending'], ['failed', 'failed']]);
   const wire = () => {
     sim.hooks = {
       arrive: () => { stage.fly([U, [136, 122]], { cls: 'req', speed: 220 }); },
@@ -321,10 +321,10 @@ function chaos(c: Ctx): Scene {
     ths.forEach((e, i) => e.setAttribute('class', cls('tv-th', i < sim.threads && 'busy', sim.threads >= POOL && i < sim.threads && 'full')));
     latT.textContent = `+${latency.toFixed(1)} s`;
     const p = sim.page;
-    pageEl.textContent = t(p === 'ok' ? 'pageOk' : p === 'degraded' ? 'pageDegraded' : 'pageDown');
+    pageEl.textContent = t({ ok: 'pageOk', slow: 'pageSlow', degraded: 'pageDegraded', down: 'pageDown' }[p]);
     pageEl.className = `tv-chip tv-chip-${p}`;
     if (p !== last) { last = p; c.status(`${t('page')}: ${pageEl.textContent}`); }
-    set('ok', sim.counts.ok); set('pending', sim.counts.pending); set('failed', sim.counts.failed);
+    set('wait', sim.threads); set('ok', sim.counts.ok); set('pending', sim.counts.pending); set('failed', sim.counts.failed);
   };
   c.controls.append(
     slider(t('delay'), 0, 3, 0.1, latency, (v) => `${v.toFixed(1)} s`, (v) => { latency = v; sim.latencyMs = v * 1000; show(); }),

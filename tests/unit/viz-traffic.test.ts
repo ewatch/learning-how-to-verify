@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   MODES, route, routeMany, Breaker, simulateBreaker, simulateShadow, makeResp, learnNoise, classifyDiff,
-  scrub, Recorder, sampleReq, simulateChaos, explore, serverStatus, BUG_SEQ, EXPLORE_SEED,
+  scrub, Recorder, sampleReq, simulateChaos, ChaosSim, POOL, explore, serverStatus, BUG_SEQ, EXPLORE_SEED,
 } from '../../src/viz/traffic/logic';
 import { SPECS, L } from '../../src/viz/traffic/text';
 
@@ -111,6 +111,24 @@ describe('chaos testing', () => {
     expect(r.failed).toBe(0);
     expect(r.pending).toBeGreaterThan(50);
     expect(r.page).toBe('degraded');
+  });
+  it('the verdict follows the pool: saturated threads mean the page is down, even before any request finished', () => {
+    const s = new ChaosSim(2500, false);
+    for (let i = 0; i < 24; i++) s.step(0.05); // 1.2 s: six requests in flight, nothing finished yet
+    expect(s.threads).toBeLessThan(POOL);
+    expect(s.counts).toEqual({ ok: 0, pending: 0, failed: 0 });
+    expect(s.page).toBe('slow');
+    for (let i = 0; i < 12; i++) s.step(0.05); // 1.8 s: pool exhausted, extra reservations are rejected
+    expect(s.saturated).toBe(true);
+    expect(s.page).toBe('down');
+    expect(s.counts.failed).toBeGreaterThan(0);
+  });
+  it('with timeout + fallback the first slow requests become "pending" and the page degrades, not fails', () => {
+    const s = new ChaosSim(2500, true);
+    for (let i = 0; i < 40; i++) s.step(0.05); // 2 s
+    expect(s.counts.pending).toBeGreaterThan(0);
+    expect(s.counts.failed).toBe(0);
+    expect(s.page).toBe('degraded');
   });
   it('fast payment is fine either way', () => {
     for (const fallback of [false, true]) {

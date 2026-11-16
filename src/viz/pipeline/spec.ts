@@ -9,7 +9,7 @@ export const GATES: Record<GateId, { name: L; time: string }> = {
   lint: { name: { en: 'lint', de: 'Lint' }, time: '5s' },
   types: { name: { en: 'types', de: 'Typen' }, time: '10s' },
   unit: { name: { en: 'unit tests', de: 'Unit-Tests' }, time: '40s' },
-  static: { name: { en: 'static', de: 'Statik' }, time: '1m' },
+  static: { name: { en: 'static', de: 'Analyse' }, time: '1m' },
   config: { name: { en: 'config', de: 'Config' }, time: '5s' },
   build: { name: { en: 'build', de: 'Build' }, time: '1m' },
   san: { name: { en: 'sanitizer', de: 'Sanitizer' }, time: '3m' },
@@ -19,9 +19,9 @@ export const GATES: Record<GateId, { name: L; time: string }> = {
 export const OPTIONAL_GATES: GateId[] = ['san'];
 
 export const BUG_LABEL: Record<BugType, L> = {
-  'unused-var': { en: 'unused var', de: 'unused var' },
+  'unused-var': { en: 'unused var', de: 'ungenutzt' },
   'type-error': { en: 'type error', de: 'Typfehler' },
-  'null-deref': { en: 'null deref', de: 'null deref' },
+  'null-deref': { en: 'null deref', de: 'Null-Zugriff' },
   'price-trusted': { en: 'client price', de: 'Client-Preis' },
   'missing-limit': { en: 'no memory limit', de: 'Limit fehlt' },
   'timeout-zero': { en: 'timeout: 0', de: 'timeout: 0' },
@@ -66,7 +66,7 @@ export const SPECS: Record<Mode, ModeSpec> = {
   'config-tests': {
     gates: GATE_ORDER, focus: 'config',
     commits: [c('a', 'clean'), c('b', 'missing-limit'), c('c', 'timeout-zero')],
-    caption: { en: 'A config policy blocks YAML that sets no memory limit or an infinite timeout, before it ships.', de: 'Eine Config-Policy blockt YAML ohne Memory-Limit oder mit endlosem Timeout, bevor es ausgeliefert wird.' },
+    caption: { en: 'A config policy blocks YAML that sets no memory limit or an infinite timeout, before it ships.', de: 'Eine Config-Policy blockiert YAML ohne Memory-Limit oder mit endlosem Timeout, bevor es ausgeliefert wird.' },
     takeaway: { en: 'Config is code that never runs in tests, so give it its own five-second gate.', de: 'Config ist Code, der in Tests nie läuft, also gib ihm ein eigenes Fünf-Sekunden-Gate.' },
   },
   sanitizers: {

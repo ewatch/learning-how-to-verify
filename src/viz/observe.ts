@@ -2,6 +2,7 @@
 import { h } from '../sim/ui/kit';
 import { SPECS, isMode, type Lang } from './observe/specs';
 import { VIEWS } from './observe/views';
+import './frame.css';
 import './observe.css';
 
 export function mount(el: HTMLElement, lang: Lang, mode: string): void {
@@ -10,20 +11,22 @@ export function mount(el: HTMLElement, lang: Lang, mode: string): void {
   const view = VIEWS[mode](lang);
   let on = view.initial;
   let token = 0;
-  const stage = h('div', { class: 'ob-stage' });
+  const stage = h('div', { class: 'vz-stage ob-stage' });
   const plain = mode === 'monitoring';
+  const toggle = h('input', { type: 'checkbox', checked: on });
   const sw = mode === 'exception-tracking' ? null
-    : plain ? h('button', { type: 'button', class: 'ob-switch replay' }, spec.toggle)
-    : h('button', { type: 'button', class: 'ob-switch', role: 'switch', 'aria-checked': String(on) }, h('i', { class: 'ob-knob', 'aria-hidden': 'true' }), spec.toggle);
+    : plain ? h('button', { type: 'button', class: 'btn ghost sm replay' }, spec.toggle)
+    : h('label', { class: 'vz-ctl' }, toggle, h('span', {}, spec.toggle));
   const run = () => {
     const my = ++token;
     stage.replaceChildren();
     void view.render(stage, on, () => my === token && el.isConnected);
   };
-  sw?.addEventListener('click', () => {
-    if (!plain) { on = !on; sw.setAttribute('aria-checked', String(on)); }
+  if (sw) (plain ? sw : toggle).addEventListener(plain ? 'click' : 'change', () => {
+    if (!plain) on = toggle.checked;
     run();
   });
-  el.replaceChildren(h('div', { class: 'ob' }, sw ? h('div', { class: 'ob-top' }, sw) : null, stage, h('p', { class: 'ob-take' }, spec.takeaway)), h('figcaption', { class: 'ob-cap' }, spec.caption));
+  el.classList.add('ob');
+  el.replaceChildren(...(sw ? [h('div', { class: 'vz-controls' }, sw)] : []), stage, h('p', { class: 'vz-take' }, spec.takeaway), h('figcaption', { class: 'vz-cap' }, spec.caption));
   run();
 }

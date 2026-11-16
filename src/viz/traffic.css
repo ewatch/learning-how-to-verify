@@ -1,8 +1,8 @@
 /* 'traffic' diagram family. Colours come from global tokens only. */
 .viz-mount[data-viz='traffic'] { container-type: inline-size; }
-.tv { max-width: 540px; margin: 0 auto; display: grid; gap: 10px; }
+.tv { --vz-max: 600px; }
 .tv-hyp { margin: 0; padding: 6px 10px; border-left: 3px solid var(--warn); background: var(--paper-2); font-weight: 600; font-size: 0.95rem; }
-.tv-svg { width: 100%; height: auto; display: block; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius, 8px); }
+.tv-svg { overflow: visible; }
 .tv-t { font: 12px/1 var(--font-body); fill: var(--ink-2); }
 .tv-t.tv-b { fill: var(--ink); font-weight: 700; }
 .tv-t.tv-sm { font-size: 12px; }
@@ -48,7 +48,7 @@
 .tv-dot.bot { fill: var(--l-prose); stroke: var(--ink); stroke-width: 1.5; }
 .tv-dot.staff { stroke: var(--l-prose); stroke-width: 3; }
 
-.tv-panel { display: grid; gap: 6px; }
+.tv-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .tv-stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.875rem; color: var(--ink-2); }
 .tv-stat b { font: 700 1rem var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 .tv-phase { font-weight: 700; font-size: 0.875rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -62,21 +62,13 @@
 .tv-sample { word-break: break-word; }
 .tv-chip { display: inline-block; padding: 1px 8px; border-radius: 99px; font-weight: 700; font-size: 0.8125rem; border: 1px solid currentColor; }
 .tv-chip-ok { color: var(--ok); }
-.tv-chip-degraded { color: var(--warn); }
+.tv-chip-degraded, .tv-chip-slow { color: var(--warn); }
 .tv-chip-down { color: var(--bad); }
 
-.tv-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-.tv-ctl { display: inline-flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--ink-2); }
-.tv-ctl input[type='range'] { width: 120px; accent-color: var(--l-verification); }
-.tv-ctl output { font-family: var(--font-mono); min-width: 4ch; color: var(--ink); }
-.tv-controls :focus-visible { outline: 2px solid var(--l-static); outline-offset: 2px; }
-.tv-live { margin: 0; font-size: 0.8125rem; color: var(--ink-3); min-height: 0; }
-.tv-live:empty { display: none; }
-.tv-take { margin: 0; font-weight: 600; color: var(--ink); }
-.tv-cap { margin-top: 8px; text-align: center; font-size: 0.875rem; color: var(--ink-3); max-width: 540px; margin-inline: auto; }
 
 @container (max-width: 460px) {
   .opt { display: none; }
-  .tv-ctl input[type='range'] { width: 96px; }
+  .tv-diff { font-size: 0.75rem; }
+  .tv-diff th, .tv-diff td { padding: 3px 4px; }
 }
 @media (prefers-reduced-motion: reduce) { .tv-dot { transition: none; } }

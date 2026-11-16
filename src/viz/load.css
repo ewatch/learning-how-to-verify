@@ -1,5 +1,4 @@
-.ld { display: grid; gap: .6rem; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: .75rem; }
-.ld-svg { width: 100%; height: auto; display: block; }
+.ld-chart { --vz-max: 520px; }
 .ld-svg text { font: 15px var(--font-body); fill: var(--ink-2); }
 .ld-svg text.bad { fill: var(--bad); }
 .ld-svg text.q { fill: var(--l-review); }
@@ -24,11 +23,3 @@
 @keyframes ld-draw { to { stroke-dashoffset: 0; } }
 @keyframes ld-grow { from { transform: scaleY(0); } }
 @media (prefers-reduced-motion: reduce) { .ld-svg .line, .ld-svg .bar { animation: none !important; stroke-dasharray: none; stroke-dashoffset: 0; } }
-.ld-controls { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
-.ld-ctl { display: inline-flex; align-items: center; gap: .35rem; font-size: .95rem; color: var(--ink); min-height: 32px; }
-.ld-ctl input[type=range] { width: min(220px, 50vw); }
-.ld-out { font-variant-numeric: tabular-nums; min-width: 4.5ch; color: var(--ink-2); }
-.ld-live { margin: 0; font-size: .95rem; color: var(--ink-2); }
-.ld-live.bad { color: var(--bad); font-weight: 600; }
-.ld-take { margin: 0; font-weight: 600; color: var(--ink); }
-.ld-cap { margin: 0; font-size: .9rem; color: var(--ink-3); }

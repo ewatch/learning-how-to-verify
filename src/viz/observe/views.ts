@@ -55,7 +55,7 @@ function profiling(lang: Lang): View {
       flame.append(b);
     });
     const json = frames.find((f) => f.name === 'parse JSON')!;
-    read.textContent = L(lang, `Hover a frame. parse JSON: ${json.pct} %`, `Frame antippen. parse JSON: ${json.pct} %`);
+    read.textContent = L(lang, `Hover a frame. parse JSON: ${json.pct} %`, `Frame wählen. parse JSON: ${json.pct} %`);
     stage.append(flame, read);
   } };
 }

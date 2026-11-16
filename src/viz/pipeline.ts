@@ -1,4 +1,5 @@
 import { h, segmented, sleep, reducedMotion } from '../sim/ui/kit';
+import './frame.css';
 import './pipeline.css';
 import { SPECS, GATES, OPTIONAL_GATES, BUG_LABEL, isMode, type Lang, type Commit, type GateId, type Mode } from './pipeline/spec';
 
@@ -25,19 +26,18 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
   const gates = spec.gates;
   const nLanes = spec.commits.length;
   const st = { run: 0, slow: false, vertical: false, done: false };
-  const vertical = () => el.clientWidth > 0 && el.clientWidth < 560;
+  const vertical = () => holder.clientWidth > 0 && holder.clientWidth < 560;
 
-  const holder = h('div', { class: 'pl-svg' });
+  const holder = h('div', { class: 'vz-stage' });
   const extra = h('div', { class: 'pl-extra' });
-  const take = h('p', { class: 'pl-take', hidden: true, 'aria-live': 'polite' });
-  const playBtn = h('button', { class: 'btn pl-play', type: 'button', onclick: () => void play() }, t.play);
-  const controls = h('div', { class: 'pl-controls' }, playBtn);
+  const take = h('p', { class: 'vz-take', hidden: true, 'aria-live': 'polite' });
+  const playBtn = h('button', { class: 'btn ghost sm pl-play', type: 'button', onclick: () => void play() }, t.play);
+  const controls = h('div', { class: 'vz-controls' }, playBtn);
   if (mode === 'ci') {
     controls.append(segmented(t.speed, [{ value: 'fast', label: t.fast }, { value: 'slow', label: t.slow }], 'fast', (v) => { st.slow = v === 'slow'; void play(); }));
   }
-  const cap = h('figcaption', { class: 'pl-cap' }, spec.caption[lang]);
-  el.classList.add('pl-fig');
-  el.replaceChildren(holder, extra, controls, take, cap);
+  const cap = h('figcaption', { class: 'vz-cap' }, spec.caption[lang]);
+  el.replaceChildren(controls, holder, extra, take, cap);
 
   // ---- geometry ------------------------------------------------------
   function geometry(vert: boolean) {
@@ -46,7 +46,7 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
       const W = 720, x0 = 118, step = 75, y0 = 66, lh = 40;
       return { W, H: y0 + nLanes * lh + 6, gx: (gi: number) => x0 + gi * step + 33, ly: (li: number) => y0 + li * lh + 14, startX: 96, gw: 66 };
     }
-    const W = 360, y0 = 12, rh = 42;
+    const W = 360, y0 = 30, rh = 42;
     return { W, H: y0 + nG * rh + 28, gy: (gi: number) => y0 + gi * rh + 21, lx: (li: number) => 138 + li * 36, rh };
   }
 
@@ -95,7 +95,10 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
       const gi = gates.indexOf(d.stop === -1 ? 'merge' : (d.c.expect as GateId));
       const [x, y] = pos(gi, d.li);
       const txt = (d.c.note ?? (d.c.bug === 'clean' ? undefined : BUG_LABEL[d.c.bug]))?.[lang] ?? '';
-      return vert ? [G.W - 100, y + 4, txt] : [x, y - 15, txt];
+      // vertical: commits that stop at the same gate stack their labels instead of overprinting each other
+      const same = spec.commits.filter((o) => o.expect === d.c.expect && (o.note ?? (o.bug === 'clean' ? undefined : BUG_LABEL[o.bug])));
+      const k = same.indexOf(d.c);
+      return vert ? [G.W - 8, y + 4 + (k - (same.length - 1) / 2) * 14, txt] : [Math.min(Math.max(x, 66), G.W - 66), y - 15, txt];
     };
     dots = spec.commits.map((c, li) => {
       const bug = c.bug !== 'clean';
@@ -112,7 +115,7 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
   }
 
   // ---- extras ---------------------------------------------------------
-  const mergeBtn = h('button', { class: 'pl-merge', type: 'button', 'aria-disabled': 'true', onclick: () => { if (mergeBtn.getAttribute('aria-disabled') === 'true') { mergeMsg.textContent = t.blocked; mergeBtn.classList.remove('shake'); void mergeBtn.offsetWidth; mergeBtn.classList.add('shake'); } } }, t.merge);
+  const mergeBtn = h('button', { class: 'btn sm pl-merge', type: 'button', 'aria-disabled': 'true', onclick: () => { if (mergeBtn.getAttribute('aria-disabled') === 'true') { mergeMsg.textContent = t.blocked; mergeBtn.classList.remove('shake'); void mergeBtn.offsetWidth; mergeBtn.classList.add('shake'); } } }, t.merge);
   const mergeMsg = h('span', { class: 'pl-merge-msg', role: 'status' });
   function buildExtra() {
     extra.replaceChildren();
@@ -139,7 +142,7 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
     const g = s('g', { class: `pl-mark ${ok ? 'ok' : hidden ? 'warn' : 'bad'}` });
     if (!ok) { g.append(s('path', { d: `M${px - 6} ${py - 6}l12 12M${px + 6} ${py - 6}l-12 12`, class: 'pl-x' })); }
     else g.append(s('circle', { cx: px, cy: py, r: 14, class: 'pl-ring' }));
-    if (txt) g.append(s('text', { x, y, 'text-anchor': st.vertical ? 'start' : 'middle', class: 'pl-stop' }, txt));
+    if (txt) g.append(s('text', { x, y, 'text-anchor': st.vertical ? 'end' : 'middle', class: 'pl-stop' }, txt));
     markLayer.append(g);
     if (!ok) d.g.classList.add('stopped');
   }
@@ -148,7 +151,10 @@ export function mount(el: HTMLElement, lang: Lang, modeId: string) {
   function finish(final: boolean) {
     dots.forEach((d) => {
       if (queued(d)) {
-        const [x, y] = pos(-1, d.li); markLayer.append(s('text', { x: st.vertical ? 10 : x - 4, y: y + (st.vertical ? 4 : 28), class: 'pl-stop', 'text-anchor': 'start' }, t.waiting)); return;
+        const [x, y] = pos(-1, d.li);
+        // vertical: one shared label (all queued commits sit on the same row)
+        if (!st.vertical || d.li === 1) markLayer.append(s('text', { x: st.vertical ? 10 : x - 4, y: y + (st.vertical ? 10 : 28), class: 'pl-stop', 'text-anchor': 'start' }, t.waiting));
+        return;
       }
       mark(d, reaches(d), reaches(d) && d.c.bug !== 'clean');
       move(d, gates.indexOf(d.c.expect as GateId));

@@ -4,6 +4,7 @@ import { MODES, type Mode } from './traffic/logic';
 import { SPECS, L, type Lang } from './traffic/text';
 import { SCENES, type Scene } from './traffic/scenes';
 import { s, Stage } from './traffic/stage';
+import './frame.css';
 import './traffic.css';
 
 export { MODES, SPECS };
@@ -12,19 +13,22 @@ const isMode = (m: string): m is Mode => (MODES as readonly string[]).includes(m
 
 const HEIGHTS: Record<Mode, number> = { 'traffic-shaping': 240, shadowing: 262, 'tap-compare': 262, teeing: 240, 'chaos-testing': 200, 'dynamic-exploration': 262 };
 
+/** Modes whose content sits low in the canvas crop the empty strip above it. */
+const TOPS: Partial<Record<Mode, number>> = { 'chaos-testing': 78 };
+
 export function mount(el: HTMLElement, lang: Lang, mode: string) {
   el.replaceChildren();
   if (!isMode(mode)) { el.textContent = `${lang === 'en' ? 'Unknown diagram' : 'Unbekanntes Diagramm'}: ${mode}`; return; }
   const spec = SPECS[mode];
   const t = (k: string) => L[lang][k] ?? k;
 
-  const svg = s('svg', { viewBox: `0 0 360 ${HEIGHTS[mode]}`, class: 'tv-svg', role: 'img', 'aria-label': spec.caption[lang] });
+  const svg = s('svg', { viewBox: `0 ${TOPS[mode] ?? 0} 360 ${HEIGHTS[mode] - (TOPS[mode] ?? 0)}`, class: 'tv-svg', role: 'img', 'aria-label': spec.caption[lang] });
   const bg = s('g', {});
   const stage = new Stage();
   svg.append(bg, stage.layer);
   const panel = h('div', { class: 'tv-panel' });
-  const controls = h('div', { class: 'tv-controls' });
-  const live = h('p', { class: 'tv-live', role: 'status', 'aria-live': 'polite' });
+  const controls = h('div', { class: 'vz-controls tv-controls' });
+  const live = h('p', { class: 'vz-sr', role: 'status', 'aria-live': 'polite' });
 
   const scene: Scene = SCENES[mode]!({ bg, stage, panel, controls, t, lang, status: (m) => { live.textContent = m; } });
 
@@ -60,11 +64,14 @@ export function mount(el: HTMLElement, lang: Lang, mode: string) {
   controls.prepend(playBtn, restartBtn);
   syncBtn();
 
-  el.append(h('div', { class: 'tv' },
-    spec.hypothesis ? h('p', { class: 'tv-hyp' }, spec.hypothesis[lang]) : null,
-    svg, panel, controls, live,
-    h('p', { class: 'tv-take' }, spec.takeaway[lang]),
-  ), h('figcaption', { class: 'tv-cap' }, spec.caption[lang]));
+  el.append(
+    controls,
+    ...(spec.hypothesis ? [h('p', { class: 'tv-hyp' }, spec.hypothesis[lang])] : []),
+    h('div', { class: 'vz-stage tv' }, svg),
+    panel, live,
+    h('p', { class: 'vz-take' }, spec.takeaway[lang]),
+    h('figcaption', { class: 'vz-cap' }, spec.caption[lang]),
+  );
 
   if (reduced) settleStatic(); else scene.reset();
   const io = new IntersectionObserver((entries) => {

@@ -4,7 +4,7 @@ export interface Spec { caption: Record<Lang, string>; takeaway: Record<Lang, st
 export const SPECS: Record<string, Spec> = {
   'load-tests': {
     caption: { en: 'Latency stays flat until the connection pool runs out, then it shoots up and requests start to fail.', de: 'Die Latenz bleibt flach, bis der Connection-Pool erschöpft ist, dann schießt sie hoch und Requests schlagen fehl.' },
-    takeaway: { en: 'Test at twice the expected peak, and check the invariant afterwards.', de: 'Teste bei doppelter erwarteter Spitze und prüfe danach die Invariante.' },
+    takeaway: { en: 'Test at twice the expected peak, and check the invariant afterwards.', de: 'Teste mit der doppelten erwarteten Spitzenlast und prüfe danach die Invariante.' },
   },
   'soak-tests': {
     caption: { en: 'A five-minute test looks fine, but a small leak per request fills the memory over hours.', de: 'Ein Fünf-Minuten-Test sieht gut aus, aber ein kleines Leck pro Request füllt über Stunden den Speicher.' },
@@ -31,7 +31,7 @@ export const T = {
   de: {
     users: 'Nutzer', p95: 'p95-Latenz', target: 'Ziel', peak: '2× Spitze', errors: 'Fehler', check: 'nach dem Lauf: Invariante prüfen', unique: 'Unique Constraint',
     twice: 'Rex doppelt reserviert', ms: 'ms', knee: 'Pool erschöpft',
-    leak: 'Leak pro Request', traffic: 'Traffic ×10', hours: 'Stunden', memory: 'Speicher', oom: 'OOM', fine: 'sieht hier gut aus', mb: 'MB', gc: 'GC-Sägezahn',
+    leak: 'Speicherleck pro Request', traffic: 'Traffic ×10', hours: 'Stunden', memory: 'Speicher', oom: 'OOM', fine: 'sieht hier gut aus', mb: 'MB', gc: 'GC-Sägezahn',
     nplus: 'N+1-Query', count: 'Requests', avg: 'Durchschnitt', p50: 'p50', p99: 'p99', note: 'Eine Seite mit 20 Requests: Die meisten Nutzer treffen den p95.', pageHit: (p: string) => `${p} der Seiten mit 20 Requests treffen einen langsamen`,
     n: 'n (Pets)', time: 'Zeit', linear: 'O(n)-Suche', quad: 'Dedupe + Suche', same: 'sieht gleich aus', thresh: '+20 % vs. Baseline', fail: 'Regression',
   },

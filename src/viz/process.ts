@@ -1,3 +1,4 @@
+import './frame.css';
 import './process.css';
 import { mountMode } from './process/frame';
 import { MODE_DEFS } from './process/modes';

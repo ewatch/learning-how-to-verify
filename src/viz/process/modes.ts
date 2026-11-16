@@ -8,23 +8,22 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 const num = (c: Ctx, n: number) => n.toLocaleString(c.lang);
 
 // ---------------- oncall-experience ----------------
-const FG = { x: 10, y: 6, w: 190, lh: 28 };
+const FG = { x: 10, y: 26, w: 190, lh: 28 };
 const oncall: ModeDef = {
   max: 3, ms: 900,
   label: (c) => c.t('Incident in production turns into a lint rule in the static layer of the funnel.', 'Incident in Production wird zu einer Lint-Regel in der Static-Schicht des Funnels.'),
   svg: (c) => {
     const p = c.phase, mid1 = layerMid(FG, 1);
-    let o = defs + funnel(FG, c.lang, p >= 2 ? [1] : []);
-    o += `<rect x="10" y="176" width="190" height="30" rx="4" class="box"/><text x="105" y="196" text-anchor="middle" class="tb">${c.t('Production', 'Production')}</text>`;
-    if (p < 3) o += flame(105, 168, 0.9);
+    let o = defs + funnel(FG, c.lang, p >= 2 ? [1] : [], true, p >= 2 ? [1] : []);
+    o += `<rect x="10" y="190" width="190" height="30" rx="4" class="box"/><text x="105" y="210" text-anchor="middle" class="tb">${c.t('Production', 'Production')}</text>`;
+    if (p < 3) o += flame(105, 182, 0.9);
     if (p >= 1 && p < 3) o += `<g class="pv-pop"><rect x="215" y="30" width="135" height="64" rx="6" class="box"/>${lines(282, 52, [c.t('Postmortem', 'Postmortem'), c.t('double reservation', 'Doppelte Reservierung')], 't')}</g>`;
     if (p === 2) o += `<g class="pv-rise" style="--from:130px"><rect x="${mid1.x - 42}" y="${mid1.y - 10}" width="84" height="20" rx="4" class="okc"/><text x="${mid1.x}" y="${mid1.y + 4}" text-anchor="middle" class="tb">${c.t('new lint rule', 'neue Lint-Regel')}</text></g>`;
     if (p >= 3) {
       o += `<g><rect x="${mid1.x - 42}" y="${mid1.y - 10}" width="84" height="20" rx="4" class="okc"/><text x="${mid1.x}" y="${mid1.y + 4}" text-anchor="middle" class="tb">${c.t('lint rule', 'Lint-Regel')}</text></g>`;
-      o += `<g class="pv-fall"><circle cx="${mid1.x}" cy="${FG.y - 0}" r="0"/><path d="M${mid1.x - 6} ${FG.y + 13} l12 0 l-6 -8 z" fill="var(--bad)"/></g>`;
-      o += `<text x="${mid1.x}" y="${FG.y + 5}" text-anchor="middle" class="bad-t">${c.t('bug', 'Bug')}</text>`;
+      o += `<g class="pv-fall"><path d="M${mid1.x - 6} ${FG.y - 9} l12 0 l-6 8 z" fill="var(--bad)"/></g>`;
+      o += `<text x="${mid1.x + 12}" y="${FG.y - 4}" class="bad-t">${c.t('bug', 'Bug')}</text>`;
       o += `<g class="pv-pop"><rect x="215" y="30" width="135" height="64" rx="6" class="okc"/>${lines(282, 56, [c.t('Next time:', 'Nächstes Mal:'), c.t('stopped here', 'hier gestoppt')], 'tb')}</g>`;
-      o += `<path d="M${mid1.x - 52} ${mid1.y} H${mid1.x - 46}" class="line"/>`;
     }
     return o;
   },
@@ -48,7 +47,7 @@ const review: ModeDef = {
     o += `<circle cx="${X(L)}" cy="${Y(a)}" r="6" class="${split ? 'dot-ok' : isLgtm(a) ? 'dot-bad' : 'dot'}"/>`;
     if (isLgtm(a)) o += `<g class="pv-pop"><rect x="${Math.min(X(L) - 30, 280)}" y="${Y(a) - 38}" width="60" height="22" rx="4" class="badc"/><text x="${Math.min(X(L), 310)}" y="${Y(a) - 23}" text-anchor="middle" class="tb">LGTM</text></g>`;
     o += `<text x="40" y="206" class="tb">${num(c, L)} ${c.t('lines', 'Zeilen')} · ${a.toFixed(1)} ${c.t('comments / 100', 'Komm. / 100')}</text>`;
-    if (split) o += `<text x="40" y="224" class="t">${stepsFor(L)} × ≤${SPLIT_SIZE} ${c.t('lines', 'Zeilen')}</text>`;
+    if (split) o += `<text x="40" y="226" class="t">${stepsFor(L)} × ≤${SPLIT_SIZE} ${c.t('lines', 'Zeilen')}</text>`;
     return o;
   },
   controls: [
@@ -100,7 +99,7 @@ const rules: ModeDef = {
   label: (c) => c.t('A rule card moves from the prose layer to the static analysis layer; agent runs become all green.', 'Eine Regelkarte wandert von der Prosa- in die Static-Analysis-Schicht; alle Agent-Läufe werden grün.'),
   svg: (c) => {
     const li = c.s.layer === 'prose' ? 3 : 1, m = layerMid(FG, li);
-    let o = defs + funnel(FG, c.lang, [li]);
+    let o = defs + funnel(FG, c.lang, [li], true, [li]);
     o += `<g data-act="move" role="button" tabindex="0" aria-label="${c.t('Move rule', 'Regel verschieben')}" class="pv-card ${c.s.moved ? 'pv-rise' : ''}" style="--from:${c.s.moved ? 56 : 0}px"><rect x="${m.x - 46}" y="${m.y - 11}" width="92" height="22" rx="4" class="${c.s.layer === 'prose' ? 'warnc' : 'okc'}"/><text x="${m.x}" y="${m.y + 4}" text-anchor="middle" class="tb">${c.t('integer money', 'Geld als Integer')}</text></g>`;
     o += `<text x="215" y="22" class="tb">${c.t('Agent runs', 'Agent-Läufe')}</text>`;
     ruleRuns(c.s.layer).forEach((r, i) => {
@@ -120,7 +119,7 @@ const THREATS: { k: string; l: string; x: number; y: number; en: [string, string
   { k: 'S', l: 'Spoofing', x: 30, y: 66, en: ['Spoofing', 'stolen session', 'short-lived token', 'auth test'], de: ['Spoofing', 'gestohlene Session', 'kurzlebiges Token', 'Auth-Test'] },
   { k: 'T', l: 'Tampering', x: 108, y: 76, en: ['Tampering', 'client sends price', 'server recomputes', 'API test'], de: ['Tampering', 'Client sendet Preis', 'Server rechnet neu', 'API-Test'] },
   { k: 'R', l: 'Repudiation', x: 150, y: 88, en: ['Repudiation', '"I never reserved"', 'audit log entry', 'log test'], de: ['Repudiation', '„Ich war das nicht“', 'Audit-Log-Eintrag', 'Log-Test'] },
-  { k: 'I', l: 'Info disclosure', x: 312, y: 28, en: ['Info disclosure', 'owner data leaks', 'field allow-list', 'contract test'], de: ['Info disclosure', 'Besitzerdaten leaken', 'Feld-Allowlist', 'Contract Test'] },
+  { k: 'I', l: 'Info disclosure', x: 348, y: 28, en: ['Info disclosure', 'owner data leaks', 'field allow-list', 'contract test'], de: ['Info disclosure', 'Besitzerdaten leaken', 'Feld-Allowlist', 'Contract Test'] },
   { k: 'D', l: 'Denial of service', x: 175, y: 128, en: ['Denial of service', 'request flood', 'rate limit', 'load test'], de: ['Denial of service', 'Request-Flut', 'Rate Limit', 'Lasttest'] },
   { k: 'E', l: 'Elevation', x: 200, y: 88, en: ['Elevation', 'user acts as admin', 'role check', 'authz test'], de: ['Elevation', 'User handelt als Admin', 'Rollenprüfung', 'Authz-Test'] },
 ];
@@ -135,8 +134,8 @@ const threat: ModeDef = {
     o += arrow(84, 120, 135, 120) + arrow(205, 112, 270, 50) + arrow(205, 128, 270, 166);
     THREATS.forEach((t, i) => {
       if (i >= c.phase) return;
-      const y = t.k === 'S' ? 92 : t.k === 'T' ? 108 : t.k === 'R' ? 90 : t.k === 'D' ? 150 : t.k === 'E' ? 90 : 36;
-      const x = t.k === 'S' ? 30 : t.k === 'T' ? 108 : t.k === 'R' ? 150 : t.k === 'D' ? 170 : t.k === 'E' ? 192 : 312;
+      const y = t.k === 'S' ? 92 : t.k === 'T' ? 108 : t.k === 'R' ? 90 : t.k === 'D' ? 150 : t.k === 'E' ? 90 : 28;
+      const x = t.k === 'S' ? 30 : t.k === 'T' ? 108 : t.k === 'R' ? 150 : t.k === 'D' ? 170 : t.k === 'E' ? 192 : 348;
       const yy = t.k === 'T' ? 142 : y;
       o += `<g data-act="${t.k}" role="button" tabindex="0" aria-label="${t.l}" class="pv-pop pv-badge ${c.s.sel === t.k ? 'sel' : ''}"><circle cx="${x}" cy="${yy}" r="12"/><text x="${x}" y="${yy + 5}" text-anchor="middle">${t.k}</text></g>`;
     });
@@ -191,8 +190,8 @@ const usab: ModeDef = {
     let o = `<line x1="40" y1="170" x2="345" y2="170" class="axis"/><line x1="40" y1="25" x2="40" y2="170" class="axis"/>`;
     o += `<text x="42" y="20" class="t">${c.t('problems found', 'Probleme gefunden')}</text><text x="345" y="190" text-anchor="end" class="t">${c.t('test users', 'Testpersonen')}</text>`;
     o += `<polyline points="${pts}" class="curve"/>`;
-    o += `<line x1="${X(5)}" y1="${Y(nielsen(5))}" x2="${X(5)}" y2="170" class="boundary"/><text x="${X(5) + 6}" y="${Y(nielsen(5)) + 18}" class="t">5 ≈ 85%</text>`;
-    o += `<text x="${X(10)}" y="${Y(nielsen(10)) + 22}" text-anchor="middle" class="t">${c.t('diminishing returns', 'abnehmender Ertrag')}</text>`;
+    o += `<line x1="${X(5)}" y1="${Y(nielsen(5))}" x2="${X(5)}" y2="170" class="boundary"/><text x="${X(5) + 6}" y="158" class="t">5 ≈ ${pct(nielsen(5))}</text>`;
+    o += `<text x="${X(10)}" y="${Y(nielsen(10)) + 40}" text-anchor="middle" class="t">${c.t('diminishing returns', 'abnehmender Ertrag')}</text>`;
     o += `<circle cx="${X(n)}" cy="${Y(nielsen(n))}" r="6" class="dot"/>`;
     o += `<text x="40" y="208" class="tb">N(1−(1−L)^n), L≈${NIELSEN_L}</text><text x="40" y="226" class="warn-t">${c.t('a rule of thumb, debated', 'Faustregel, umstritten')}</text>`;
     return o;
@@ -204,7 +203,7 @@ const usab: ModeDef = {
 const refactor: ModeDef = {
   max: 3, ms: 800,
   init: (c) => { c.s.noTests = false; },
-  label: (c) => c.t('Tangled modules become clean modules while a bar of pinned behaviours stays green.', 'Verworrene Module werden aufgeräumt, während eine Leiste festgehaltener Verhalten grün bleibt.'),
+  label: (c) => c.t('Tangled modules become clean modules while a bar of pinned behaviours stays green.', 'Verworrene Module werden aufgeräumt, während eine Leiste festgehaltener Verhaltensweisen grün bleibt.'),
   svg: (c) => {
     const no = c.s.noTests as boolean, p = c.phase;
     const bx = (x: number, y: number, t: string, cls = 'box') => `<rect x="${x}" y="${y}" width="44" height="26" rx="4" class="${cls}"/><text x="${x + 22}" y="${y + 17}" text-anchor="middle" class="tb">${t}</text>`;
@@ -214,19 +213,17 @@ const refactor: ModeDef = {
     const tang: [number, number][] = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3], [3, 0], [2, 1]];
     tang.forEach(([a, b]) => { o += `<line x1="${A[a]![0] + 22}" y1="${A[a]![1] + 13}" x2="${A[b]![0] + 22}" y2="${A[b]![1] + 13}" class="line tang"/>`; });
     A.forEach(([x, y], i) => { o += bx(x, y, names[i]!); });
-    o += `<g class="${p >= 2 ? 'pv-pop' : 'hide'}">`;
-    const B = [200, 250, 300].map((x, i) => [x, 30 + i * 0] as const);
+    o += `<g class="${p >= 2 ? 'pv-pop' : 'dim'}">`;
     ['UI', 'API', 'Dom'].forEach((n, i) => { o += bx(200 + i * 52, 30, n, 'okc'); });
-    o += bx(200, 100, 'DB', 'okc').replace('x="200"', 'x="226"').replace('x="222"', 'x="248"');
-    o += arrow(244, 43, 252, 43) + arrow(296, 43, 304, 43) + `</g>`;
-    void B;
+    o += bx(304, 100, 'DB', 'okc');
+    o += arrow(244, 43, 252, 43) + arrow(296, 43, 304, 43) + arrow(326, 56, 326, 100) + `</g>`;
     o += `<text x="10" y="170" class="t">${c.t('Behaviour pinned', 'Verhalten festgehalten')}</text>`;
     for (let i = 0; i < 8; i++) {
       const x = 10 + i * 42, bad = no && i === 5 && p >= 2;
       o += `<rect x="${x}" y="178" width="36" height="22" rx="3" class="${no ? 'box' : 'okc'}"/><text x="${x + 18}" y="194" text-anchor="middle" class="tb">${no ? '?' : '✓'}</text>`;
       if (bad) o += `<circle cx="${x + 18}" cy="212" r="0"/>`;
     }
-    if (no && p >= 2) o += `<g class="pv-flash"><rect x="10" y="206" width="340" height="20" rx="3" class="badc"/><text x="180" y="221" text-anchor="middle" class="tb">${c.t('production: 1 result changed', 'Production: 1 Ergebnis anders')}</text></g>`;
+    if (no && p >= 2) o += `<g class="pv-flash"><rect x="10" y="206" width="340" height="20" rx="3" class="badc"/><text x="180" y="221" text-anchor="middle" class="tb">${c.t('production: 1 result changed', 'Production: 1 Ergebnis geändert')}</text></g>`;
     return o;
   },
   controls: [

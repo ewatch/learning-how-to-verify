@@ -32,11 +32,11 @@ export const SPECS: Record<Mode, Spec> = {
   },
   auditing: {
     en: { caption: 'With a separate agent identity a scheduled query flags the out-of-scope delete, with a shared admin token nobody can say who did it.', takeaway: 'Give every agent its own identity.', toggle: 'Shared admin token' },
-    de: { caption: 'Mit eigener Agent-Identität markiert eine geplante Abfrage das Delete außerhalb des Scopes, mit geteiltem Admin-Token kann niemand sagen, wer es war.', takeaway: 'Jeder Agent bekommt eine eigene Identität.', toggle: 'Geteiltes Admin-Token' },
+    de: { caption: 'Mit eigener Agent-Identität markiert eine geplante Abfrage das Löschen außerhalb des Scopes, mit geteiltem Admin-Token kann niemand sagen, wer es war.', takeaway: 'Jeder Agent bekommt eine eigene Identität.', toggle: 'Geteiltes Admin-Token' },
   },
   'ab-tests': {
     en: { caption: 'Peeking every day declares a false winner on day 2, while the planned sample on day 21 shows no difference.', takeaway: 'Fix the sample size first, then look once.', toggle: 'Peek daily' },
-    de: { caption: 'Tägliches Nachschauen kürt an Tag 2 einen falschen Sieger, während die geplante Stichprobe an Tag 21 keinen Unterschied zeigt.', takeaway: 'Erst die Stichprobengröße festlegen, dann einmal schauen.', toggle: 'Täglich peeken' },
+    de: { caption: 'Tägliches Nachschauen kürt an Tag 2 einen falschen Sieger, während die geplante Stichprobe an Tag 21 keinen Unterschied zeigt.', takeaway: 'Erst die Stichprobengröße festlegen, dann einmal schauen.', toggle: 'Täglich nachschauen' },
   },
 };
 export const isMode = (m: string): m is Mode => (MODES as readonly string[]).includes(m);

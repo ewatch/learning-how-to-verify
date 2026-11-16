@@ -41,24 +41,24 @@ export function mountMode(root: HTMLElement, lang: L, mode: string, def: ModeDef
     lang, t: (en, de) => (lang === 'de' ? de : en), phase: 0, s: {}, redraw: () => draw(), play: () => play(),
   };
   def.init?.(ctx);
-  const stage = el('div', 'pv-stage');
+  const stage = el('div', 'vz-stage pv-stage');
   const detail = el('div', 'pv-detail');
   detail.setAttribute('aria-live', 'polite');
-  const bar = el('div', 'pv-controls');
-  const take = el('p', 'pv-take', spec.takeaway[lang]);
-  const cap = el('figcaption', 'pv-cap', spec.caption[lang]);
-  root.append(stage, detail, bar, take, cap);
+  const bar = el('div', 'vz-controls');
+  const take = el('p', 'vz-take', spec.takeaway[lang]);
+  const cap = el('figcaption', 'vz-cap', spec.caption[lang]);
+  root.append(bar, stage, detail, take, cap);
 
   const syncs: (() => void)[] = [];
   for (const c of def.controls) {
     if (c.kind === 'button') {
-      const b = el('button', 'pv-btn');
+      const b = el('button', 'btn ghost sm');
       b.type = 'button';
       b.addEventListener('click', () => { c.on(ctx); draw(); });
       syncs.push(() => { b.textContent = c.label(ctx); if (c.pressed) b.setAttribute('aria-pressed', String(c.pressed(ctx))); });
       bar.append(b);
     } else {
-      const wrap = el('label', 'pv-range');
+      const wrap = el('label', 'vz-ctl');
       const txt = el('span');
       const inp = el('input');
       inp.type = 'range';
@@ -114,15 +114,15 @@ export function layerName(i: number, lang: L): string {
 export interface FunnelGeo { x: number; y: number; w: number; lh: number }
 export const layerMid = (g: FunnelGeo, i: number) => ({ x: g.x + g.w / 2, y: g.y + i * g.lh + g.lh / 2 });
 /** Inverted funnel: wide at the top (codebase), narrow at the bottom (review). */
-export function funnel(g: FunnelGeo, lang: L, hot: number[] = [], labels = true): string {
-  const k = 0.17;
+export function funnel(g: FunnelGeo, lang: L, hot: number[] = [], labels = true, skip: number[] = []): string {
+  const k = 0.14;
   return LAYERS.map((l, i) => {
     const y = g.y + i * g.lh;
     const a = g.w * (1 - i * k) / 2, b = g.w * (1 - (i + 1) * k) / 2, cx = g.x + g.w / 2;
     const pts = `${cx - a},${y} ${cx + a},${y} ${cx + b},${y + g.lh - 1} ${cx - b},${y + g.lh - 1}`;
     const op = hot.includes(i) ? 0.5 : 0.2;
     return `<polygon points="${pts}" fill="var(--l-${l})" fill-opacity="${op}" stroke="var(--l-${l})" stroke-width="${hot.includes(i) ? 2 : 1}"/>` +
-      (labels ? `<text x="${cx}" y="${y + g.lh / 2 + 4}" text-anchor="middle" class="tb">${layerName(i, lang)}</text>` : '');
+      (labels && !skip.includes(i) ? `<text x="${cx}" y="${y + g.lh / 2 + 4}" text-anchor="middle" class="tb">${layerName(i, lang)}</text>` : '');
   }).join('');
 }
 export function lines(x: number, y: number, ls: string[], cls = 't', anchor = 'middle', dy = 14): string {

@@ -145,7 +145,7 @@ export type Outcome = 'ok' | 'pending' | 'failed';
 export class ChaosSim {
   t = 0;
   acc = 0;
-  busy: { end: number; outcome: Outcome }[] = [];
+  busy: { start: number; end: number; outcome: Outcome }[] = [];
   counts: Record<Outcome, number> = { ok: 0, pending: 0, failed: 0 };
   recent: Outcome[] = [];
   peak = 0;
@@ -171,17 +171,23 @@ export class ChaosSim {
       if (this.busy.length >= POOL) { this.hooks.arrive?.(false); this.finish('failed'); }
       else {
         this.hooks.arrive?.(true);
-        this.busy.push({ end: this.t + (timedOut ? TIMEOUT_MS : lat) / 1000, outcome: timedOut ? 'pending' : 'ok' });
+        this.busy.push({ start: this.t, end: this.t + (timedOut ? TIMEOUT_MS : lat) / 1000, outcome: timedOut ? 'pending' : 'ok' });
       }
     }
     this.peak = Math.max(this.peak, this.busy.length);
   }
-  /** Reservation page verdict from the most recent outcomes. */
-  get page(): 'ok' | 'degraded' | 'down' {
+  /** True while every thread is held: new reservations are rejected. */
+  get saturated() { return this.busy.length >= POOL; }
+  /** Reservation page verdict from the pool state and the most recent outcomes. */
+  get page(): 'ok' | 'slow' | 'degraded' | 'down' {
+    if (this.saturated) return 'down';
     const n = this.recent.length || 1;
     const failed = this.recent.filter((x) => x === 'failed').length;
     if (failed / n >= 1 / 3) return 'down';
-    return this.recent.includes('pending') ? 'degraded' : 'ok';
+    if (this.recent.includes('pending')) return 'degraded';
+    // without a timeout, requests that already wait longer than the timeout would are hanging
+    if (this.busy.some((b) => b.outcome === 'ok' && this.t - b.start > TIMEOUT_MS / 1000)) return 'slow';
+    return 'ok';
   }
 }
 

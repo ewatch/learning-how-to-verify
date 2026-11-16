@@ -1,6 +1,7 @@
-.pv { margin: 0; display: grid; gap: 0.5rem; }
-.pv-stage svg { width: 100%; height: auto; max-width: 480px; display: block; margin: 0 auto; overflow: visible; }
-.pv svg text { font: 12px/1 inherit; font-family: inherit; fill: var(--ink-2); }
+.pv { margin: 0; }
+.pv-stage { --vz-max: 560px; }
+.pv-stage svg { overflow: visible; }
+.pv svg text { font-family: inherit; font-size: 12.5px; fill: var(--ink-2); }
 .pv svg .tb { fill: var(--ink); font-weight: 600; }
 .pv svg .bad-t { fill: var(--bad); font-weight: 600; }
 .pv svg .warn-t { fill: var(--warn); font-weight: 600; }
@@ -35,14 +36,6 @@
 .pv-hint { color: var(--ink-3); }
 .pv .chip { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 0.75rem; border: 1px solid var(--rule-strong); background: var(--card); margin: 0.1rem 0; }
 .pv .chip.ok { border-color: var(--ok); } .pv .chip.bad { border-color: var(--bad); }
-.pv-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.pv-btn { font: inherit; font-size: 0.9rem; min-height: 40px; padding: 0.3rem 0.8rem; border-radius: 0.5rem; border: 1px solid var(--rule-strong); background: var(--card); color: var(--ink); cursor: pointer; }
-.pv-btn[aria-pressed='true'] { background: color-mix(in srgb, var(--focus) 18%, var(--card)); border-color: var(--focus); }
-.pv-btn:focus-visible, .pv-range input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.pv-range { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; flex: 1 1 220px; }
-.pv-range input { flex: 1; min-width: 100px; }
-.pv-take { margin: 0; font-weight: 600; }
-.pv-cap { color: var(--ink-3); font-size: 0.85rem; }
 @keyframes pv-pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
 @keyframes pv-rise { from { transform: translateY(var(--from, 40px)); opacity: 0.4; } to { transform: none; opacity: 1; } }
 @keyframes pv-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -51,4 +44,4 @@
 .pv .pv-rise { animation: pv-rise 0.8s ease-out both; }
 .pv .pv-flash { animation: pv-flash 1s ease-in-out 3; }
 .pv .pv-fall { animation: pv-fall 0.5s ease-in both; }
-@media (prefers-reduced-motion: reduce) { .pv *, .pv-stage * { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .pv * { animation: none !important; transition: none !important; } }

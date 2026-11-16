@@ -86,6 +86,22 @@ export const proseReview: Practice[] = [
         f('patchdiff2026', 'Test-based evaluation overstated agent resolution rates by about 6.2 points because 29.6% of passing patches behaved differently from the reference.', 'Testbasierte Bewertung überschätzte die Lösungsquote der Agenten um etwa 6,2 Punkte, weil sich 29,6 % der bestehenden Patches anders verhielten als die Referenz.')),
     },
     tools: { any: ['inspect-ai', 'promptfoo', 'swe-bench'] },
+    snippets: [{ lang: "any", file: "agent-eval.md",
+      description: l("Run a small, fixed task set on clean checkouts before changing your agent setup. Compare the same tasks and held-out checks; log failures as well as successes. This is a protocol, not an automated scorer.",
+        "Vor einer Änderung des Agenten-Setups einen kleinen festen Aufgabensatz auf sauberen Checkouts ausführen. Dieselben Aufgaben und Holdout-Prüfungen vergleichen; Fehler ebenso wie Erfolge protokollieren. Dies ist ein Protokoll, kein automatischer Scorer."),
+      code: `# Task: prevent a second reservation
+Input: a checkout at a recorded commit, plus the requirement.
+Expected: first reservation succeeds; second fails; first owner stays.
+
+Holdout checks (outside the agent workspace):
+- unknown pet is rejected
+- competing requests leave one owner
+- approved test files are unchanged
+
+Record per run:
+setup/model version, task commit, checks passed/total,
+unauthorized test edits, elapsed time, tool calls, cost.
+Repeat with the same budget; keep individual results.` }],
     steps: [
       l('Collect 10–20 closed issues from this repo with their merged fixes as reference solutions.', '10–20 geschlossene Issues dieses Repos mit ihren gemergten Lösungen als Referenz sammeln.'),
       l('Script a run: reset to the parent commit, give the agent the issue, run tests, and compare its patch with the reference on generated inputs.', 'Einen Lauf skripten: auf den Eltern-Commit zurücksetzen, dem Agenten das Issue geben, Tests ausführen und seinen Patch auf erzeugten Eingaben mit der Referenz vergleichen.'),
@@ -129,6 +145,19 @@ export const proseReview: Practice[] = [
     },
     variants: [{ name: l('AI review / LLM-as-judge (first pass)', 'KI-Review / LLM-as-Judge (erster Durchgang)'), text: l('Let a model comment first against a written rubric; a human decides. Rubrics raise agreement a lot.', 'Ein Modell zuerst anhand einer schriftlichen Rubrik kommentieren lassen; ein Mensch entscheidet. Rubriken erhöhen die Übereinstimmung deutlich.') }],
     tools: { any: ['reviewdog', 'danger', 'gerrit'] },
+    snippets: [{ lang: "any", file: "reservation-review.md",
+      description: l("Give the agent this checklist and the diff, then have a human examine the findings. Require file/line evidence for each claim; a checklist is a review aid rather than proof.",
+        "Dem Agenten diese Checkliste und den Diff geben, danach die Funde durch einen Menschen prüfen lassen. Für jede Aussage Datei und Zeile verlangen; eine Checkliste unterstützt das Review, ist aber kein Beweis."),
+      code: `# Review the reservation change
+- Trace user identity from session to stored owner.
+- Find the atomic operation that prevents double reservation.
+- Show a test that fails if the second owner overwrites the first.
+- Inspect changes to tests, compiler settings and CI separately.
+- Check failure paths: missing pet, conflict, timeout, retry.
+
+For each finding: file:line, triggering input, expected/actual
+behaviour, severity and suggested verification command.
+List assumptions you could not verify. Do not invent findings.` }],
     steps: [
       l('Keep changes small (aim for under ~400 changed lines) and require one human approval.', 'Änderungen klein halten (Ziel unter ~400 geänderten Zeilen) und eine menschliche Freigabe verlangen.'),
       l('Post tool findings (lint, coverage of the diff, mutation survivors) into the PR automatically, so reviewers see them.', 'Werkzeugfunde (Lint, Diff-Abdeckung, überlebende Mutanten) automatisch in den PR posten, damit Reviewer sie sehen.'),
@@ -157,6 +186,14 @@ export const proseReview: Practice[] = [
     ai: l('Agents can run scanner-driven reconnaissance quickly, but creative abuse still needs humans. Whatever the testers find should become a test that the next agent change has to pass.', 'Agenten können scannergestützte Aufklärung schnell erledigen, kreativer Missbrauch braucht aber noch Menschen. Was die Tester finden, sollte ein Test werden, den die nächste Agentenänderung bestehen muss.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['zap', 'nuclei', 'sqlmap'] },
+    snippets: [{ lang: "any", file: "zap-baseline.sh",
+      description: l("With Docker installed, run this only against a disposable local test app you are authorized to assess. The baseline spider reports passive findings; it does not prove the reservation authorization logic is secure.",
+        "Mit installiertem Docker nur gegen eine freigegebene, entbehrliche lokale Test-App ausführen. Der Baseline-Spider meldet passive Funde; er belegt keine sichere Autorisierung der Reservierungslogik."),
+      code: `# Docker Desktop: the host app listens on port 3000.
+# Review the scan scope before running it.
+docker run --rm -t ghcr.io/zaproxy/zaproxy:stable   zap-baseline.py -t http://host.docker.internal:3000
+# Exit code 1: FAIL finding; 2: WARN finding; 3: other failure.
+# Triage the report. Do not turn every warning into an ignore.` }],
     steps: [l('Define scope and rules of engagement in writing; test against staging.', 'Umfang und Spielregeln schriftlich festlegen; gegen Staging testen.'), l('For each finding, write a regression test or scanner rule before fixing.', 'Für jeden Fund vor der Behebung einen Regressionstest oder eine Scannerregel schreiben.')],
     done: l('All high findings are fixed, and each has an automated check that would catch it again.', 'Alle hohen Funde sind behoben, und jeder hat eine automatische Prüfung, die ihn wieder fangen würde.'),
     think: [q('Why is a pen test report with zero findings not proof of security?', 'Warum ist ein Pentest-Bericht ohne Funde kein Sicherheitsbeweis?', 'It shows what these testers found in this time with this scope. Absence of evidence is not evidence of absence, the same as with any test.', 'Er zeigt, was diese Tester in dieser Zeit mit diesem Umfang fanden. Fehlen von Belegen ist kein Beleg für Fehlen, wie bei jedem Test.')],
@@ -177,6 +214,21 @@ export const proseReview: Practice[] = [
     ai: l('Agents build UIs that pass every automated check and still confuse people. Five people trying to reserve a pet will show you in an afternoon.', 'Agenten bauen Oberflächen, die jede automatische Prüfung bestehen und Menschen trotzdem verwirren. Fünf Menschen, die versuchen, ein Tier zu reservieren, zeigen das an einem Nachmittag.'),
     evidence: { general: ev('moderate', f('nielsen1993', 'Problems found follow a diminishing-returns curve; under the model about 5 users find about 85% of problems (the rule is debated).', 'Gefundene Probleme folgen einer Kurve abnehmenden Ertrags; nach dem Modell finden etwa 5 Nutzer etwa 85 % der Probleme (die Regel ist umstritten).')), ai: none() },
     tools: {},
+    snippets: [{ lang: "any", file: "reservation-usability.md",
+      description: l("Use this session script with a participant. Observe their actions without coaching; an agent can summarise anonymised observations, but cannot replace the participant.",
+        "Dieses Sitzungsskript mit einer Testperson nutzen. Ihre Handlungen ohne Hilfestellung beobachten; ein Agent kann anonymisierte Beobachtungen zusammenfassen, die Testperson aber nicht ersetzen."),
+      code: `# Task (read aloud)
+You want to adopt Rex. Find out whether Rex is available,
+reserve him, and explain how you know the reservation worked.
+
+# Observer notes (do not read aloud)
+Record: first action, hesitations, errors, completion, quotes.
+Do not tell the participant which button to click.
+Then ask: "What would you expect if someone else reserved Rex?"
+
+# Feed back to the team
+Observation -> affected step -> proposed change -> next session.
+Separate observed behaviour from your interpretation.` }],
     steps: [l('Write 3 realistic tasks ("reserve a dog under 3 years for next weekend").', '3 realistische Aufgaben schreiben („reserviere einen Hund unter 3 Jahren für nächstes Wochenende“).'), l('Watch 5 people do them, thinking aloud, without helping; note every hesitation.', '5 Personen dabei zusehen, laut denkend, ohne zu helfen; jedes Zögern notieren.'), l('Fix the top 3 problems and test again.', 'Die 3 größten Probleme beheben und erneut testen.')],
     done: l('Five sessions are documented, and the top problems have fixes or tickets.', 'Fünf Sitzungen sind dokumentiert, und die größten Probleme haben Korrekturen oder Tickets.'),
     think: [q('Why not just ask users what they want?', 'Warum nicht einfach Nutzer fragen, was sie wollen?', 'People are bad at predicting their own behaviour and good at showing it. Watch what they do, not what they say.', 'Menschen sagen ihr eigenes Verhalten schlecht vorher, zeigen es aber gut. Beobachten, was sie tun, nicht was sie sagen.')],
@@ -197,6 +249,21 @@ export const proseReview: Practice[] = [
     ai: l('If agents write more of the code, the humans on call understand less of it. Make "how would I debug this at 3 a.m.?" part of review, and give every incident a follow-up check upstream.', 'Wenn Agenten mehr Code schreiben, verstehen die Menschen in Rufbereitschaft weniger davon. „Wie debugge ich das um 3 Uhr nachts?“ ins Review aufnehmen und jedem Vorfall eine Folgeprüfung weiter oben geben.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['alertmanager', 'grafana'] },
+    snippets: [{ lang: "any", file: "reservation-runbook.md",
+      description: l("Rehearse this runbook during a staging drill. Replace placeholders with actual dashboards, owners and commands. An agent may gather evidence; the responder follows the team’s incident process.",
+        "Dieses Runbook in einer Staging-Übung durchspielen. Platzhalter durch echte Dashboards, Verantwortliche und Befehle ersetzen. Ein Agent kann Belege sammeln; die zuständige Person folgt dem Incident-Prozess des Teams."),
+      code: `# Alert: reservation failures above the agreed SLO
+Owner / escalation: <team and contact path>
+Dashboard: <reservation success rate, latency, release version>
+
+1. Confirm impact and affected release; note the start time.
+2. Separate expected 409 conflicts from 5xx failures.
+3. Check database pool saturation and recent deployment changes.
+4. If the rollback condition is met, follow <rollback procedure>.
+5. Verify recovery with user-visible signals, not just healthy pods.
+
+After recovery: timeline, contributing conditions, one regression
+check, one alert/runbook improvement and an owner for each.` }],
     steps: [l('After every incident, write a blameless postmortem within a week.', 'Nach jedem Vorfall binnen einer Woche ein schuldfreies Postmortem schreiben.'), l('For each, add at least one check higher in the funnel (test, lint rule, alert, contract) that would have caught it earlier.', 'Für jeden mindestens eine Prüfung weiter oben im Trichter ergänzen (Test, Lint-Regel, Alarm, Vertrag), die ihn früher gefangen hätte.'), l('Review alert noise monthly and delete alerts nobody acts on.', 'Monatlich das Alarmrauschen prüfen und Alarme löschen, auf die niemand reagiert.')],
     done: l('Every incident has a postmortem with at least one upstream check added.', 'Jeder Vorfall hat ein Postmortem mit mindestens einer ergänzten Prüfung weiter oben.'),
     think: [q('Why is "add a check higher in the funnel" the most important postmortem action?', 'Warum ist „eine Prüfung weiter oben im Trichter ergänzen“ die wichtigste Postmortem-Maßnahme?', 'Because it makes the same bug cheap to catch next time. Fixing the bug fixes one bug; the check fixes the class.', 'Weil derselbe Fehler beim nächsten Mal billig gefangen wird. Den Fehler beheben behebt einen Fehler; die Prüfung behebt die Klasse.')],

@@ -16,6 +16,7 @@ export const GET: APIRoute = () => {
     `Full text of all English practices in one file: ${SITE_URL}/llms-full.txt (German: ${SITE_URL}/llms-full-de.txt)`,
     '',
     '## Start',
+    `- [Start here](${SITE_URL}/en/start/index.md): choose a first check for your project, try an exercise and copy a feedback-loop task for your agent`,
     `- [Why one layer is not enough with agents](${SITE_URL}/en/why-layers/index.md): research on green tests vs. correct code`,
     ...GUIDES.map((g) => `- [${g.title.en}](${SITE_URL}/en/guides/${g.id}/index.md)`),
     '',

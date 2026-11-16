@@ -195,6 +195,18 @@ add_link_options(-fsanitize=address,undefined)
     ai: l('For a large agent-written rewrite, tap compare on real traffic finds what thousands of generated inputs miss, before any user sees the new version.', 'Bei einer großen, von einem Agenten geschriebenen Neufassung findet Tap Compare auf echtem Verkehr, was Tausende erzeugte Eingaben übersehen, bevor ein Nutzer die neue Version sieht.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['diffy', 'envoy'] },
+    snippets: [{ lang: "js", file: "compare-responses.test.ts",
+      description: l("This runnable Vitest fixture compares two response bodies after removing a known volatile field. Replace the fixtures with captured read-only responses. Do not normalise the reserved owner away.",
+        "Dieses ausführbare Vitest-Fixture vergleicht zwei Antwort-Bodies nach Entfernen eines bekannten volatilen Felds. Fixtures durch aufgezeichnete Read-only-Antworten ersetzen. Die reservierte Person nicht wegnormalisieren."),
+      code: `import { expect, test } from 'vitest';
+type Reply = { petId: string; owner: string; requestId: string };
+const normalise = ({ requestId: _ignored, ...body }: Reply) => body;
+test('candidate preserves the reservation owner', () => {
+  const reference = { petId: 'rex', owner: 'anna', requestId: 'old-1' };
+  const candidate = { petId: 'rex', owner: 'anna', requestId: 'new-2' };
+  expect(normalise(candidate)).toEqual(normalise(reference));
+  // Change candidate.owner to 'ben': this comparison must fail.
+});` }],
     steps: [l('Mirror a sample of read-only requests to old and new versions.', 'Eine Stichprobe lesender Anfragen an alte und neue Version spiegeln.'), l('Compare responses field by field; learn noise by comparing two old instances.', 'Antworten Feld für Feld vergleichen; Rauschen lernen, indem man zwei alte Instanzen vergleicht.'), l('Investigate every non-noise difference before shifting traffic.', 'Jeden Unterschied außer Rauschen untersuchen, bevor Verkehr verlagert wird.')],
     done: l('A day of sampled traffic shows no unexplained differences between old and new.', 'Ein Tag Stichprobenverkehr zeigt keine unerklärten Unterschiede zwischen alt und neu.'),
     think: [q('Why compare two instances of the old version with each other too?', 'Warum auch zwei Instanzen der alten Version miteinander vergleichen?', 'To learn which differences are noise (timestamps, random IDs, ordering). Whatever differs between two old instances is not a bug in the new one.', 'Um zu lernen, welche Unterschiede Rauschen sind (Zeitstempel, Zufalls-IDs, Reihenfolge). Was sich zwischen zwei alten Instanzen unterscheidet, ist kein Fehler der neuen.')],
@@ -215,6 +227,20 @@ add_link_options(-fsanitize=address,undefined)
     ai: l('A safe stage for agent-written services: let the shadow run for a day, and give the agent its error logs and latency graphs as feedback.', 'Eine sichere Bühne für von Agenten geschriebene Dienste: den Schatten einen Tag laufen lassen und dem Agenten seine Fehlerlogs und Latenzkurven als Feedback geben.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'istio'] },
+    snippets: [{ lang: "any", file: "mirror-route.yaml",
+      description: l("Merge this route fragment into an existing Envoy route configuration with primary and shadow clusters. Mirror only read-only GET requests here. Observe shadow logs; its response is discarded and must never trigger real writes or notifications.",
+        "Dieses Route-Fragment in eine vorhandene Envoy-Konfiguration mit Primary- und Shadow-Cluster einfügen. Hier nur Read-only-GET-Requests spiegeln. Shadow-Logs beobachten; die Antwort wird verworfen und darf keine echten Schreibvorgänge oder Benachrichtigungen auslösen."),
+      code: `match:
+  prefix: /pets/
+  headers:
+    - name: ':method'
+      string_match: { exact: GET }
+route:
+  cluster: primary
+  request_mirror_policies:
+    - cluster: shadow
+      runtime_fraction:
+        default_value: { numerator: 10, denominator: HUNDRED }` }],
     steps: [l('Configure the proxy to mirror a percentage of traffic to the shadow deployment.', 'Den Proxy so konfigurieren, dass er einen Prozentsatz des Verkehrs an das Schatten-Deployment spiegelt.'), l('Stub all external side effects in the shadow.', 'Alle externen Seiteneffekte im Schatten abklemmen.'), l('Compare error rate, latency and resource use with production.', 'Fehlerrate, Latenz und Ressourcenverbrauch mit der Produktion vergleichen.')],
     done: l('The shadow ran on mirrored traffic for a defined period with error rate and latency within agreed bounds, and no external side effects.', 'Der Schatten lief eine festgelegte Zeit auf gespiegeltem Verkehr, mit Fehlerrate und Latenz in vereinbarten Grenzen und ohne externe Seiteneffekte.'),
     think: [q('Shadowing vs. tap compare: what is the difference?', 'Shadowing vs. Tap Compare: Was ist der Unterschied?', 'Shadowing watches how the new version behaves (errors, latency). Tap compare additionally checks what it answers, response by response, against the old version.', 'Shadowing beobachtet, wie sich die neue Version verhält (Fehler, Latenz). Tap Compare prüft zusätzlich, was sie antwortet, Antwort für Antwort gegen die alte Version.')],
@@ -265,6 +291,19 @@ add_link_options(-fsanitize=address,undefined)
     ai: l('Lets you expose agent-built changes to internal users first, by routing rule, without a separate environment.', 'Erlaubt, von Agenten gebaute Änderungen per Routingregel zuerst internen Nutzern zu zeigen, ohne eigene Umgebung.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'istio', 'argo-rollouts', 'flagger'] },
+    snippets: [{ lang: "any", file: "weighted-route.yaml",
+      description: l("This Envoy route fragment sends about 5% of matching requests to the candidate; unlike shadowing, its replies reach users. Use existing cluster definitions and test in staging. Weights do not measure errors or roll back automatically.",
+        "Dieses Envoy-Route-Fragment sendet etwa 5 % der passenden Requests an den Kandidaten; anders als beim Shadowing erreichen dessen Antworten Nutzer. Vorhandene Cluster-Definitionen nutzen und in Staging testen. Gewichte messen keine Fehler und lösen keinen automatischen Rollback aus."),
+      code: `match: { prefix: /pets/ }
+route:
+  weighted_clusters:
+    clusters:
+      - name: stable
+        weight: 95
+      - name: candidate
+        weight: 5
+# Before increasing candidate weight:
+# compare errors/latency and exercise the rollback procedure.` }],
     steps: [l('Put a proxy in front of the service that supports weighted and header-based routing.', 'Einen Proxy vor den Dienst setzen, der gewichtetes und headerbasiertes Routing kann.'), l('Route internal users to the new version by header, then shift a small percentage of public traffic.', 'Interne Nutzer per Header zur neuen Version leiten, dann einen kleinen Prozentsatz öffentlichen Verkehrs verlagern.'), l('Add rate limits and circuit breakers for the new version.', 'Rate Limits und Circuit Breaker für die neue Version ergänzen.')],
     done: l('Traffic split is configurable per release; internal users can reach the new version by header.', 'Die Verkehrsaufteilung ist pro Release konfigurierbar; interne Nutzer erreichen die neue Version per Header.'),
     think: [q('Why can retries make an outage worse?', 'Warum können Wiederholungsversuche einen Ausfall verschlimmern?', 'A struggling service gets more requests exactly when it can handle fewer. Retry budgets and circuit breakers shed load instead of multiplying it.', 'Ein angeschlagener Dienst bekommt mehr Anfragen genau dann, wenn er weniger verkraftet. Retry-Budgets und Circuit Breaker werfen Last ab, statt sie zu vervielfachen.')],
@@ -316,6 +355,22 @@ export async function reserve(petId: PetId, person: PersonId) {
       ai: ev('weak', f('dora2024', 'Indirect evidence: DORA associated higher AI adoption with lower delivery stability (survey-based correlation). It did not measure whether monitoring improves the reliability of agent-written code.', 'Indirekte Evidenz: DORA fand einen Zusammenhang zwischen höherer KI-Nutzung und geringerer Lieferstabilität (Korrelation aus Umfragedaten). Ob Monitoring die Zuverlässigkeit von Agenten-Code verbessert, wurde nicht gemessen.')),
     },
     tools: { any: ['prometheus', 'grafana', 'alertmanager', 'opentelemetry'] },
+    snippets: [{ lang: "any", file: "reservation-alerts.yml",
+      description: l("Load this rule group in Prometheus after instrumenting reservation_requests_total with outcome labels. A synthetic staging failure should make the alert pending, then firing after five minutes. The 5% threshold is illustrative; route it to a real responder.",
+        "Diese Rule Group in Prometheus laden, nachdem reservation_requests_total mit Outcome-Labels instrumentiert wurde. Ein synthetischer Staging-Fehler soll den Alert erst pending und nach fünf Minuten firing machen. Die 5-%-Schwelle ist ein Beispiel; an eine zuständige Person routen."),
+      code: `groups:
+  - name: reservations
+    rules:
+      - alert: ReservationErrors
+        expr: |
+          sum(rate(reservation_requests_total{outcome="error"}[5m]))
+          / clamp_min(sum(rate(reservation_requests_total[5m])), 0.001)
+          > 0.05
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: "Reservation error ratio exceeds 5%"
+# Count expected 'taken' conflicts separately from server errors.` }],
     steps: [l('Instrument the four golden signals and one business metric for the main service.', 'Die vier goldenen Signale und eine Geschäftsmetrik für den Hauptdienst instrumentieren.'), l('Define an SLO (e.g. 99.5% of reservations succeed within 1 s) and alert on burn rate.', 'Ein SLO definieren (z. B. 99,5 % der Reservierungen gelingen binnen 1 s) und auf die Burn Rate alarmieren.'), l('Link every alert to a runbook.', 'Jeden Alarm mit einem Runbook verknüpfen.')],
     done: l('Dashboards show golden signals and the business metric; an SLO alert fires on a simulated error spike and links to a runbook.', 'Dashboards zeigen die goldenen Signale und die Geschäftsmetrik; ein SLO-Alarm löst bei einer simulierten Fehlerspitze aus und verweist auf ein Runbook.'),
     think: [q('Why alert on "reservations per minute dropped to zero" if you already alert on errors?', 'Warum auf „Reservierungen pro Minute auf null gefallen“ alarmieren, wenn man schon auf Fehler alarmiert?', 'Because a broken button produces no errors, just no traffic. Business metrics catch the failures that look like silence.', 'Weil ein kaputter Button keine Fehler erzeugt, nur keinen Verkehr. Geschäftsmetriken fangen die Ausfälle, die wie Stille aussehen.')],
@@ -336,6 +391,21 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('A stack trace with context is the perfect bug report for an agent: hand it over together with "write a failing test first".', 'Ein Stacktrace mit Kontext ist der perfekte Fehlerbericht für einen Agenten: zusammen mit „schreib zuerst einen fehlschlagenden Test“ übergeben.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['glitchtip', 'opentelemetry'] },
+    snippets: [{ lang: "js", file: "reservation-errors.ts",
+      description: l("After configuring the OpenTelemetry SDK and exporter, wrap the real operation with this helper. Trigger a controlled staging exception and check its stack and release metadata. Handle errors normally; recording an exception must not swallow it.",
+        "Nach Einrichtung von OpenTelemetry-SDK und Exporter die echte Operation mit diesem Helper umschließen. Eine kontrollierte Staging-Exception auslösen und Stack sowie Release-Metadaten prüfen. Fehler normal behandeln; die Aufzeichnung darf sie nicht verschlucken."),
+      code: `import { trace, SpanStatusCode } from '@opentelemetry/api';
+const tracer = trace.getTracer('petstore');
+export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
+  return tracer.startActiveSpan('reserve', async (span) => {
+    try { return await operation(); }
+    catch (error) {
+      if (error instanceof Error) span.recordException(error);
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      throw error;
+    } finally { span.end(); }
+  });
+}` }],
     steps: [l('Install an error tracker SDK in server and client, tagged with the release version.', 'Ein Error-Tracker-SDK in Server und Client einbauen, mit Release-Version getaggt.'), l('Scrub personal data; alert on new issue types after a release.', 'Personenbezogene Daten entfernen; auf neue Problemarten nach einem Release alarmieren.')],
     done: l('A thrown test error appears grouped, with stack trace and release tag, without personal data.', 'Ein geworfener Testfehler erscheint gruppiert, mit Stacktrace und Release-Tag, ohne personenbezogene Daten.'),
     think: [q('The tracker shows 10,000 events of one error and 3 events of another. Which do you look at first?', 'Der Tracker zeigt 10.000 Ereignisse eines Fehlers und 3 eines anderen. Welchen schaut man zuerst an?', 'Not necessarily the big one. Check which is new in this release and which affects a critical flow; 3 failed payments may matter more than 10,000 harmless warnings.', 'Nicht unbedingt den großen. Prüfen, welcher in diesem Release neu ist und welcher einen kritischen Ablauf trifft; 3 gescheiterte Zahlungen können wichtiger sein als 10.000 harmlose Warnungen.')],
@@ -356,6 +426,25 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Replayed real traffic is a strong regression suite for an agent\'s change, much more varied than hand-written fixtures.', 'Wiederabgespielter echter Verkehr ist eine starke Regressionssuite für die Änderung eines Agenten, viel vielfältiger als handgeschriebene Fixtures.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'vector'] },
+    snippets: [{ lang: "any", file: "vector.toml",
+      description: l("This standalone local Vector example copies one synthetic event into two files. Run vector --config vector.toml and submit one JSON line on stdin, then compare the files. Independent sink failures and retention still need operational checks.",
+        "Dieses eigenständige lokale Vector-Beispiel kopiert ein synthetisches Event in zwei Dateien. vector --config vector.toml starten, eine JSON-Zeile auf stdin eingeben und die Dateien vergleichen. Unabhängige Sink-Fehler und Aufbewahrung brauchen weitere Betriebsprüfungen."),
+      code: `[sources.events]
+type = "stdin"
+decoding.codec = "json"
+
+[sinks.primary]
+type = "file"
+inputs = ["events"]
+path = "/tmp/petstore-primary.jsonl"
+encoding.codec = "json"
+
+[sinks.audit_copy]
+type = "file"
+inputs = ["events"]
+path = "/tmp/petstore-copy.jsonl"
+encoding.codec = "json"
+# Input: {"event":"reserved","petId":"rex"}` }],
     steps: [l('Tee a sample of requests or events to durable storage with personal data removed.', 'Eine Stichprobe von Anfragen oder Ereignissen, ohne personenbezogene Daten, in einen dauerhaften Speicher abzweigen.'), l('Replay the sample against a test deployment before releases.', 'Die Stichprobe vor Releases gegen ein Test-Deployment abspielen.')],
     done: l('A replayable, anonymised traffic sample exists and is used in pre-release checks.', 'Eine abspielbare, anonymisierte Verkehrsstichprobe existiert und wird in Prüfungen vor dem Release genutzt.'),
     think: [q('How does teeing differ from shadowing?', 'Wie unterscheidet sich Teeing von Shadowing?', 'Shadowing runs a new version on the copy right now. Teeing is the general split; the copy can go anywhere: a shadow, a recorder for later replay, an analysis job.', 'Shadowing betreibt jetzt eine neue Version auf der Kopie. Teeing ist die allgemeine Abzweigung; die Kopie kann überallhin: zu einem Schatten, einem Rekorder für späteres Abspielen, einem Analysejob.')],
@@ -376,6 +465,13 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('A flame graph is concrete input for an agent asked to optimise: "this function is 40% of CPU" beats "make it faster".', 'Ein Flame Graph ist konkreter Input für einen Agenten mit Optimierungsauftrag: „diese Funktion ist 40 % der CPU“ schlägt „mach es schneller“.'),
     evidence: { general: ev('weak', f('gwp2010', 'Google runs always-on, fleet-wide sampling profiling (descriptive, no effect measurement).', 'Google betreibt dauerhaftes, flottenweites Stichproben-Profiling (beschreibend, keine Wirkungsmessung).')), ai: none() },
     tools: { js: ['clinic'], python: ['py-spy'], java: ['async-profiler'], dotnet: ['dotnet-trace'], go: ['pprof'], rust: ['samply'], cpp: ['pprof', 'samply'], any: ['pyroscope', 'parca'] },
+    snippets: [{ lang: "any", file: "profile.sh",
+      description: l("With py-spy installed, profile your local Python service while replaying the slow request. Open the SVG and find the hottest stack before changing code. Attaching may require local process permissions; avoid collecting real user data.",
+        "Mit installiertem py-spy den lokalen Python-Service beim Wiederholen des langsamen Requests profilieren. Das SVG öffnen und den häufigsten Stack vor Codeänderungen finden. Das Anhängen kann lokale Prozessrechte erfordern; keine echten Nutzerdaten sammeln."),
+      code: `# Replace 12345 with the PID of your local test service.
+py-spy record --pid 12345 --duration 30 --output reservation.svg
+# During those 30 seconds, exercise the reservation endpoint.
+# After a targeted change, profile the same workload again.` }],
     steps: [l('Profile the slowest endpoint under realistic load and produce a flame graph.', 'Den langsamsten Endpunkt unter realistischer Last profilen und einen Flame Graph erzeugen.'), l('Optimise only the top hot spot, then measure again with a benchmark.', 'Nur den größten Hotspot optimieren, dann mit einem Benchmark erneut messen.')],
     done: l('A before/after flame graph and benchmark show the improvement; tests still pass.', 'Ein Vorher-nachher-Flame-Graph und ein Benchmark zeigen die Verbesserung; die Tests sind weiter grün.'),
     think: [q('Why profile in production rather than on a laptop?', 'Warum in Produktion profilen statt auf dem Laptop?', 'Real data sizes, real traffic mix and real hardware create different hot spots. The laptop profile often optimises the wrong thing.', 'Echte Datenmengen, echter Verkehrsmix und echte Hardware erzeugen andere Hotspots. Das Laptop-Profil optimiert oft das Falsche.')],
@@ -396,6 +492,18 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Structured logs are readable for agents: give it a query result, not a screenshot. Checking logs against invariants is runtime verification that catches bugs every test missed.', 'Strukturierte Logs sind für Agenten lesbar: ihm ein Abfrageergebnis geben, keinen Screenshot. Logs gegen Invarianten zu prüfen ist Laufzeitverifikation, die Fehler fängt, die jeder Test übersah.'),
     evidence: { general: ev('weak', f('brooker2025', 'AWS checks production logs against formal P specifications (PObserve), an experience report of runtime verification on logs.', 'AWS prüft Produktionslogs gegen formale P-Spezifikationen (PObserve), ein Erfahrungsbericht über Laufzeitverifikation auf Logs.')), ai: none() },
     tools: { any: ['opentelemetry', 'loki', 'vector'] },
+    snippets: [{ lang: "js", file: "reservation-log.mjs",
+      description: l("Run node reservation-log.mjs. Inspect the structured output, then adapt the event to your logger and collector. Use a correlation ID; omit session tokens and personal data. A log needs a query and retention policy to become useful feedback.",
+        "node reservation-log.mjs starten. Die strukturierte Ausgabe prüfen und das Event an Logger und Collector anpassen. Eine Correlation-ID verwenden; Session-Tokens und personenbezogene Daten weglassen. Erst mit Abfrage und Aufbewahrungsregel wird ein Log zu brauchbarem Feedback."),
+      code: `function logReservation(petId, outcome, correlationId) {
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    event: 'reservation_attempt', petId, outcome, correlationId,
+  }));
+}
+logReservation('rex', 'taken', 'local-example-1');
+// Query by correlationId to follow a failed request across services.
+// Do not log credentials, raw request bodies or adopter names.` }],
     steps: [l('Switch to structured logging with a request id on every line.', 'Auf strukturiertes Logging mit Request-ID in jeder Zeile umstellen.'), l('Emit one business event per important state change (reserved, released, adopted).', 'Pro wichtiger Zustandsänderung ein Geschäftsereignis ausgeben (reserviert, freigegeben, adoptiert).'), l('Run a scheduled query that checks an invariant over the events and alerts on violations.', 'Eine regelmäßige Abfrage ausführen, die eine Invariante über die Ereignisse prüft und bei Verletzung alarmiert.')],
     done: l('Logs are structured with request ids; an invariant query runs on a schedule and alerts on a planted violation.', 'Logs sind strukturiert mit Request-IDs; eine Invariantenabfrage läuft regelmäßig und alarmiert bei einer eingeschleusten Verletzung.'),
     think: [q('Logs, metrics and traces: when do you need logs specifically?', 'Logs, Metriken und Traces: Wann braucht man gerade Logs?', 'When you need the details of individual events: which pet, which person, which outcome. Metrics tell you that something is wrong; logs tell you what happened.', 'Wenn man die Einzelheiten einzelner Ereignisse braucht: welches Tier, welche Person, welches Ergebnis. Metriken sagen, dass etwas falsch ist; Logs sagen, was passiert ist.')],
@@ -416,6 +524,15 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Agents write the happy path. A chaos experiment that adds 2 s latency to the payment service shows in minutes whether the agent added a timeout.', 'Agenten schreiben den Glücksfall. Ein Chaos-Experiment, das dem Zahlungsdienst 2 s Latenz hinzufügt, zeigt in Minuten, ob der Agent einen Timeout eingebaut hat.'),
     evidence: { general: ev('weak', f('basiri2016', 'Netflix\'s experience report describes chaos engineering as experiments on production to build confidence in resilience.', 'Netflix\' Erfahrungsbericht beschreibt Chaos Engineering als Experimente in Produktion, um Vertrauen in die Resilienz aufzubauen.'), f('brooker2025', 'AWS ran 733 fault-injection experiments before Prime Day 2024 (experience report).', 'AWS führte vor dem Prime Day 2024 733 Fehlerinjektions-Experimente durch (Erfahrungsbericht).')), ai: none() },
     tools: { any: ['chaos-mesh', 'litmus', 'toxiproxy', 'chaostoolkit'] },
+    snippets: [{ lang: "any", file: "database-latency.sh",
+      description: l("With Toxiproxy running locally, first route the disposable app through this proxy to its test database. Add 500 ms latency, check timeouts and retry bounds, then remove the toxic. This example changes only that local proxy.",
+        "Bei lokal laufendem Toxiproxy die entbehrliche App zuerst über diesen Proxy zur Testdatenbank routen. 500 ms Latenz ergänzen, Timeouts und Retry-Grenzen prüfen, dann den Toxic entfernen. Dieses Beispiel ändert nur den lokalen Proxy."),
+      code: `# Proxy port 15432 -> local test PostgreSQL port 5432.
+toxiproxy-cli create -l 127.0.0.1:15432 -u 127.0.0.1:5432 petstore-db
+# App DB URL must use port 15432 for the experiment to have an effect.
+toxiproxy-cli toxic add -t latency -a latency=500 petstore-db
+# Exercise reserve: bounded timeout, no duplicate reservation on retry.
+toxiproxy-cli toxic remove -n latency_downstream petstore-db` }],
     steps: [l('Write a hypothesis: "If the payment service is 2 s slow, reservations still succeed and show \'payment pending\'".', 'Eine Hypothese schreiben: „Ist der Zahlungsdienst 2 s langsam, gelingen Reservierungen trotzdem und zeigen ‚Zahlung ausstehend‘.“'), l('Inject the fault in staging with Toxiproxy or Chaos Mesh, with a time limit.', 'Den Fehler in Staging mit Toxiproxy oder Chaos Mesh einspeisen, mit Zeitlimit.'), l('Compare what happened with the hypothesis and fix what differed.', 'Das Geschehene mit der Hypothese vergleichen und reparieren, was abwich.')],
     done: l('At least one experiment ran with a written hypothesis, result and follow-up fix.', 'Mindestens ein Experiment lief mit schriftlicher Hypothese, Ergebnis und Folgekorrektur.'),
     think: [q('Why start with a hypothesis instead of just breaking things?', 'Warum mit einer Hypothese beginnen, statt einfach Dinge kaputt zu machen?', 'Without one you cannot tell success from failure. The hypothesis is the expected behaviour; the experiment is the test.', 'Ohne sie kann man Erfolg nicht von Misserfolg unterscheiden. Die Hypothese ist das erwartete Verhalten; das Experiment ist der Test.')],
@@ -436,6 +553,23 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('When agents make building variants cheap, the bottleneck moves to deciding which is better. A/B tests are how you decide with evidence instead of opinion.', 'Wenn Agenten das Bauen von Varianten billig machen, verschiebt sich der Engpass zur Entscheidung, welche besser ist. A/B-Tests entscheiden mit Belegen statt Meinungen.'),
     evidence: { general: ev('strong', f('kohavi2013', 'Bing ran over 200 concurrent experiments on a typical day; many ideas moved key metrics by only about 1% and were poorly predicted in advance, and experiments caught many negative features before they shipped.', 'Bing führte an einem typischen Tag über 200 Experimente gleichzeitig durch; viele Ideen bewegten Kennzahlen nur um etwa 1 % und waren schlecht vorhersagbar, und Experimente fingen viele schädliche Funktionen vor dem Launch.')), ai: none() },
     tools: { any: ['growthbook', 'unleash', 'openfeature'] },
+    snippets: [{ lang: "js", file: "experiment-assignment.test.ts",
+      description: l("Run this Vitest fixture to check stable assignment and event shape before wiring an experiment SDK. A deterministic bucket alone does not establish statistical validity; define your metric, guardrails and stopping rule separately.",
+        "Dieses Vitest-Fixture prüft stabile Zuweisung und Event-Form vor der Anbindung eines Experiment-SDKs. Ein deterministischer Bucket belegt keine statistische Aussagekraft; Metrik, Guardrails und Stoppregel getrennt festlegen."),
+      code: `import { expect, test } from 'vitest';
+// Synthetic fixture: use your experiment SDK for real assignment.
+const assignments = new Map([['synthetic-user-1', 'control']]);
+function exposure(id: string) {
+  const variant = assignments.get(id);
+  if (!variant) throw new Error('no assignment');
+  return { experiment: 'reservation-copy-v1', variant };
+}
+test('the same participant stays in the same variant', () => {
+  expect(exposure('synthetic-user-1')).toEqual({
+    experiment: 'reservation-copy-v1', variant: 'control',
+  });
+  expect(exposure('synthetic-user-1')).toEqual(exposure('synthetic-user-1'));
+});` }],
     steps: [l('Write the hypothesis, the primary metric, guardrail metrics and the sample size before starting.', 'Vor dem Start Hypothese, Hauptmetrik, Guardrail-Metriken und Stichprobengröße festlegen.'), l('Randomise by user, not by request; run until the planned sample size is reached.', 'Nach Nutzer randomisieren, nicht nach Anfrage; laufen lassen, bis die geplante Stichprobengröße erreicht ist.')],
     done: l('The experiment has a pre-registered metric and sample size, and the decision follows the result.', 'Das Experiment hat eine vorab festgelegte Metrik und Stichprobengröße, und die Entscheidung folgt dem Ergebnis.'),
     think: [q('After two days variant B is 8% better. Why not stop and ship it?', 'Nach zwei Tagen ist Variante B 8 % besser. Warum nicht aufhören und ausliefern?', 'Early results swing wildly; stopping when the numbers look good guarantees false positives. Decide the sample size up front and stick to it.', 'Frühe Ergebnisse schwanken stark; aufzuhören, wenn die Zahlen gut aussehen, garantiert Fehlalarme. Die Stichprobengröße vorab festlegen und einhalten.')],
@@ -456,6 +590,20 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('A trace shows an agent-introduced N+1 call pattern at a glance, and a trace export is a good artefact to hand back to the agent.', 'Ein Trace zeigt ein von einem Agenten eingeführtes N+1-Aufrufmuster auf einen Blick, und ein Trace-Export ist ein gutes Artefakt, um es dem Agenten zurückzugeben.'),
     evidence: { general: ev('weak', f('dapper2010', 'Describes Google\'s production tracing system, built on sampling and instrumentation of a few common libraries (descriptive, no effect measurement).', 'Beschreibt Googles produktives Tracing-System, das auf Stichproben und der Instrumentierung weniger gemeinsamer Bibliotheken beruht (beschreibend, keine Wirkungsmessung).')), ai: none() },
     tools: { any: ['opentelemetry', 'jaeger'] },
+    snippets: [{ lang: "js", file: "reservation-trace.ts",
+      description: l("After configuring an OpenTelemetry SDK/exporter, call this wrapper around the real operation. Confirm a trace contains the reserve span and downstream database span. Without SDK setup this API is a no-op.",
+        "Nach Einrichtung eines OpenTelemetry-SDKs/Exporters diesen Wrapper um die echte Operation aufrufen. Prüfen, ob ein Trace den Reserve-Span und nachgelagerten Datenbank-Span enthält. Ohne SDK-Setup bleibt diese API ohne Wirkung."),
+      code: `import { trace } from '@opentelemetry/api';
+const tracer = trace.getTracer('petstore');
+export async function traceReservation<T>(save: () => Promise<T>) {
+  return tracer.startActiveSpan('reserve', async (span) => {
+    span.setAttribute('pet.id', 'rex'); // synthetic example
+    try { return await save(); }
+    finally { span.end(); }
+  });
+}
+// Enable database instrumentation and context propagation in SDK setup.
+// Never put credentials or adopter names into span attributes.` }],
     steps: [l('Add OpenTelemetry auto-instrumentation to each service and export to a tracing backend.', 'OpenTelemetry-Autoinstrumentierung in jeden Dienst einbauen und an ein Tracing-Backend exportieren.'), l('Propagate trace context through HTTP and queues; add custom spans around domain operations.', 'Trace-Kontext durch HTTP und Queues weiterreichen; eigene Spans um Fachoperationen legen.')],
     done: l('One reservation request shows as a single trace across all services, with a span for the domain operation.', 'Eine Reservierungsanfrage erscheint als ein Trace über alle Dienste, mit einem Span für die Fachoperation.'),
     think: [q('Why sample traces instead of recording all of them?', 'Warum Traces stichprobenartig statt vollständig aufzeichnen?', 'Cost and overhead. A small sample shows the typical patterns; tail-based sampling keeps the slow and failed ones that matter most.', 'Kosten und Overhead. Eine kleine Stichprobe zeigt die typischen Muster; Tail-based Sampling behält die langsamen und gescheiterten, auf die es ankommt.')],
@@ -476,6 +624,13 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Agents can now explore apps the way a curious tester would, clicking and reporting oddities. Treat their findings as leads to turn into tests, not as verdicts.', 'Agenten können Apps inzwischen erkunden wie ein neugieriger Tester, klicken und Auffälligkeiten melden. Ihre Funde als Hinweise behandeln, die man in Tests überführt, nicht als Urteile.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['schemathesis', 'restler', 'zap'] },
+    snippets: [{ lang: "any", file: "explore-api.sh",
+      description: l("With Schemathesis installed, run against a disposable local API and its real OpenAPI schema. It generates requests and reports counterexamples for crashes or schema violations. Operations may mutate data; use synthetic fixtures.",
+        "Mit installiertem Schemathesis gegen eine entbehrliche lokale API und deren echtes OpenAPI-Schema ausführen. Es erzeugt Requests und meldet Gegenbeispiele für Abstürze oder Schema-Verletzungen. Operationen können Daten ändern; synthetische Fixtures verwenden."),
+      code: `schemathesis run http://localhost:3000/openapi.json   --url http://localhost:3000
+# Save the minimal failing request from the report.
+# Replay it as a regression test; ask the agent to fix the cause.
+# Schema conformance alone cannot prove "never reserve twice".` }],
     steps: [l('Point an OpenAPI-based explorer at a staging deployment.', 'Einen OpenAPI-basierten Explorer auf ein Staging-Deployment richten.'), l('Triage every 5xx and schema violation; turn real bugs into regression tests.', 'Jeden 5xx-Fehler und jede Schemaverletzung sichten; echte Fehler in Regressionstests überführen.')],
     done: l('The explorer runs against staging with no unexplained 5xx responses.', 'Der Explorer läuft gegen Staging ohne unerklärte 5xx-Antworten.'),
     think: [q('How is dynamic exploration different from fuzzing?', 'Wie unterscheidet sich dynamische Exploration vom Fuzzing?', 'Fuzzing hammers one entry point with mutated bytes. Exploration walks a running system\'s surface (pages, endpoints, sequences) to reach places nobody thought to test.', 'Fuzzing bearbeitet einen Einstiegspunkt mit mutierten Bytes. Exploration durchläuft die Oberfläche eines laufenden Systems (Seiten, Endpunkte, Folgen), um Stellen zu erreichen, an die niemand beim Testen dachte.')],
@@ -496,6 +651,19 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('Agents test in a fast headless browser on a fast machine. RUM is where you learn how their UI changes feel on a cheap phone.', 'Agenten testen in einem schnellen Headless-Browser auf einer schnellen Maschine. Mit RUM erfährt man, wie sich ihre UI-Änderungen auf einem billigen Handy anfühlen.'),
     evidence: { general: none(), ai: none() },
     tools: { js: ['web-vitals', 'boomerang'], any: ['opentelemetry'] },
+    snippets: [{ lang: "js", file: "web-vitals.ts",
+      description: l("Bundle this browser module with web-vitals installed and a same-origin metrics receiver. Verify the payload in the browser network panel. Segment by release and page; these measurements do not explain the underlying cause.",
+        "Dieses Browser-Modul mit installiertem web-vitals und einem Same-origin-Metrikempfänger bündeln. Den Payload im Network-Panel prüfen. Nach Release und Seite segmentieren; die Messwerte erklären nicht die Ursache."),
+      code: `import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
+function report({ name, value, id }: Metric) {
+  navigator.sendBeacon('/metrics/web-vitals',
+    new Blob([JSON.stringify({ name, value, id, page: 'pet-detail' })],
+      { type: 'application/json' }));
+}
+onCLS(report);
+onINP(report);
+onLCP(report);
+// Receiver: validate, sample and aggregate; do not store raw user IDs.` }],
     steps: [l('Collect Core Web Vitals and client errors, tagged by release, with consent.', 'Core Web Vitals und Clientfehler mit Einwilligung sammeln, nach Release getaggt.'), l('Set budgets (e.g. LCP < 2.5 s at p75) and alert on regressions after a release.', 'Budgets setzen (z. B. LCP < 2,5 s bei p75) und nach einem Release auf Verschlechterungen alarmieren.')],
     done: l('Web vitals per release are visible, and a budget breach alerts.', 'Web Vitals pro Release sind sichtbar, und eine Budgetüberschreitung alarmiert.'),
     think: [q('Your lab test says the page loads in 0.8 s. RUM says p75 is 3.4 s. Who is right?', 'Dein Labortest sagt, die Seite lädt in 0,8 s. RUM sagt p75 ist 3,4 s. Wer hat recht?', 'Both, about different things. The lab measures your setup; RUM measures your users. Users are the ones who matter.', 'Beide, über verschiedene Dinge. Das Labor misst den eigenen Aufbau; RUM misst die Nutzer. Auf die Nutzer kommt es an.')],
@@ -516,6 +684,21 @@ export async function reserve(petId: PetId, person: PersonId) {
     ai: l('When agents act with real credentials, the audit log is how you verify they stayed within their permissions. Give each agent its own identity so its actions are attributable.', 'Wenn Agenten mit echten Zugangsdaten handeln, prüft man über das Audit-Log, ob sie in ihren Rechten blieben. Jedem Agenten eine eigene Identität geben, damit seine Aktionen zuordenbar sind.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['falco', 'osquery', 'opentelemetry'] },
+    snippets: [{ lang: "any", file: "audit-trail.sql",
+      description: l("Run this PostgreSQL sketch in a disposable database. A duplicate event ID must fail. In a real service, write the domain change and event in one transaction, restrict UPDATE/DELETE privileges and verify retention independently.",
+        "Diese PostgreSQL-Skizze in einer entbehrlichen Datenbank ausführen. Eine doppelte Event-ID muss scheitern. Im echten Service Fachänderung und Event in einer Transaktion schreiben, UPDATE-/DELETE-Rechte beschränken und Aufbewahrung unabhängig prüfen."),
+      code: `CREATE TABLE reservation_audit (
+  event_id text PRIMARY KEY,
+  occurred_at timestamptz NOT NULL DEFAULT now(),
+  actor_id text NOT NULL,
+  pet_id text NOT NULL,
+  action text NOT NULL CHECK (action IN ('reserved', 'cancelled'))
+);
+INSERT INTO reservation_audit (event_id, actor_id, pet_id, action)
+VALUES ('evt-1', 'synthetic-actor', 'rex', 'reserved');
+SELECT event_id, actor_id, action
+FROM reservation_audit WHERE pet_id = 'rex' ORDER BY occurred_at;
+-- A table alone is not tamper-proof or a compliance guarantee.` }],
     steps: [l('Log every privileged action with actor identity (human or agent), time and target to append-only storage.', 'Jede privilegierte Aktion mit Identität des Handelnden (Mensch oder Agent), Zeit und Ziel in einen Nur-Anhängen-Speicher protokollieren.'), l('Give agents their own identities and least-privilege credentials.', 'Agenten eigene Identitäten und minimale Zugangsrechte geben.'), l('Schedule queries that flag unexpected actions and review them weekly.', 'Abfragen einplanen, die unerwartete Aktionen markieren, und sie wöchentlich durchsehen.')],
     done: l('Privileged actions are logged with a distinct identity per agent, and a scheduled query flags a planted out-of-scope action.', 'Privilegierte Aktionen werden mit eigener Identität pro Agent protokolliert, und eine geplante Abfrage markiert eine eingeschleuste Aktion außerhalb des Rahmens.'),
     think: [q('Why should an agent not use your personal credentials?', 'Warum sollte ein Agent nicht deine persönlichen Zugangsdaten nutzen?', 'Then the audit log cannot tell you from the agent, and the agent has all your permissions. Separate identity means attributable actions and a smaller blast radius.', 'Dann kann das Audit-Log dich nicht vom Agenten unterscheiden, und der Agent hat alle deine Rechte. Eine eigene Identität heißt zuordenbare Aktionen und kleinerer Wirkungsradius.')],

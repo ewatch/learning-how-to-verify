@@ -2,7 +2,7 @@
 import type { Locale, Practice } from '../data/types';
 import { LANGS } from '../data/taxonomy';
 import { t } from '../i18n/ui';
-import { agentPrompt, snippetFor, toolsFor, langName } from '../lib/prompts';
+import { agentPrompt, toolsFor, langName } from '../lib/prompts';
 import CodeBlock from './CodeBlock.astro';
 interface Props { p: Practice; lang: Locale }
 const { p, lang } = Astro.props;
@@ -17,8 +17,8 @@ const firstSnippet = p.snippets?.[0];
   </div>
   {LANGS.map((lg) => {
     const { own, any } = toolsFor(p, lg.id);
-    const snip = snippetFor(p, lg.id) ?? null;
-    const fallback = !snip && firstSnippet ? firstSnippet : null;
+    const snippets = (p.snippets ?? []).filter((s) => s.lang === lg.id || s.lang === 'any');
+    const fallback = snippets.length === 0 && firstSnippet ? (p.snippets ?? []).filter((s) => s.lang === firstSnippet.lang) : [];
     const promptId = `prompt-${p.id}-${lg.id}`;
     return (
       <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel">
@@ -34,11 +34,17 @@ const firstSnippet = p.snippets?.[0];
             </tbody>
           </table>
         )}
-        {snip && <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snip-${p.id}-${lg.id}`} />}
-        {fallback && (
+        {snippets.map((snip, i) => <>
+          {snip.description && <p class="small">{snip.description[lang]}</p>}
+          <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snip-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
+        </>)}
+        {fallback.length > 0 && (
           <>
-            <p class="muted small">{t(lang, 'exampleOtherLang')} {langName(fallback.lang)}:</p>
-            <CodeBlock code={fallback.code} file={fallback.file} lang={lang} id={`snipfb-${p.id}-${lg.id}`} />
+            <p class="muted small">{t(lang, 'exampleOtherLang')} {langName(fallback[0].lang)}:</p>
+            {fallback.map((snip, i) => <>
+              {snip.description && <p class="small">{snip.description[lang]}</p>}
+              <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snipfb-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
+            </>)}
           </>
         )}
         <div class="agent card">

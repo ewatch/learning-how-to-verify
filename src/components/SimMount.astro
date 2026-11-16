@@ -12,6 +12,7 @@ const { sim, lang } = Astro.props;
 <script>
   const loaders: Record<string, () => Promise<{ mount: (el: HTMLElement, lang: 'en' | 'de') => void }>> = {
     unit: () => import('../sim/ui/unit'),
+    typecheck: () => import('../sim/ui/typecheck'),
     mutation: () => import('../sim/ui/mutation'),
     pbt: () => import('../sim/ui/pbt'),
     fuzz: () => import('../sim/ui/fuzz'),

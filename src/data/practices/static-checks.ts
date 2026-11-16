@@ -1,5 +1,6 @@
 import type { Practice } from '../types';
 import { ev, f, l, none, q } from './_h';
+import { TYPE_REVISIONS } from '../typecheck';
 
 export const staticChecks: Practice[] = [
   {
@@ -31,6 +32,10 @@ export const staticChecks: Practice[] = [
     },
     tools: { php: ['phpstan', 'psalm'], js: ['typescript'], python: ['mypy', 'pyright'], java: ['nullaway'], dotnet: ['roslyn'], go: ['go-vet'], rust: ['rustc'], cpp: ['clang'] },
     snippets: [
+      { lang: 'js', file: 'reserve.ts', code: `// TypeScript 6: npx tsc --ignoreConfig --target es2022 --strict --noUncheckedIndexedAccess --noEmit reserve.ts
+// This version intentionally fails: 'pet' is possibly 'undefined'.
+// Add the guard from the simulator, then rerun the same command.
+${TYPE_REVISIONS[0].code}` },
       { lang: 'js', file: 'tsconfig.json', code: `{
   "compilerOptions": {
     "strict": true,
@@ -67,10 +72,17 @@ function owner(Reservation $reservation): string
     ],
     done: l('Type check passes in strict mode with zero new casts or ignore comments; CI fails on a type error.', 'Die Typprüfung ist im strengen Modus grün, ohne neue Casts oder Ignore-Kommentare; die CI schlägt bei einem Typfehler fehl.'),
     think: [
+      q('Predict: what happens if an agent adds `!` after `pets[id]`?', 'Vorhersage: Was passiert, wenn ein Agent `!` hinter `pets[id]` ergänzt?',
+        'The diagnostic disappears, but the runtime lookup is unchanged. A missing pet still throws. Require a guard and a regression test instead of a suppression.',
+        'Die Diagnostic verschwindet, aber der Lookup bleibt zur Laufzeit unverändert. Ein fehlendes Tier löst weiter einen Fehler aus. Einen Guard und einen Regression-Test verlangen, statt die Meldung zu unterdrücken.'),
       q('`reserve(petId: string, person: string)`: what bug can the type system not see here, and how would you fix that with types?', '`reserve(petId: string, person: string)`: Welchen Fehler sieht das Typsystem hier nicht, und wie behebt man das mit Typen?',
         'Swapped arguments: both are strings, so `reserve(person, petId)` compiles. Branded or nominal types (`PetId`, `PersonId`) make the swap a compile error.',
         'Vertauschte Argumente: Beide sind Strings, also kompiliert `reserve(person, petId)`. Gebrandete oder nominale Typen (`PetId`, `PersonId`) machen den Tausch zum Compilerfehler.'),
+      q('The guarded version passes the compiler and three tests. Can it prevent two concurrent reservations in a database?', 'Die Version mit Guard besteht Compiler und drei Tests. Verhindert sie zwei gleichzeitige Reservierungen in einer Datenbank?',
+        'No. These checks run on one in-memory object sequentially. A database needs an atomic conditional update or constraint, plus an integration test for concurrent requests.',
+        'Nein. Diese Prüfungen laufen nacheinander auf einem In-memory-Objekt. Eine Datenbank braucht ein atomares bedingtes Update oder einen Constraint sowie einen Integration-Test mit gleichzeitigen Requests.'),
     ],
+    sim: 'typecheck',
     related: ['lint', 'architecture', 'static-analysis'],
   },
   {
@@ -104,6 +116,7 @@ function owner(Reservation $reservation): string
       { lang: 'js', file: 'eslint.config.js', code: `import tseslint from 'typescript-eslint';
 
 export default tseslint.config(...tseslint.configs.strictTypeChecked, {
+  languageOptions: { parserOptions: { projectService: true } },
   rules: {
     '@typescript-eslint/no-floating-promises': 'error', // forgotten await
     '@typescript-eslint/no-explicit-any': 'error',      // no escape hatch

@@ -112,6 +112,27 @@ final class FeeTest extends TestCase
     ai: l('Black-box tests are good guardrails for agents because they keep passing while the agent restructures the inside, and fail only when behaviour changes.', 'Black-Box-Tests sind gute Leitplanken für Agenten: Sie bleiben grün, während der Agent das Innere umbaut, und scheitern nur, wenn sich das Verhalten ändert.'),
     evidence: { general: ev('weak', f('yuan2014', 'Testing in general: simple tests of error-handling paths would have prevented most catastrophic failures in the systems studied.', 'Testen allgemein: Einfache Tests der Fehlerbehandlung hätten die meisten katastrophalen Ausfälle in den untersuchten Systemen verhindert.')), ai: none() },
     tools: { ...RUNNERS, any: ['schemathesis'] },
+    snippets: [{ lang: "js", file: "reservation-functional.test.ts",
+      description: l("This self-contained Vitest example checks one user-visible rule through a small in-memory API. Replace the fixture with your application entry point. Remove the taken check and the last two assertions should fail.",
+        "Dieses eigenständige Vitest-Beispiel prüft eine sichtbare Fachregel über eine kleine In-memory-API. Das Fixture durch den Anwendungseinstieg ersetzen. Die Taken-Prüfung entfernen: Die letzten beiden Assertions sollen scheitern."),
+      code: `import { expect, test } from 'vitest';
+function petstore() {
+  let owner: string | null = null;
+  return {
+    reserve(person: string) {
+      if (owner !== null) return 'taken';
+      owner = person;
+      return 'reserved';
+    },
+    owner: () => owner,
+  };
+}
+test('a second person cannot take a reserved pet', () => {
+  const store = petstore();
+  expect(store.reserve('anna')).toBe('reserved');
+  expect(store.reserve('ben')).toBe('taken');
+  expect(store.owner()).toBe('anna');
+});` }],
     steps: [
       l('For one feature, list its requirements as given/when/then sentences.', 'Für eine Funktion die Anforderungen als Gegeben/Wenn/Dann-Sätze auflisten.'),
       l('Write one test per sentence that uses only the public interface (API, exported function, CLI).', 'Pro Satz einen Test schreiben, der nur die öffentliche Schnittstelle nutzt (API, exportierte Funktion, CLI).'),
@@ -137,6 +158,23 @@ final class FeeTest extends TestCase
     ai: l('Agents frequently break wiring (a forgotten provider, a renamed prop). Component tests catch that faster than end-to-end tests.', 'Agenten zerbrechen oft die Verdrahtung (vergessener Provider, umbenannte Prop). Komponententests fangen das schneller als End-to-End-Tests.'),
     evidence: { general: none(), ai: none() },
     tools: { php: ['phpunit', 'codeception'], js: ['testing-library', 'storybook', 'vitest'], python: ['pytest'], java: ['junit', 'testcontainers'], dotnet: ['xunit', 'testcontainers'], go: ['go-test', 'testcontainers'] },
+    snippets: [{ lang: "js", file: "reserve-button.test.ts",
+      description: l("Run with Vitest and jsdom installed. This isolated DOM component must emit the selected pet ID. Change the emitted ID to another pet to see the failure; this does not test a server reservation.",
+        "Mit installiertem Vitest und jsdom ausführen. Diese isolierte DOM-Komponente muss die gewählte Tier-ID senden. Für den Fehler eine andere Tier-ID senden; dies prüft keine Serverreservierung."),
+      code: `// @vitest-environment jsdom
+import { expect, test, vi } from 'vitest';
+function reserveButton(petId: string, reserve: (id: string) => void) {
+  const button = document.createElement('button');
+  button.textContent = 'Reserve';
+  button.addEventListener('click', () => reserve(petId));
+  return button;
+}
+test('sends the chosen pet, not a hard-coded one', () => {
+  const reserve = vi.fn();
+  const button = reserveButton('rex', reserve);
+  button.click();
+  expect(reserve).toHaveBeenCalledExactlyOnceWith('rex');
+});` }],
     steps: [l('Choose a component and fake only what crosses its boundary (HTTP, database, clock).', 'Eine Komponente wählen und nur fälschen, was ihre Grenze überquert (HTTP, Datenbank, Uhr).'), l('Test its behaviour through its own interface, e.g. render the UI component and interact by role.', 'Ihr Verhalten über ihre eigene Schnittstelle testen, z. B. die UI-Komponente rendern und über Rollen interagieren.')],
     done: l('The component\'s main behaviours are tested with fakes only at its boundary.', 'Die wichtigsten Verhaltensweisen der Komponente sind getestet, mit Fakes nur an ihrer Grenze.'),
     think: [q('Why query a button by its accessible name rather than by a CSS class?', 'Warum einen Button über seinen zugänglichen Namen statt über eine CSS-Klasse suchen?', 'Users and screen readers find it by name, not by class. The test then fails when the button becomes unusable, not when someone renames a class.', 'Nutzer und Screenreader finden ihn über den Namen, nicht über die Klasse. Der Test scheitert dann, wenn der Button unbenutzbar wird, nicht wenn jemand eine Klasse umbenennt.')],
@@ -157,6 +195,31 @@ final class FeeTest extends TestCase
     ai: l('Agents write mocks that agree with their own code. An integration test against the real database is an oracle the agent cannot bend.', 'Agenten schreiben Mocks, die ihrem eigenen Code zustimmen. Ein Integrationstest gegen die echte Datenbank ist ein Orakel, das der Agent nicht verbiegen kann.'),
     evidence: { general: none(), ai: none() },
     tools: { php: ['phpunit', 'codeception'], js: ['testcontainers', 'vitest'], python: ['testcontainers', 'pytest'], java: ['testcontainers', 'junit'], dotnet: ['testcontainers', 'xunit'], go: ['testcontainers', 'go-test'], rust: ['testcontainers', 'cargo-test'] },
+    snippets: [{ lang: "js", file: "reservation-db.test.ts",
+      description: l("Install vitest, pg, @types/pg and @testcontainers/postgresql; Docker must be running. This test uses a real disposable PostgreSQL database. Remove the IS NULL condition: both updates succeed and the test fails.",
+        "vitest, pg, @types/pg und @testcontainers/postgresql installieren; Docker muss laufen. Dieser Test nutzt eine echte entbehrliche PostgreSQL-Datenbank. Die IS-NULL-Bedingung entfernen: Beide Updates gelingen, und der Test scheitert."),
+      code: `import { expect, test } from 'vitest';
+import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import pg from 'pg';
+test('competing reservations leave exactly one owner', async () => {
+  const db = await new PostgreSqlContainer('postgres:17-alpine').start();
+  const pool = new pg.Pool({ connectionString: db.getConnectionUri() });
+  try {
+    await pool.query('CREATE TABLE pets (id text PRIMARY KEY, owner text)');
+    await pool.query("INSERT INTO pets VALUES ('rex', NULL)");
+    const reserve = (owner: string) => pool.query(
+      'UPDATE pets SET owner=$1 WHERE id=$2 AND owner IS NULL RETURNING owner',
+      [owner, 'rex']);
+    const results = await Promise.all([reserve('anna'), reserve('ben')]);
+    expect(results.map(r => r.rowCount).sort()).toEqual([0, 1]);
+    const winner = results.find(r => r.rowCount === 1)!.rows[0].owner;
+    const stored = await pool.query("SELECT owner FROM pets WHERE id='rex'");
+    expect(stored.rows[0].owner).toBe(winner);
+  } finally {
+    await pool.end();
+    await db.stop();
+  }
+}, 60_000);` }],
     steps: [l('Start the real dependency (e.g. Postgres) in a container per test run.', 'Die echte Abhängigkeit (z. B. Postgres) pro Testlauf in einem Container starten.'), l('Test the boundary code (repository, client) against it, including a concurrent case: two reservations of the same pet at once.', 'Den Grenzcode (Repository, Client) dagegen testen, inklusive eines nebenläufigen Falls: zwei gleichzeitige Reservierungen desselben Tiers.')],
     done: l('Integration tests run in CI against real containers, including one concurrency test.', 'Integrationstests laufen in der CI gegen echte Container, inklusive eines Nebenläufigkeitstests.'),
     think: [q('Your mock repository makes the double-booking test pass. Why might production still double-book?', 'Dein Mock-Repository lässt den Doppelbuchungstest bestehen. Warum könnte die Produktion trotzdem doppelt buchen?', 'The mock runs one call at a time. The real database runs two transactions in parallel; without a unique constraint or row lock both can read "available" and both write.', 'Der Mock verarbeitet einen Aufruf nach dem anderen. Die echte Datenbank führt zwei Transaktionen parallel aus; ohne Unique-Constraint oder Zeilensperre lesen beide „frei“ und schreiben beide.')],
@@ -235,6 +298,18 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     ai: l('Ask the agent to write the failing test first and show it failing, then fix. That proves it understood the bug, not just changed something until the symptom went away.', 'Den Agenten zuerst den fehlschlagenden Test schreiben und scheitern lassen, dann beheben. Das beweist, dass er den Fehler verstanden und nicht nur geändert hat, bis das Symptom verschwand.'),
     evidence: { general: ev('weak', f('memon2017', 'In Google\'s CI only a tiny share of tests ever fail, and failures cluster near recently changed code, which motivates test selection.', 'In Googles CI schlägt nur ein winziger Teil der Tests je fehl, und Fehlschläge häufen sich nahe kürzlich geändertem Code; das motiviert Testauswahl.')), ai: none() },
     tools: RUNNERS,
+    snippets: [{ lang: "js", file: "reservation-regression.test.ts",
+      description: l("Adapt the import to your real reservation module and run with Vitest. Keep the incident input and expected behaviour from the bug report. It should fail on the pre-fix commit; a passing test on only the new code is weaker evidence.",
+        "Den Import an das echte Reservierungsmodul anpassen und mit Vitest ausführen. Eingabe des Incidents und erwartetes Verhalten aus dem Fehlerbericht beibehalten. Der Test soll am Commit vor der Korrektur scheitern; nur mit neuem Code zu bestehen ist ein schwächerer Beleg."),
+      code: `import { expect, test } from 'vitest';
+import { reserve } from './reserve';
+test('regression: a rejected reservation preserves the first owner', () => {
+  const pets = { rex: { reservedBy: 'anna' } };
+  expect(reserve(pets, 'rex', 'ben')).toBe('taken');
+  expect(pets.rex.reservedBy).toBe('anna');
+  // Incident: an earlier implementation returned "taken"
+  // after already overwriting reservedBy with "ben".
+});` }],
     steps: [l('Reproduce the bug as a failing test and commit it.', 'Den Fehler als fehlschlagenden Test reproduzieren und committen.'), l('Fix the code until the test passes, without changing the test.', 'Den Code reparieren, bis der Test grün ist, ohne den Test zu ändern.'), l('Reference the issue in the test name.', 'Das Issue im Testnamen referenzieren.')],
     done: l('The test fails on the commit before the fix and passes after it.', 'Der Test scheitert auf dem Commit vor der Behebung und ist danach grün.'),
     think: [q('How do you know a regression test really tests the bug?', 'Woher weiß man, dass ein Regressionstest wirklich den Fehler testet?', 'Run it against the old code. If it passes there too, it tests something else.', 'Ihn gegen den alten Code laufen lassen. Ist er dort auch grün, testet er etwas anderes.')],
@@ -322,6 +397,24 @@ final class InvoiceTest extends TestCase
     ai: l('Agents rename fields happily ("priceCents" → "price") and update the callers they can see. Contract tests catch the callers they cannot see.', 'Agenten benennen Felder gern um („priceCents“ → „price“) und passen die Aufrufer an, die sie sehen. Contract-Tests fangen die, die sie nicht sehen.'),
     evidence: { general: none(), ai: none() },
     tools: { php: ['pact-php'], js: ['pact', 'zod'], python: ['pact'], java: ['pact'], dotnet: ['pact'], go: ['pact'], rust: ['pact'], any: ['specmatic', 'schemathesis'] },
+    snippets: [{ lang: "js", file: "reservation-contract.test.ts",
+      description: l("Install vitest and zod, then run this consumer-schema fixture. Remove owner from the valid payload to see a failure. Wire the same schema to real provider responses; shape checks alone cannot prove that the recorded owner is correct.",
+        "vitest und zod installieren, dann dieses Consumer-Schema-Fixture ausführen. owner aus dem gültigen Payload entfernen, um den Fehler zu sehen. Dasselbe Schema auf echte Provider-Antworten anwenden; die Form belegt nicht die korrekte reservierte Person."),
+      code: `import { expect, test } from 'vitest';
+import { z } from 'zod';
+const ReservedPet = z.object({
+  petId: z.string(),
+  status: z.literal('reserved'),
+  owner: z.string().min(1),
+});
+test('provider payload meets the consumer contract', () => {
+  expect(ReservedPet.safeParse({
+    petId: 'rex', status: 'reserved', owner: 'anna',
+  }).success).toBe(true);
+  expect(ReservedPet.safeParse({
+    petId: 'rex', status: 'reserved',
+  }).success).toBe(false);
+});` }],
     steps: [l('Write the API contract (OpenAPI schema or consumer pacts) and commit it.', 'Den API-Vertrag (OpenAPI-Schema oder Consumer-Pacts) schreiben und committen.'), l('Verify the provider against the contract in its CI; verify consumers against it in theirs.', 'Den Anbieter in seiner CI gegen den Vertrag prüfen, die Konsumenten in ihrer.')],
     done: l('Removing a field the consumer uses makes the provider\'s CI fail.', 'Entfernt man ein vom Konsumenten genutztes Feld, scheitert die CI des Anbieters.'),
     think: [q('Why not just run both services and test them together?', 'Warum nicht einfach beide Dienste laufen lassen und zusammen testen?', 'You can, but it is slow, needs a shared environment and fails for many reasons. A contract test checks just the agreement, in seconds, in each team\'s own pipeline.', 'Kann man, aber es ist langsam, braucht eine gemeinsame Umgebung und scheitert aus vielen Gründen. Ein Contract-Test prüft nur die Vereinbarung, in Sekunden, in der eigenen Pipeline jedes Teams.')],

@@ -271,6 +271,20 @@ tests_dir = ["tests/"]
       ai: ev('moderate', f('foster2025', 'At Meta, 277 of 571 useful LLM-generated tests would have been discarded if line coverage had been the acceptance criterion.', 'Bei Meta wären 277 von 571 nützlichen LLM-generierten Tests verworfen worden, wäre Zeilenabdeckung das Abnahmekriterium gewesen.')),
     },
     tools: { php: ['php-code-coverage', 'phpunit'], js: ['c8', 'vitest'], python: ['coveragepy'], java: ['jacoco'], dotnet: ['coverlet'], go: ['go-cover'], rust: ['cargo-llvm-cov'], cpp: ['lcov'] },
+    snippets: [{ lang: "js", file: "vitest.config.ts",
+      description: l("Install matching versions of vitest and @vitest/coverage-v8. Run npx vitest run --coverage. An uncovered branch can fail the threshold; even full coverage does not prove the assertions are useful.",
+        "Passende Versionen von vitest und @vitest/coverage-v8 installieren. npx vitest run --coverage starten. Ein ungeprüfter Branch kann die Schwelle unterschreiten; auch volle Coverage belegt keine sinnvollen Assertions."),
+      code: `import { defineConfig } from 'vitest/config';
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      include: ['src/reserve.ts'],
+      reporter: ['text', 'html'],
+      thresholds: { statements: 90, branches: 90 },
+    },
+  },
+});` }],
     steps: [l('Enable branch coverage (not just line coverage) and generate a report.', 'Zweigabdeckung (nicht nur Zeilenabdeckung) aktivieren und einen Bericht erzeugen.'), l('List uncovered branches in domain logic and decide for each: add a test or delete the code.', 'Nicht abgedeckte Zweige in der Fachlogik auflisten und für jeden entscheiden: Test ergänzen oder Code löschen.'), l('Show coverage of the changed lines in pull requests; do not enforce a global percentage.', 'Die Abdeckung der geänderten Zeilen in Pull Requests anzeigen; keinen globalen Prozentsatz erzwingen.')],
     done: l('Every uncovered branch in domain logic is either tested or removed; PRs show diff coverage.', 'Jeder nicht abgedeckte Zweig in der Fachlogik ist getestet oder entfernt; PRs zeigen die Diff-Abdeckung.'),
     think: [q('Why is "coverage went down" a more useful signal than "coverage is 85%"?', 'Warum ist „Abdeckung ist gesunken“ ein nützlicheres Signal als „Abdeckung ist 85 %“?', 'A drop points at specific new code without tests. A global number hides where the gaps are and invites gaming.', 'Ein Rückgang zeigt auf konkreten neuen Code ohne Tests. Eine globale Zahl verbirgt, wo die Lücken sind, und lädt zum Schönen ein.')],
@@ -348,6 +362,18 @@ final class PriceComparisonTest extends TestCase
     ai: l('Agents optimise for "tests pass", not for speed, and readily write quadratic loops. A benchmark with a regression threshold makes performance part of "done".', 'Agenten optimieren auf „Tests grün“, nicht auf Geschwindigkeit, und schreiben bereitwillig quadratische Schleifen. Ein Benchmark mit Regressionsschwelle macht Performance zum Teil von „fertig“.'),
     evidence: { general: ev('weak', f('jin2012', 'A study of 109 real performance bugs showed recurring patterns; rules extracted from 25 fixes found 332 previously unknown performance problems.', 'Eine Studie über 109 echte Performancefehler zeigte wiederkehrende Muster; aus 25 Korrekturen abgeleitete Regeln fanden 332 unbekannte Performanceprobleme.')), ai: none() },
     tools: { php: ['phpbench'], js: ['tinybench', 'vitest'], python: ['pytest-benchmark'], java: ['jmh'], dotnet: ['benchmarkdotnet'], go: ['go-bench'], rust: ['criterion'], cpp: ['google-benchmark'], any: ['hyperfine'] },
+    snippets: [{ lang: "js", file: "reserve.bench.ts",
+      description: l("Run npx vitest bench with Vitest installed. Compare the same workload before and after a change. A microbenchmark of in-memory allocation does not measure database latency.",
+        "Mit installiertem Vitest npx vitest bench starten. Denselben Workload vor und nach einer Änderung vergleichen. Ein Microbenchmark für In-memory-Allokation misst keine Datenbanklatenz."),
+      code: `import { bench } from 'vitest';
+const ids = Array.from({ length: 10_000 }, (_, i) => \`pet-\${i}\`);
+bench('look up the last pet with an array', () => {
+  if (!ids.includes('pet-9999')) throw new Error('missing pet');
+});
+const index = new Set(ids);
+bench('look up the last pet with a set', () => {
+  if (!index.has('pet-9999')) throw new Error('missing pet');
+});` }],
     steps: [l('Write benchmarks for the 2–3 hottest functions with realistic input sizes, including a large one.', 'Benchmarks für die 2–3 heißesten Funktionen mit realistischen Eingabegrößen schreiben, darunter eine große.'), l('Store a baseline and fail when a change is more than X% slower on the same machine.', 'Eine Baseline speichern und scheitern, wenn eine Änderung auf derselben Maschine mehr als X % langsamer ist.')],
     done: l('Benchmarks run reproducibly; a deliberately quadratic change is flagged as a regression.', 'Benchmarks laufen reproduzierbar; eine absichtlich quadratische Änderung wird als Regression gemeldet.'),
     think: [q('Your search benchmark uses 10 pets. Why might it miss the regression that hurts production?', 'Dein Such-Benchmark nutzt 10 Tiere. Warum übersieht er womöglich die Regression, die in Produktion weh tut?', 'At n = 10, O(n) and O(n²) look the same. Benchmark at production sizes, or at several sizes to see the growth curve.', 'Bei n = 10 sehen O(n) und O(n²) gleich aus. In Produktionsgrößen messen, oder in mehreren Größen, um die Wachstumskurve zu sehen.')],
@@ -368,6 +394,22 @@ final class PriceComparisonTest extends TestCase
     ai: l('Give the agent the target as a number and the test as a command; "make it faster" is not checkable, "p95 below 200 ms in this k6 script" is.', 'Dem Agenten das Ziel als Zahl und den Test als Befehl geben; „mach es schneller“ ist nicht prüfbar, „p95 unter 200 ms in diesem k6-Skript“ schon.'),
     evidence: { general: ev('weak', f('jin2012', 'Performance bugs follow recurring patterns that can be checked for automatically (bug study, not an effect study of performance testing).', 'Performancefehler folgen wiederkehrenden Mustern, die sich automatisch prüfen lassen (Fehlerstudie, keine Wirkungsstudie zu Performancetests).')), ai: none() },
     tools: { any: ['k6', 'locust', 'gatling', 'hyperfine'] },
+    snippets: [{ lang: "any", file: "latency.js",
+      description: l("Run k6 run -e BASE_URL=http://localhost:3000 latency.js against your test deployment. Inject a delay above 500 ms: the p95 threshold should fail. The read-only endpoint and budget are examples to adapt.",
+        "k6 run -e BASE_URL=http://localhost:3000 latency.js gegen das Test-Deployment starten. Eine Verzögerung über 500 ms einbauen: Die p95-Schwelle soll scheitern. Read-only-Endpoint und Budget sind anzupassende Beispiele."),
+      code: `import http from 'k6/http';
+import { sleep } from 'k6';
+export const options = {
+  vus: 1, duration: '30s',
+  thresholds: {
+    http_req_duration: ['p(95)<500'],
+    http_req_failed: ['rate<0.01'],
+  },
+};
+export default function () {
+  http.get(\`\${__ENV.BASE_URL}/pets/rex\`);
+  sleep(1);
+}` }],
     steps: [l('Define targets for the critical endpoints (p95 latency, error rate, throughput).', 'Ziele für die kritischen Endpunkte festlegen (p95-Latenz, Fehlerrate, Durchsatz).'), l('Write a scripted workload and run it against a production-like environment with thresholds that fail the run.', 'Eine skriptbasierte Last schreiben und gegen eine produktionsähnliche Umgebung mit Schwellen laufen lassen, die den Lauf scheitern lassen.')],
     done: l('The performance script runs with explicit thresholds and fails when a target is missed.', 'Das Performance-Skript läuft mit expliziten Schwellen und scheitert, wenn ein Ziel verfehlt wird.'),
     think: [q('Why measure p95 or p99 instead of the average?', 'Warum p95 oder p99 statt des Durchschnitts messen?', 'The average hides the slow requests, and real users notice the slow ones. With many requests per page, almost every user hits the tail.', 'Der Durchschnitt versteckt die langsamen Anfragen, und echte Nutzer merken die langsamen. Bei vielen Anfragen pro Seite trifft fast jeder Nutzer das Ende der Verteilung.')],
@@ -425,6 +467,21 @@ export default function () {
     ai: l('A leak introduced by an agent looks fine in every fast check. Soak tests (or production memory monitoring) are where it shows.', 'Ein von einem Agenten eingeführtes Leck sieht in jeder schnellen Prüfung gut aus. Erst Dauerlasttests (oder Speicher-Monitoring in Produktion) zeigen es.'),
     evidence: { general: none(), ai: none() },
     tools: { any: ['k6', 'locust', 'gatling', 'prometheus'] },
+    snippets: [{ lang: "any", file: "soak.js",
+      description: l("Run k6 run -e BASE_URL=http://localhost:3000 soak.js in an isolated environment. Track memory, connection counts and latency over the two hours; k6 alone does not detect a memory leak.",
+        "k6 run -e BASE_URL=http://localhost:3000 soak.js in einer isolierten Umgebung starten. Speicher, Verbindungen und Latenz über die zwei Stunden verfolgen; k6 allein erkennt kein Speicherleck."),
+      code: `import http from 'k6/http';
+import { sleep } from 'k6';
+export const options = {
+  scenarios: { steady: {
+    executor: 'constant-vus', vus: 5, duration: '2h',
+  } },
+  thresholds: { http_req_failed: ['rate<0.01'] },
+};
+export default function () {
+  http.get(\`\${__ENV.BASE_URL}/pets/rex\`);
+  sleep(1);
+}` }],
     steps: [l('Run the load script at ~60% of peak for 12–24 hours.', 'Das Lastskript mit ~60 % der Spitze für 12–24 Stunden laufen lassen.'), l('Track memory, open connections, queue length and latency over time; fail on a steady upward trend.', 'Speicher, offene Verbindungen, Warteschlangenlänge und Latenz über die Zeit verfolgen; bei stetigem Anstieg scheitern.')],
     done: l('Resource metrics stay flat over the soak period, or every trend is explained.', 'Die Ressourcenmetriken bleiben über die Laufzeit flach, oder jeder Trend ist erklärt.'),
     think: [q('Memory grows 1 MB per hour. Why does that matter if the server has 8 GB?', 'Der Speicher wächst 1 MB pro Stunde. Warum ist das wichtig, wenn der Server 8 GB hat?', 'It does not, for a year. But a leak per request grows with traffic: 1 MB/hour at low load can be 1 GB/hour at peak.', 'Ein Jahr lang nicht. Aber ein Leck pro Anfrage wächst mit dem Verkehr: 1 MB/Stunde bei wenig Last kann 1 GB/Stunde zur Spitze sein.')],

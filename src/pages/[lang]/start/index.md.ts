@@ -1,0 +1,8 @@
+import type { APIRoute } from 'astro';
+import type { Locale } from '../../../data/types';
+import { langPaths } from '../../../lib/paths';
+import { startMarkdown } from '../../../lib/start-markdown';
+export const getStaticPaths = langPaths;
+export const GET: APIRoute = ({ params }) => new Response(startMarkdown(params.lang as Locale), {
+  headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+});

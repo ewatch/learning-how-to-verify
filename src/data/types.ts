@@ -22,6 +22,8 @@ export interface Evidence {
 
 export interface Snippet {
   lang: LangId;
+  /** Setup, exercise and expected feedback, in both site languages. */
+  description?: L;
   /** code shown as-is; comments in English (code is the lingua franca) */
   code: string;
   file?: string;

@@ -108,6 +108,19 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
       java: ['openrewrite'],
       any: ['ast-grep', 'comby'],
     },
+    snippets: [{ lang: "js", file: "reservation-label.test.ts",
+      description: l("Run this self-contained Vitest example. Both versions must agree on the intended input domain. Change the refactor to use a truthiness check: the empty owner then reveals a behaviour change.",
+        "Dieses eigenständige Vitest-Beispiel ausführen. Beide Versionen müssen im vorgesehenen Eingabebereich übereinstimmen. Im Refactoring auf Truthiness prüfen: Eine leere Person zeigt dann eine Verhaltensänderung."),
+      code: `import { expect, test } from 'vitest';
+function before(owner: string | null) {
+  if (owner === null) return 'available';
+  return \`reserved for \${owner}\`;
+}
+const after = (owner: string | null) =>
+  owner === null ? 'available' : \`reserved for \${owner}\`;
+test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
+  expect(after(owner)).toBe(before(owner));
+});` }],
     steps: [
       l('Before changing anything, add characterization tests that record the current behaviour of the code you will touch.', 'Vor jeder Änderung Charakterisierungstests ergänzen, die das aktuelle Verhalten des betroffenen Codes festhalten.'),
       l('Refactor in small commits; each commit must keep all tests green.', 'In kleinen Commits refaktorieren; jeder Commit muss alle Tests grün lassen.'),
@@ -145,6 +158,20 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
     ),
     evidence: { general: none(), ai: none() },
     tools: { python: ['pytm'], any: ['threat-dragon', 'threagile'] },
+    snippets: [{ lang: "any", file: "reservation-threats.md",
+      description: l("Use this review worksheet before implementation. Ask the agent to trace each path through your code and propose a test. A completed document alone cannot verify authorization or atomicity.",
+        "Dieses Review-Arbeitsblatt vor der Implementierung verwenden. Den Agenten jeden Pfad im Code verfolgen und einen Test vorschlagen lassen. Ein ausgefülltes Dokument allein prüft weder Autorisierung noch Atomarität."),
+      code: `# Asset: one trustworthy reservation per pet
+# Boundary: untrusted client -> API -> database
+
+| Threat | Control | Check |
+|---|---|---|
+| Ben submits Anna's user ID | derive identity from verified session | reject forged identity |
+| Two clients reserve Rex at once | atomic conditional update | one success, one conflict |
+| Client supplies a negative fee | compute fee on server | ignore submitted fee |
+
+Owner: name the reviewer before implementation.
+Open question: can an admin override a reservation, and who audits it?` }],
     steps: [
       l('Draw the data flow of one feature (e.g. reserving a pet): actors, processes, data stores, trust boundaries.', 'Den Datenfluss einer Funktion zeichnen (z. B. Tier reservieren): Akteure, Prozesse, Datenspeicher, Vertrauensgrenzen.'),
       l('For each element, walk through STRIDE (spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege).', 'Für jedes Element STRIDE durchgehen (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege).'),

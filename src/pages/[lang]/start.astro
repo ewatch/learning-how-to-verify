@@ -2,36 +2,112 @@
 import Base from '../../layouts/Base.astro';
 import type { Locale } from '../../data/types';
 import { PRACTICE_BY_ID } from '../../data/practices';
-import { href } from '../../i18n/ui';
+import { START_COPY as C, START_ROUTES, START_LOOP, START_TOUR, startAgentPrompt } from '../../data/start';
+import { GUIDE_BY_ID } from '../../data/guides';
+import { href, t } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
-const en = lang === 'en';
-type Step = { url: string; title: string; why: string };
-const p = (id: string, why: [string, string]): Step => ({ url: href(lang, `practices/${id}/`), title: PRACTICE_BY_ID.get(id)!.name[lang], why: en ? why[0] : why[1] });
-const steps: Step[] = [
-  { url: href(lang), title: en ? 'The funnel' : 'Der Trichter', why: en ? 'The one idea behind everything else: catch problems as high up, as cheaply and as automatically as possible.' : 'Die eine Idee hinter allem: Probleme so weit oben, so billig und so automatisch wie möglich fangen.' },
-  { url: href(lang, 'why-layers/'), title: en ? 'Why one layer is not enough' : 'Warum eine Schicht nicht reicht', why: en ? 'What the research says about green tests and agent-written code.' : 'Was die Forschung über grüne Tests und von Agenten geschriebenen Code sagt.' },
-  p('type-systems', ['The cheapest check there is: it runs on every keystroke.', 'Die billigste Prüfung überhaupt: Sie läuft bei jedem Tastendruck.']),
-  p('lint', ['Turn team rules into machine rules, so nobody (and no agent) has to remember them.', 'Teamregeln zu Maschinenregeln machen, damit niemand (und kein Agent) sie sich merken muss.']),
-  p('unit-tests', ['The strongest single feedback signal for agents. Try the simulator.', 'Das stärkste einzelne Feedbacksignal für Agenten. Den Simulator ausprobieren.']),
-  p('mutation-tests', ['How to know whether your tests, or your agent\'s tests, actually check anything.', 'Wie man erfährt, ob die eigenen Tests, oder die des Agenten, wirklich etwas prüfen.']),
-  p('property-based-tests', ['Find the edge cases nobody wrote an example for.', 'Die Randfälle finden, für die niemand ein Beispiel schrieb.']),
-  p('canarying', ['What to do about the bugs that still get through: release to a few users first.', 'Was man mit den Fehlern macht, die trotzdem durchkommen: erst an wenige Nutzer ausliefern.']),
-];
+const practiceUrl = (id: string) => href(lang, `practices/${id}/`);
+const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
 ---
-<Base lang={lang} path="start/" nav="start" title={en ? 'Start here' : 'Hier starten'} description={en ? 'Eight steps into software verification, in a sensible order.' : 'Acht Schritte in die Softwareverifikation, in sinnvoller Reihenfolge.'}>
-  <div class="wrap narrow">
-    <h1>{en ? 'Start here' : 'Hier starten'}</h1>
-    <p class="lede">{en ? 'New to this? Eight steps, about 15 minutes each. Each page opens with one sentence and a picture; go deeper only when you want to.' : 'Neu im Thema? Acht Schritte, jeweils etwa 15 Minuten. Jede Seite beginnt mit einem Satz und einem Bild; tiefer geht es nur, wenn du willst.'}</p>
-    <ol class="path">
-      {steps.map((s, i) => <li><a href={s.url}><span class="n">{i + 1}</span><span><strong>{s.title}</strong><span class="why">{s.why}</span></span></a></li>)}
-    </ol>
-    <p class="muted">{en ? <>After that: <a href={href(lang, 'practices/formal-verification/')}>formal verification</a> and the <a href={href(lang, 'guides/tla/')}>TLA+ guide</a>.</> : <>Danach: <a href={href(lang, 'practices/formal-verification/')}>formale Verifikation</a> und die <a href={href(lang, 'guides/tla/')}>TLA+-Anleitung</a>.</>}</p>
-  </div>
+<Base lang={lang} path="start/" nav="start" title={C.title[lang]} description={C.description[lang]} md={`/${lang}/start/index.md`}>
+  <article class="wrap start">
+    <header class="narrow">
+      <h1>{C.title[lang]}</h1>
+      <p class="lede">{C.intro[lang]}</p>
+    </header>
+
+    <section class="layer-section" aria-labelledby="where-start" data-start-picker>
+      <h2 id="where-start">{C.chooser[lang]}</h2>
+      <p class="muted narrow">{C.chooseHint[lang]}</p>
+      <div class="starting-points" role="group" aria-labelledby="where-start">
+        {START_ROUTES.map((route, i) => <button type="button" class="starting-point" data-start-choice={route.id} aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`start-${route.id}`}>
+          <span class="small muted">{String(i + 1).padStart(2, '0')}</span><span>{route.label[lang]}</span>
+        </button>)}
+      </div>
+      <div aria-live="polite" aria-atomic="false">
+        {START_ROUTES.map((route) => <section id={`start-${route.id}`} class="recommendation card" data-start-result={route.id} aria-labelledby={`heading-${route.id}`}>
+          <p class="eyebrow">{C.first[lang]}</p>
+          <h3 id={`heading-${route.id}`}><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
+          <p class="narrow">{route.why[lang]}</p>
+          <dl class="exercise">
+            <div><dt>{C.exercise[lang]}</dt><dd>{route.exercise[lang]}</dd></div>
+            <div><dt>{C.feedback[lang]}</dt><dd>{route.feedback[lang]}</dd></div>
+            <div><dt>{C.done[lang]}</dt><dd>{route.done[lang]}</dd></div>
+          </dl>
+          <div class="actions">
+            <a class="btn" href={practiceUrl(route.practice) + (route.practice === 'type-systems' ? '#try' : '')}>{C.open[lang]} →</a>
+            <button class="btn ghost" type="button" data-copy={`start-prompt-${route.id}`}>{C.copy[lang]}</button>
+          </div>
+          <details class="task"><summary>{C.preview[lang]}</summary><pre id={`start-prompt-${route.id}`} tabindex="0">{startAgentPrompt(route, lang)}</pre></details>
+          <p class="next"><strong>{C.next[lang]}:</strong> <a href={practiceUrl(route.next)}>{practiceName(route.next)} →</a></p>
+        </section>)}
+      </div>
+    </section>
+
+    <section class="layer-section" aria-labelledby="feedback-loop">
+      <h2 id="feedback-loop">{C.loop[lang]}</h2>
+      <p class="muted narrow">{C.loopHint[lang]}</p>
+      <ol class="loop">
+        {START_LOOP.map((step) => <li><h3>{step.title[lang]}</h3><p>{step.text[lang]}</p></li>)}
+      </ol>
+    </section>
+
+    <section class="layer-section narrow" aria-labelledby="tour">
+      <h2 id="tour">{C.learn[lang]}</h2>
+      <p class="muted">{C.learnHint[lang]}</p>
+      <ol class="path">
+        {START_TOUR.map((step, i) => <li><a href={'practice' in step ? practiceUrl(step.practice!) : href(lang, step.path)}>
+          <span class="n">{i + 1}</span><span><strong>{'practice' in step ? practiceName(step.practice!) : step.title![lang]}</strong><span class="why">{step.exercise[lang]}</span></span>
+        </a></li>)}
+      </ol>
+    </section>
+
+    <section class="layer-section" aria-labelledby="setup">
+      <h2 id="setup">{C.guides[lang]}</h2>
+      <p class="muted narrow">{C.guidesHint[lang]}</p>
+      <ul class="setup-links">
+        {['tla', 'dafny'].map((id) => <li><a href={href(lang, `guides/${id}/`)}>{GUIDE_BY_ID.get(id)!.title[lang]} →</a></li>)}
+        <li><a href={href(lang, 'stack/')}>{t(lang, 'navStack')} →</a></li>
+      </ul>
+    </section>
+  </article>
 </Base>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-start-picker]')) {
+    const choices = [...root.querySelectorAll<HTMLButtonElement>('[data-start-choice]')];
+    const results = [...root.querySelectorAll<HTMLElement>('[data-start-result]')];
+    function select(id: string) {
+      choices.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.startChoice === id)));
+      results.forEach((panel) => { panel.hidden = panel.dataset.startResult !== id; });
+    }
+    choices.forEach((button) => button.addEventListener('click', () => select(button.dataset.startChoice!)));
+    select(choices[0].dataset.startChoice!);
+  }
+</script>
 <style>
-  .path { list-style: none; padding: 0; margin: 28px 0; display: grid; gap: 0; position: relative; }
+  .start { max-width: 65rem; }
+  header { margin-bottom: 32px; }
+  .starting-points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 24px 0 14px; }
+  .starting-point { display: flex; align-items: baseline; gap: 12px; text-align: left; cursor: pointer; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--card); line-height: 1.4; }
+  .starting-point:hover { border-color: var(--l-static); }
+  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: inset 4px 0 var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
+  .recommendation { border-top: 3px solid var(--l-static); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
+  .recommendation h3 { font-size: 1.65rem; }
+  .exercise { margin: 24px 0; display: grid; gap: 16px; }
+  .exercise > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 16px; }
+  .exercise dt { font-weight: 700; line-height: 1.4; }
+  .exercise dd { margin: 0; color: var(--ink-2); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .task { margin: 14px 0; }
+  .task summary { color: var(--ink-2); font-size: .9rem; cursor: pointer; }
+  .task pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .82rem; margin-top: 8px; }
+  .next { margin: 18px 0 0; font-size: .95rem; }
+  .loop { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 24px 0 0; }
+  .loop li { border-left: 2px solid var(--rule-strong); padding-left: 16px; margin: 0; }
+  .loop p { margin: 0; color: var(--ink-2); }
+  .path { list-style: none; padding: 0; margin: 28px 0 0; display: grid; position: relative; }
   .path::before { content: ''; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: var(--rule-strong); }
   .path li { margin: 0; }
   .path a { display: flex; gap: 16px; padding: 12px 0; text-decoration: none; color: var(--ink); align-items: flex-start; position: relative; }
@@ -39,4 +115,9 @@ const steps: Step[] = [
   .path a:hover .n { background: var(--ink); color: var(--paper); }
   .path a > span:last-child { display: flex; flex-direction: column; padding-top: 5px; }
   .why { color: var(--ink-2); font-size: .95rem; }
+  .setup-links { display: flex; flex-wrap: wrap; gap: 12px 28px; list-style: none; padding: 0; margin: 0; }
+  @media (max-width: 650px) {
+    .starting-points, .loop { grid-template-columns: 1fr; }
+    .exercise > div { grid-template-columns: 1fr; gap: 4px; }
+  }
 </style>

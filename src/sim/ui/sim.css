@@ -1,4 +1,5 @@
-.sim { border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--card); padding: 16px; display: grid; gap: 14px; }
+.sim { border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--card); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.sim > * { min-width: 0; }
 .sim-intro { margin: 0; color: var(--ink-2); max-width: 46rem; }
 .sim-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .sim-cols { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: start; }
@@ -15,7 +16,7 @@
 .sim-code .ln.plus { background: color-mix(in srgb, var(--ok) 16%, transparent); }
 .sim-code .ln.hl { background: color-mix(in srgb, var(--warn) 18%, transparent); }
 .tk-kw { color: var(--l-verification); font-weight: 600; }
-.tk-str { color: var(--l-codebase); }
+.tk-str { color: color-mix(in srgb, var(--l-codebase) 85%, var(--ink)); }
 .tk-num { color: var(--l-prose); }
 .tk-com { color: var(--ink-3); font-style: italic; }
 .tk-fn { color: var(--l-static); }
@@ -48,7 +49,7 @@
 .sim-metric b { font: 650 1.5rem/1 var(--font-display); }
 .sim-metric span { font-size: .82rem; color: var(--ink-3); }
 
-.sim-seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 6px; padding: 2px; margin: 0; gap: 2px; flex-wrap: wrap; }
+.sim-seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 6px; padding: 2px; margin: 0; gap: 2px; flex-wrap: wrap; min-inline-size: 0; }
 .sim-seg input { position: absolute; opacity: 0; pointer-events: none; }
 .sim-seg label { padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: .88rem; color: var(--ink-2); }
 .sim-seg input:checked + label { background: var(--ink); color: var(--paper); }

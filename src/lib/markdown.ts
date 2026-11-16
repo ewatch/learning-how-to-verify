@@ -46,7 +46,11 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
     }
     out.push('');
     for (const s of p.snippets ?? []) {
-      out.push(`**${T(loc, 'example')}${s.file ? ` (${s.file})` : ''}:**`, '', '```' + (s.lang === 'any' ? '' : s.lang), s.code, '```', '');
+      const extension = s.file?.split('.').pop() ?? '';
+      const syntax = ({ json: 'json', toml: 'toml', yml: 'yaml', yaml: 'yaml', ts: 'typescript', js: 'javascript', mjs: 'javascript', md: 'markdown', sh: 'bash', sql: 'sql', py: 'python', txt: 'text' } as Record<string, string>)[extension] ?? (s.lang === 'any' ? '' : s.lang);
+      out.push(`**${T(loc, 'example')}${s.file ? ` (${s.file})` : ''}:**`, '');
+      if (s.description) out.push(s.description[loc], '');
+      out.push('```' + syntax, s.code, '```', '');
     }
     out.push(loc === 'de' ? '## Vorgehen' : '## How to set it up', ...p.steps.map((s, i) => `${i + 1}. ${s[loc]}`), '');
     out.push(`**${loc === 'de' ? 'Fertig, wenn' : 'Done when'}:** ${p.done[loc]}`, '');

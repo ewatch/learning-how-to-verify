@@ -33,19 +33,31 @@ Verified: full `npm run ci` (206 tests, 149 pages, 30 browser tests); `npm run c
 
 ## P3 · Requirement gaps
 
-- [ ] **M** Req 1: "See it" (template layer 3) is missing everywhere; 47 of 56 practices have no visual. Build about 6 reusable animated diagrams by family:
+- [ ] **M** Req 1: "See it" (template layer 3) is missing everywhere; 46 of 56 practices have no simulator/animation after the compiler addition. Build about 6 reusable animated diagrams by family:
   - rollout (traffic shaping, shadowing, tap compare, teeing; reuse the canary component)
   - load curve (load, soak, performance)
   - trace waterfall (tracing, profiling, RUM)
   - test pyramid / test scopes (unit, component, integration, e2e, acceptance, smoke)
   - pipeline (CI, lint, types, security scanning, config)
   - review / feedback loop (code review, evals, agent rules, on-call)
-- [ ] **M** Req 4: 49 pages have only one think-first question (plan: 2–3). Add a prediction question and a transfer question ("which bug would this miss?") to each, in EN and DE.
+- [ ] **M** Req 4: 48 pages have only one think-first question (plan: 2–3). Add a prediction question and a transfer question ("which bug would this miss?") to each, in EN and DE. Type systems now has three.
 - [ ] **M** Thin pages: soak-tests, teeing, dynamic-exploration and auditing have fewer than 3 worth/limit bullets; 17 practices have fewer than 3 agent steps.
-- [ ] **M** Req 2: 31 practices have no snippet. Add at least one per practice ("any" or JS) and a second language for core practices. `usability-tests` has no tools; `static-analysis` lacks its own JS, Python, .NET and Rust analysers.
-- [ ] **S** Markdown code fences: derive the language from the file extension (`.json`, `.toml`, `.yml`) instead of the programming language.
-- [ ] **S** Req 3: Markdown twins are missing for home, lifecycle, start, glossary, about, guides index and stack index.
+- [x] **M** Req 2, example coverage: all 56 practices now have at least one snippet, configuration, command or review worksheet. The starting commit had 30 missing, rather than the previously recorded 31. New examples include bilingual prerequisites and expected feedback. Language tabs render all matching examples, including code plus configuration.
+- [ ] **M** Req 2, language/tool depth: add a second native language for core practices. `usability-tests` has no tools; `static-analysis` lacks its own JS, Python, .NET and Rust analysers.
+- [x] **S** Markdown code fences: derive the language from the file extension (`.json`, `.toml`, `.yml`) instead of the programming language.
+- [ ] **S** Req 3: Markdown twins are missing for home, lifecycle, glossary, about, guides index and stack index. Start Here now has EN/DE twins and an entry in `llms.txt`.
 - [ ] **S** Glossary popovers are rarely triggered (about 1–3 per page): add aliases for common inflections and check coverage per page.
+
+## Hands-on starting points and examples (current request)
+
+- [x] Review the initial scope against the current implementation: [REQUIREMENTS-REVIEW.md](REQUIREMENTS-REVIEW.md), including a prioritised list of remaining work.
+- [x] Extend Start Here with six project situations, exercises, expected feedback, completion criteria, follow-up practices and copyable agent tasks in EN/DE. Keep the eight-step tour, now with exercises, and explain the agent feedback loop.
+- [x] Add the real TypeScript compiler exercise: unsafe lookup, guard, non-null assertion and a business-rule bug that still compiles; show compiler feedback before behaviour checks.
+- [x] Fill all 30 missing example slots, show multiple matching snippets in language tabs, and fix file-based Markdown syntax labels.
+- [x] Add Start Here Markdown twins and an `llms.txt` entry.
+- [x] Verify new recommendations, copying, compiler revisions, cancellation/reruns, EN/DE desktop/mobile and accessibility. Fix simulator string contrast and grid overflow found by these checks.
+
+Verified on `fix/p1-review` in `.worktrees/p1-review`: `PLAYWRIGHT_PORT=4324 npm run ci` passed (211 unit/data/engine tests, 149 built HTML pages and 42 browser tests). A separate preview port avoids the other checkout already listening on 4321; the Playwright config now supports this and keeps its managed preview in the foreground. All pre-existing tests are unchanged; five engine tests and twelve browser cases were added. Four self-contained example files passed six separate Vitest test cases; a deliberately broken refactor was rejected. JS/TS snippets parse, new shell snippets pass `bash -n`, and the Vector TOML parses. External-service examples were not all run end to end; see the review for the verification boundary. Tool and source registries were unchanged.
 
 ## P4 · Language parity (EN/DE)
 

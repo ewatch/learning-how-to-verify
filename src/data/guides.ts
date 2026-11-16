@@ -27,7 +27,7 @@ export interface Guide {
   practice: string;
   title: L;
   outcome: L;
-  install: { os: string; cmd: string }[];
+  install: { os: L; cmd: string }[];
   installNote: L;
   steps: GuideStep[];
   mistakes: L[];
@@ -47,8 +47,8 @@ export const GUIDES: Guide[] = [
       'In etwa 30 Minuten hast du eine TLA+-Spezifikation mit 25 Zeilen für „zwei Personen reservieren dasselbe Tier“ geschrieben, zugesehen, wie der Model Checker TLC die Doppelbuchung in 5 Schritten findet, den Entwurf korrigiert und gesehen, wie TLC die Korrektur für jede mögliche Verschränkung bestätigt.',
     ),
     install: [
-      { os: 'VS Code (all systems)', cmd: 'code --install-extension tlaplus.vscode-ide' },
-      { os: 'Command line (needs Java 11+)', cmd: 'curl -LO https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar' },
+      { os: l('VS Code (all systems)', 'VS Code (alle Systeme)'), cmd: 'code --install-extension tlaplus.vscode-ide' },
+      { os: l('Command line (needs Java 11+)', 'Kommandozeile (benötigt Java 11+)'), cmd: 'curl -LO https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar' },
     ],
     installNote: l(
       'The VS Code extension bundles TLC; use "TLA+: Check model with TLC" from the command palette. On the command line you only need Java and one jar file.',
@@ -79,8 +79,8 @@ export const GUIDES: Guide[] = [
       {
         title: l('Fix the design', 'Den Entwurf korrigieren'),
         text: l(
-          'The bug is that check and reserve are two steps. Make them one atomic step, which in the real system means the server checks and reserves in one transaction (or a unique constraint). TLC now checks all 5 reachable states and finds nothing.',
-          'Der Fehler: Prüfen und Reservieren sind zwei Schritte. Daraus einen atomaren Schritt machen; im echten System heißt das, der Server prüft und reserviert in einer Transaktion (oder per Unique-Constraint). TLC prüft jetzt alle 5 erreichbaren Zustände und findet nichts.',
+          'The bug is that check and reserve are two steps. Make them one atomic step, which in the real system means the server checks and reserves in one transaction (or a unique constraint). TLC now checks all 5 reachable states and finds nothing. Save the fixed spec as `AdoptFixed.tla` and copy `Adopt.cfg` to `AdoptFixed.cfg` (the configuration is the same).',
+          'Der Fehler: Prüfen und Reservieren sind zwei Schritte. Daraus einen atomaren Schritt machen; im echten System heißt das, der Server prüft und reserviert in einer Transaktion (oder per Unique-Constraint). TLC prüft jetzt alle 5 erreichbaren Zustände und findet nichts. Die korrigierte Spezifikation als `AdoptFixed.tla` speichern und `Adopt.cfg` nach `AdoptFixed.cfg` kopieren (die Konfiguration ist dieselbe).',
         ),
         code: { file: 'AdoptFixed.tla', body: adoptFixedTla },
         output: { cmd: 'java -XX:+UseParallelGC -cp tla2tools.jar tlc2.TLC -config AdoptFixed.cfg AdoptFixed.tla', body: adoptFixedOut },
@@ -124,9 +124,9 @@ export const GUIDES: Guide[] = [
       'In etwa 30 Minuten hast du bewiesen, dass eine Gebührenfunktion ihren Vertrag für jede Eingabe erfüllt, zugesehen, wie Dafny eine Fassung mit falscher Grenze ablehnt, und deine erste Schleifeninvariante geschrieben.',
     ),
     install: [
-      { os: 'VS Code (all systems)', cmd: 'code --install-extension dafny-lang.ide-vscode' },
-      { os: '.NET tool (needs .NET 8 SDK)', cmd: 'dotnet tool install --global dafny' },
-      { os: 'macOS (Homebrew)', cmd: 'brew install dafny' },
+      { os: l('VS Code (all systems)', 'VS Code (alle Systeme)'), cmd: 'code --install-extension dafny-lang.ide-vscode' },
+      { os: l('.NET tool (needs .NET 8 SDK)', '.NET-Tool (benötigt .NET 8 SDK)'), cmd: 'dotnet tool install --global dafny' },
+      { os: l('macOS (Homebrew)', 'macOS (Homebrew)'), cmd: 'brew install dafny' },
     ],
     installNote: l(
       'The VS Code extension downloads Dafny on first use and verifies as you type: red squiggles are failed proofs. On the command line run `dafny verify File.dfy`.',

@@ -20,7 +20,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
     <div class="card outcome"><p class="eyebrow">{t(lang, 'outcome')}</p><p set:html={inline(g.outcome[lang])} /></div>
 
     <section><h2>{t(lang, 'install')}</h2>
-      {g.install.map((i, k) => <CodeBlock code={i.cmd} file={i.os} lang={lang} id={`inst-${k}`} />)}
+      {g.install.map((i, k) => <CodeBlock code={i.cmd} file={i.os[lang]} lang={lang} id={`inst-${k}`} />)}
       <p set:html={inline(g.installNote[lang])} />
     </section>
 

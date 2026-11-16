@@ -45,8 +45,8 @@ Verified: full `npm run ci` (206 tests, 149 pages, 30 browser tests); `npm run c
 - [x] **M** Req 2, example coverage: all 56 practices now have at least one snippet, configuration, command or review worksheet. The starting commit had 30 missing, rather than the previously recorded 31. New examples include bilingual prerequisites and expected feedback. Language tabs render all matching examples, including code plus configuration.
 - [ ] **M** Req 2, language/tool depth: add a second native language for core practices. `usability-tests` has no tools; `static-analysis` lacks its own JS, Python, .NET and Rust analysers.
 - [x] **S** Markdown code fences: derive the language from the file extension (`.json`, `.toml`, `.yml`) instead of the programming language.
-- [ ] **S** Req 3: Markdown twins are missing for home, lifecycle, glossary, about, guides index and stack index. Start Here now has EN/DE twins and an entry in `llms.txt`.
-- [ ] **S** Glossary popovers are rarely triggered (about 1–3 per page): add aliases for common inflections and check coverage per page.
+- [x] **S** Req 3: Markdown twins are missing for home, lifecycle, glossary, about, guides index and stack index. Start Here now has EN/DE twins and an entry in `llms.txt`.
+- [x] **S** Glossary popovers are rarely triggered (about 1–3 per page): add aliases for common inflections and check coverage per page.
 
 ## Hands-on starting points and examples (current request)
 
@@ -63,21 +63,21 @@ Pre-merge review: the A/B example now exercises GrowthBook rather than comparing
 
 ## P4 · Language parity (EN/DE)
 
-- [ ] **S** Guide install labels are English on German pages (`os` field in `guides.ts`): make them bilingual.
-- [ ] **S** Tools table headers "License", "Repo" and the link text "source" are hard-coded English (`LangTabs.astro`).
-- [ ] **S** Differential simulator prints "old / new" in English. German Markdown uses "Q:/A:"; change to "F:/A:".
+- [x] **S** Guide install labels are English on German pages (`os` field in `guides.ts`): make them bilingual.
+- [x] **S** Tools table headers "License", "Repo" and the link text "source" are hard-coded English (`LangTabs.astro`).
+- [x] **S** Differential simulator prints "old / new" in English. German Markdown uses "Q:/A:"; change to "F:/A:".
 - [ ] **U** Owner reads the German text (start with home, start-here, 5 core practices, both guides).
 
 ## P5 · Information architecture
 
 - [ ] **M** Lifecycle map: the pre-production column (35 items) is overloaded. Group it by funnel layer with subheadings, or make it collapsible.
 - [ ] **M** Layer tags: load, soak, config and integration tests are tagged "static analysis" but run against deployed systems. Decide: move them to "verification (runtime)", or explain that tests count as static analysis in the funnel.
-- [ ] **S** TLA+ guide: say "copy `Adopt.cfg` to `AdoptFixed.cfg`".
+- [x] **S** TLA+ guide: say "copy `Adopt.cfg` to `AdoptFixed.cfg`".
 
 ## P6 · Release
 
 - [ ] **U** Cloudflare login (`! npx wrangler login`), then deploy to `*.pages.dev` and optionally put Cloudflare Access in front.
-- [ ] **S** Until it is deployed, make the base URL in prompts and `llms.txt` configurable (`SITE_URL`).
+- [x] **S** Until it is deployed, make the base URL in prompts and `llms.txt` configurable (`SITE_URL`).
 - [ ] **U** Domain choice, then Impressum and privacy page (German law), then switch the repo to public with the MIT and CC BY 4.0 licenses.
 
 ## Milestone 2 (agreed earlier)

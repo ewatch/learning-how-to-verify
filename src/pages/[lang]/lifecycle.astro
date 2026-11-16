@@ -9,7 +9,7 @@ export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 ---
-<Base lang={lang} path="lifecycle/" nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
+<Base lang={lang} path="lifecycle/" md={`/${lang}/lifecycle/index.md`} nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
   description={en ? 'All verification practices by when they happen: pre-production, deploy, release, post-release.' : 'Alle Verifikationspraktiken danach, wann sie stattfinden: vor der Produktion, Deploy, Release, nach dem Release.'}>
   <div class="wrap">
     <header class="narrow">

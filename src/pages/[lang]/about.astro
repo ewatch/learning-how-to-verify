@@ -10,7 +10,7 @@ const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
 ---
-<Base lang={lang} path="about/" nav="about" title={en ? 'About' : 'Über'} description={en ? 'Credits, sources, privacy, and how this site verifies itself.' : 'Quellen, Datenschutz und wie diese Seite sich selbst prüft.'}>
+<Base lang={lang} path="about/" md={`/${lang}/about/index.md`} nav="about" title={en ? 'About' : 'Über'} description={en ? 'Credits, sources, privacy, and how this site verifies itself.' : 'Quellen, Datenschutz und wie diese Seite sich selbst prüft.'}>
   <div class="wrap narrow">
     <h1>{en ? 'About this site' : 'Über diese Seite'}</h1>
 

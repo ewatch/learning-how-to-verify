@@ -27,10 +27,10 @@ const firstSnippet = p.snippets?.[0];
         {hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
         {(own.length > 0 || any.length > 0) && (
           <table class="tools">
-            <thead><tr><th>{t(lang, 'tools')}</th><th>License</th><th>Repo</th></tr></thead>
+            <thead><tr><th>{t(lang, 'tools')}</th><th>{t(lang, 'license')}</th><th>{t(lang, 'repo')}</th></tr></thead>
             <tbody>
-              {own.map((x) => <tr><td><a href={x.url} rel="noopener">{x.name}</a></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">source</a></td></tr>)}
-              {any.map((x) => <tr class="anyrow"><td><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">source</a></td></tr>)}
+              {own.map((x) => <tr><td><a href={x.url} rel="noopener">{x.name}</a></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
+              {any.map((x) => <tr class="anyrow"><td><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
             </tbody>
           </table>
         )}

@@ -8,7 +8,7 @@ const T = {
     versions: { round: 'Refactor 1', ceil: 'Refactor 2', integer: 'Refactor 3' },
     agree: (a: number, n: number) => `${a.toLocaleString('en')} of ${n.toLocaleString('en')} inputs agree`,
     diffs: 'Differences', minimal: 'Smallest differing price', none: 'No unexplained differences. The refactoring is equivalent on everything we tried, apart from the change you accepted.',
-    intended: 'intended', cents: 'cents', voucher: 'voucher', empty: '(none)',
+    intended: 'intended', oldNew: (o: unknown, n: unknown) => `old ${o}, new ${n}`, cents: 'cents', voucher: 'voucher', empty: '(none)',
     lessonRound: 'Rounding changed: the old code effectively rounded up, the new one rounds to nearest.',
     lessonCeil: 'Floating point: 1.10 € × 90 is 99.00000000000001 in binary floating point, so Math.ceil makes it 100. Never compute money in floats.',
   },
@@ -18,7 +18,7 @@ const T = {
     versions: { round: 'Refactor 1', ceil: 'Refactor 2', integer: 'Refactor 3' },
     agree: (a: number, n: number) => `${a.toLocaleString('de')} von ${n.toLocaleString('de')} Eingaben stimmen überein`,
     diffs: 'Unterschiede', minimal: 'Kleinster abweichender Preis', none: 'Keine unerklärten Unterschiede. Das Refactoring ist auf allem, was wir probiert haben, gleichwertig, bis auf die akzeptierte Änderung.',
-    intended: 'gewollt', cents: 'Cent', voucher: 'Gutschein', empty: '(keiner)',
+    intended: 'gewollt', oldNew: (o: unknown, n: unknown) => `alt ${o}, neu ${n}`, cents: 'Cent', voucher: 'Gutschein', empty: '(keiner)',
     lessonRound: 'Die Rundung hat sich geändert: Der alte Code rundete faktisch auf, der neue rundet kaufmännisch.',
     lessonCeil: 'Gleitkomma: 1,10 € × 90 ergibt binär 99,00000000000001, und Math.ceil macht daraus 100. Geld nie in Gleitkomma rechnen.',
   },
@@ -57,7 +57,7 @@ export function mount(root: HTMLElement, lang: Lang) {
       const unexplained = r.diffs.find((d) => !d.intended) ?? r.diffs[0];
       const m = minimalDiff(v.fn, unexplained);
       parts.push(h('div', { class: 'sim-callout bad' },
-        h('p', {}, h('strong', {}, `${t.minimal}: `), h('code', {}, `price(${m.cents}, "${m.voucher}")`), ` → old ${m.old}, new ${m.neu}`),
+        h('p', {}, h('strong', {}, `${t.minimal}: `), h('code', {}, `price(${m.cents}, "${m.voucher}")`), ` → ${t.oldNew(m.old, m.neu)}`),
         h('p', {}, S.v === 'round' ? t.lessonRound : S.v === 'ceil' ? t.lessonCeil : '')));
       parts.push(h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, `${t.diffs} (${r.diffs.length})`),
         h('table', { class: 'sim-table' }, h('thead', {}, h('tr', {}, h('th', {}, t.cents), h('th', {}, t.voucher), h('th', {}, t.old), h('th', {}, t.neu), h('th', {}, h('span', { class: 'visually-hidden' }, t.intended)))), h('tbody', {}, ...r.diffs.slice(0, 8).map(row)))));

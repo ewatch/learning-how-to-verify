@@ -11,7 +11,7 @@ const en = lang === 'en';
 const n = PRACTICES.length;
 const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
 ---
-<Base lang={lang} path="" nav="funnel"
+<Base lang={lang} path="" md={`/${lang}/index.md`} nav="funnel"
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
   description={en ? `How to verify software, especially when AI agents write it: ${n} practices along a funnel from cheap to expensive, with tools per language and runnable examples.` : `Wie man Software verifiziert, besonders wenn KI-Agenten sie schreiben: ${n} Praktiken entlang eines Trichters von billig nach teuer, mit Werkzeugen pro Sprache und ausführbaren Beispielen.`}>
   <div class="wrap">

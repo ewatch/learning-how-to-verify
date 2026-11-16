@@ -9,7 +9,7 @@ export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 ---
-<Base lang={lang} path="stack/" nav="stack" title={en ? 'My stack' : 'Mein Stack'} description={en ? 'Pick your programming language and see every verification practice with open-source tools for it.' : 'Programmiersprache wählen und jede Verifikationspraktik mit passenden Open-Source-Werkzeugen sehen.'}>
+<Base lang={lang} path="stack/" md={`/${lang}/stack/index.md`} nav="stack" title={en ? 'My stack' : 'Mein Stack'} description={en ? 'Pick your programming language and see every verification practice with open-source tools for it.' : 'Programmiersprache wählen und jede Verifikationspraktik mit passenden Open-Source-Werkzeugen sehen.'}>
   <div class="wrap">
     <header class="narrow">
       <h1>{en ? 'Which language do you work in?' : 'In welcher Sprache arbeitest du?'}</h1>

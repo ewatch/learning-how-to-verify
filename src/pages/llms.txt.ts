@@ -15,6 +15,14 @@ export const GET: APIRoute = () => {
     '',
     `Full text of all English practices in one file: ${SITE_URL}/llms-full.txt (German: ${SITE_URL}/llms-full-de.txt)`,
     '',
+    '## Overview pages',
+    `- [Home: the funnel with all practices](${SITE_URL}/en/index.md)`,
+    `- [Lifecycle map](${SITE_URL}/en/lifecycle/index.md): practices by phase, from pre-production to post-release`,
+    `- [Glossary](${SITE_URL}/en/glossary/index.md): definitions of the terms used`,
+    `- [Getting-started guides](${SITE_URL}/en/guides/index.md)`,
+    `- [Tools by language](${SITE_URL}/en/stack/index.md)`,
+    `- [About, sources and self-verification](${SITE_URL}/en/about/index.md)`,
+    '',
     '## Start',
     `- [Start here](${SITE_URL}/en/start/index.md): choose a first check for your project, try an exercise and copy a feedback-loop task for your agent`,
     `- [Why one layer is not enough with agents](${SITE_URL}/en/why-layers/index.md): research on green tests vs. correct code`,
@@ -29,6 +37,6 @@ export const GET: APIRoute = () => {
     for (const p of PRACTICES.filter((x) => x.layer === layer.id)) out.push(`- [${p.name.en}](${SITE_URL}/en/practices/${p.id}/index.md): ${p.oneLiner.en}`);
     out.push('');
   }
-  out.push('## Optional', `- [German version](${SITE_URL}/de/)`, `- [Sources and self-verification](${SITE_URL}/en/about/)`);
+  out.push('## Optional', `- [German version](${SITE_URL}/de/)`, `- [Sources and self-verification](${SITE_URL}/en/about/index.md)`);
   return new Response(out.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };

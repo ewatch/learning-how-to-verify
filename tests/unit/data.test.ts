@@ -16,6 +16,15 @@ describe('practice data', () => {
     expect(PRACTICE_BY_ID.size).toBe(56);
   });
 
+  it('every practice has enough think-first questions, benefits, limits and steps', () => {
+    for (const p of PRACTICES) {
+      expect(p.think.length, `${p.id} think-first questions`).toBeGreaterThanOrEqual(2);
+      expect(p.worth.length, `${p.id} worth`).toBeGreaterThanOrEqual(3);
+      expect(p.limits.length, `${p.id} limits`).toBeGreaterThanOrEqual(2);
+      expect(p.steps.length, `${p.id} steps`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   for (const p of PRACTICES) {
     describe(p.id, () => {
       it('is complete in both languages', () => {

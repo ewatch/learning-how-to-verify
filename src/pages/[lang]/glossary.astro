@@ -10,7 +10,7 @@ const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 const terms = [...GLOSSARY].sort((a, b) => a.term[lang].localeCompare(b.term[lang], lang));
 ---
-<Base lang={lang} path="glossary/" nav="glossary" title={en ? 'Glossary' : 'Glossar'} description={en ? 'Short definitions of the terms used on this site.' : 'Kurze Definitionen der Begriffe auf dieser Seite.'}>
+<Base lang={lang} path="glossary/" md={`/${lang}/glossary/index.md`} nav="glossary" title={en ? 'Glossary' : 'Glossar'} description={en ? 'Short definitions of the terms used on this site.' : 'Kurze Definitionen der Begriffe auf dieser Seite.'}>
   <div class="wrap narrow">
     <h1>{en ? 'Glossary' : 'Glossar'}</h1>
     <dl>

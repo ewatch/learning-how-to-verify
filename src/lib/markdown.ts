@@ -56,7 +56,7 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
     out.push(`**${loc === 'de' ? 'Fertig, wenn' : 'Done when'}:** ${p.done[loc]}`, '');
   }
   out.push(`## ${T(loc, 'thinkFirst')}`);
-  for (const q of p.think) out.push(`- **Q:** ${q.q[loc]}`, `  **A:** ${q.a[loc]}`);
+  for (const q of p.think) out.push(`- **${loc === 'de' ? 'F' : 'Q'}:** ${q.q[loc]}`, `  **A:** ${q.a[loc]}`);
   out.push('');
   if (!opts.short && p.related.length) {
     out.push(`## ${T(loc, 'related')}`, ...p.related.map((id) => `- [${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`), '');
@@ -66,7 +66,7 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
 
 export function guideMarkdown(g: Guide, loc: Locale): string {
   const out: string[] = [`# ${g.title[loc]}`, '', g.outcome[loc], '', `## ${T(loc, 'install')}`];
-  for (const i of g.install) out.push(`- ${i.os}: \`${i.cmd}\``);
+  for (const i of g.install) out.push(`- ${i.os[loc]}: \`${i.cmd}\``);
   out.push('', g.installNote[loc], '');
   g.steps.forEach((s, i) => {
     out.push(`## ${i + 1}. ${s.title[loc]}`, '', s.text[loc], '');

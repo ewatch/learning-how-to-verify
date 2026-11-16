@@ -50,6 +50,10 @@ describe('practice data', () => {
             expect(b, `${where} range ${a}-${b}`).toBeGreaterThanOrEqual(a);
             expect(b, `${where} line ${b} <= ${n}`).toBeLessThanOrEqual(n);
             filled(f.note, `${where} focus note`);
+            const lines = s.code.split('\n');
+            for (const ln of [a]) { // closing brackets are fine as the end of a range
+              expect(/^\s*(?:[{}()[\]]|\)|\}\)|\]\)|\}\);|\);|\],?|\},?)?\s*$/.test(lines[ln - 1] ?? ''), `${where} line ${ln} is blank or only brackets`).toBe(false);
+            }
           }
         }
       });

@@ -215,7 +215,8 @@ button { font: inherit; color: inherit; }
 .site-header.no-popover .header-inner { flex-wrap: wrap; }
 .site-header.is-measuring * { transition: none !important; }
 @media (max-width: 47.99em) { .site-header { position: static; } }
-.site-header:not(.is-wide) .brand { white-space: normal; flex-shrink: 1; min-inline-size: 0; font-size: 1rem; line-height: 1.2; }
+.site-header:not(.is-wide) .brand { white-space: nowrap; flex-shrink: 1; min-inline-size: 0; font-size: 1rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 26rem) { .site-header:not(.is-wide) .brand { font-size: .92rem; gap: 6px; } }
 /* theme toggle: both actions are in the markup; only the one that matches the rendered scheme is shown */
 .theme-toggle .to-light { display: none; }
 @media (prefers-color-scheme: dark) { .theme-toggle .to-dark { display: none; } .theme-toggle .to-light { display: inline; } }
@@ -345,3 +346,6 @@ code, pre, kbd, .sim-code, .cm-content { font-variant-ligatures: none; font-feat
 @keyframes slide-to-right { to { transform: translateX(12%); opacity: 0; } }
 @keyframes slide-from-left { from { transform: translateX(-12%); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none !important; } }
+@media (max-width: 22.5rem) {
+  .site-header:not(.is-wide) .brand-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}

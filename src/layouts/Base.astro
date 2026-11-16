@@ -67,7 +67,7 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
     <a class="skip" href="#main">{t(lang, 'skip')}</a>
     <header class="site-header" data-site-header>
       <div class="wrap header-inner">
-        <a class="brand" href={href(lang)}><FunnelMark size={26} />{t(lang, 'siteName')}</a>
+        <a class="brand" href={href(lang)}><FunnelMark size={26} /><span class="brand-text">{t(lang, 'siteName')}</span></a>
         <nav class="site-nav" aria-label="Main">
           <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="toggle" aria-controls="site-menu"><span aria-hidden="true">☰</span> {t(lang, 'menu')}</button>
           <ul id="site-menu" class="site-menu" popover="auto">

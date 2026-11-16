@@ -234,7 +234,7 @@ module.exports.fuzz = (data) => {
   "mutate": ["src/domain/**/*.ts"],
   "thresholds": { "high": 90, "low": 75, "break": 70 },
   "incremental": true
-}`, focus: [{ line: 2, note: l('Only mutate the domain code; mutating everything wastes time on code that carries no business rules.', 'Nur den Domain-Code mutieren; alles zu mutieren verschwendet Zeit an Code ohne Geschäftsregeln.') }, { line: 4, note: l('The break threshold fails the build when too many mutants survive, meaning the tests are too weak.', 'Die Schwelle break lässt den Build fehlschlagen, wenn zu viele Mutanten überleben, die Tests also zu schwach sind.') }, { line: 5, note: l('Incremental reuses earlier results so reruns stay fast enough to run on every change.', 'Incremental nutzt frühere Ergebnisse wieder, damit Wiederholungen schnell genug für jede Änderung bleiben.') }] },
+}`, focus: [{ line: 3, note: l('Only mutate the domain code; mutating everything wastes time on code that carries no business rules.', 'Nur den Domain-Code mutieren; alles zu mutieren verschwendet Zeit an Code ohne Geschäftsregeln.') }, { line: 4, note: l('The break threshold fails the build when too many mutants survive, meaning the tests are too weak.', 'Die Schwelle break lässt den Build fehlschlagen, wenn zu viele Mutanten überleben, die Tests also zu schwach sind.') }, { line: 5, note: l('Incremental reuses earlier results so reruns stay fast enough to run on every change.', 'Incremental nutzt frühere Ergebnisse wieder, damit Wiederholungen schnell genug für jede Änderung bleiben.') }] },
       { lang: 'python', file: 'pyproject.toml', code: `[tool.mutmut]
 paths_to_mutate = ["src/domain/"]
 tests_dir = ["tests/"]

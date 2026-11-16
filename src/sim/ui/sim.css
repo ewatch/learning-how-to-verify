@@ -75,9 +75,9 @@
 .sim-chart text { font: 11px var(--font-body); fill: var(--ink-3); }
 
 /* tabs (formal verification) */
-.sim-tabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--rule-strong); margin-bottom: 12px; }
+.sim-tabs { border-bottom-color: var(--rule-strong); margin-bottom: 12px; } /* layout (single scrolling row, edge fades) is shared with .tabs in global.css */
 .sim-tab { font: inherit; font-size: .92rem; padding: 7px 12px; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; background: none; color: var(--ink-2); cursor: pointer; margin-bottom: -1px; }
-.sim-tab[aria-selected='true'] { background: var(--card); color: var(--ink); font-weight: 600; border-color: var(--rule-strong); }
+.sim-tab[aria-selected='true'] { background: var(--card); color: var(--ink); border-color: var(--rule-strong); }
 .sim-tab:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 
 /* wp calculus */

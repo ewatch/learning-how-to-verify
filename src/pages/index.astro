@@ -5,6 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Learning how to verify</title>
     <meta http-equiv="refresh" content="0; url=/en/" />
     <link rel="alternate" hreflang="en" href="/en/" />
@@ -13,7 +14,12 @@
     <script is:inline>
       try { if ((navigator.language || '').toLowerCase().startsWith('de')) location.replace('/de/'); else location.replace('/en/'); } catch {}
     </script>
-    <style>body{font-family:system-ui;background:#f7f4ee;color:#1c1a17;padding:2rem}@media (prefers-color-scheme:dark){body{background:#161513;color:#ece7dd}a{color:#8fb8ff}}</style>
+    <style>
+      :root{color-scheme:light dark}
+      body{font-family:system-ui;background:#f7f4ee;background:light-dark(#f7f4ee,#161513);color:#1c1a17;color:light-dark(#1c1a17,#ece7dd);padding:2rem}
+      a{color:#1d4fa8;color:light-dark(#1d4fa8,#8fb8ff)}
+      @supports not (color:light-dark(white,black)){@media (prefers-color-scheme:dark){body{background:#161513;color:#ece7dd}a{color:#8fb8ff}}}
+    </style>
   </head>
   <body>
     <p><a href="/en/">English</a> · <a href="/de/">Deutsch</a> · <a href="/llms.txt">llms.txt</a></p>

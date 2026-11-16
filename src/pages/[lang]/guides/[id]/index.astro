@@ -41,7 +41,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
     <section><h2>{t(lang, 'mistakes')}</h2><ul>{g.mistakes.map((m) => <li set:html={inline(m[lang])} />)}</ul></section>
     <section><h2>{t(lang, 'nextSteps')}</h2><ul>{g.next.map((n) => <li><a href={n.url} rel="noopener">{n.label}</a></li>)}</ul></section>
     <section class="card agent">
-      <div class="row"><strong>{t(lang, 'copyForAgent')}</strong><button type="button" class="btn" data-copy="guide-agent">{t(lang, 'copyForAgent')}</button></div>
+      <div class="row"><strong>{t(lang, 'copyForAgent')}</strong><button type="button" class="btn" data-copy="guide-agent" command="--copy" commandfor="guide-agent">{t(lang, 'copyForAgent')}</button></div>
       <pre id="guide-agent" tabindex="0">{agentText}</pre>
     </section>
     <p class="muted small">{t(lang, 'recordedWith')}: {g.versions.trim().replace(/\n/g, '; ')}</p>

@@ -101,18 +101,21 @@ export function mount(root: HTMLElement, lang: Lang) {
   const panels: HTMLElement[] = [];
   const list = h('div', { class: 'sim-tabs', role: 'tablist', 'aria-label': TABS[lang].label });
 
-  function select(i: number, focus = false) {
+  function select(i: number, focus = false, reveal = true) {
     tabs.forEach((tab, k) => {
       tab.setAttribute('aria-selected', String(k === i));
       tab.tabIndex = k === i ? 0 : -1;
-      panels[k]!.hidden = k !== i;
+      // Inactive panels stay findable (Ctrl+F reveals them via beforematch); browsers without until-found just hide them.
+      if (k === i) panels[k]!.removeAttribute('hidden'); else panels[k]!.setAttribute('hidden', 'until-found');
     });
     if (focus) tabs[i]!.focus();
+    // keep the selected tab visible in the scrolling tablist, without scrolling the page
+    if (reveal) tabs[i]!.scrollIntoView({ block: 'nearest', inline: 'nearest', container: 'nearest' } as ScrollIntoViewOptions);
     if (!mounted.has(i)) { mounted.add(i); void LOADERS[i]!(panels[i]!, lang); }
   }
   names.forEach((name, i) => {
     const tab = h('button', {
-      class: 'sim-tab', type: 'button', role: 'tab', id: `${uid}-tab-${i}`, 'aria-controls': `${uid}-panel-${i}`, 'aria-selected': 'false', tabindex: -1,
+      class: 'sim-tab', type: 'button', role: 'tab', id: `${uid}-tab-${i}`, 'aria-selected': 'false', tabindex: -1,
       onclick: () => select(i),
       onkeydown: (ev: Event) => {
         const k = (ev as KeyboardEvent).key;
@@ -121,9 +124,9 @@ export function mount(root: HTMLElement, lang: Lang) {
       },
     }, name);
     tabs.push(tab);
-    panels.push(h('div', { role: 'tabpanel', id: `${uid}-panel-${i}`, 'aria-labelledby': `${uid}-tab-${i}`, hidden: true }));
+    panels.push(h('div', { role: 'tabpanel', id: `${uid}-panel-${i}`, 'aria-labelledby': `${uid}-tab-${i}`, hidden: 'until-found', onbeforematch: () => select(i) }));
     list.append(tab);
   });
   root.append(list, ...panels);
-  select(0);
+  select(0, false, false);
 }

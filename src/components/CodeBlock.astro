@@ -19,7 +19,7 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
 ---
 {!focus?.length ? (
   <div class="codeblock">
-    <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button></div>
+    <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id} command="--copy" commandfor={id} aria-label={file ? `${t(lang, 'copy')} ${file}` : undefined}>{t(lang, 'copy')}</button></div>
     <pre id={id} tabindex="0"><code>{code}</code></pre>
   </div>
 ) : (
@@ -28,7 +28,7 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
       <span>{file ?? ''}</span>
       <span class="actions">
         <button type="button" class="btn ghost sm" data-fc-start hidden>{t(lang, 'walkthrough')}</button>
-        <button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button>
+        <button type="button" class="btn ghost sm" data-copy={id} command="--copy" commandfor={id} aria-label={file ? `${t(lang, 'copy')} ${file}` : undefined}>{t(lang, 'copy')}</button>
       </span>
     </div>
     <pre id={id} hidden>{code}</pre>
@@ -71,10 +71,8 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
   .gctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .count { font: 500 .85rem var(--font-mono); color: var(--ink-2); min-width: 3.5em; text-align: center; }
   .fc { position: relative; }
-  .fc.js .notebox { display: none; }
-  .fc.guided .notebox { display: none; }
-  .notebox { margin-top: 8px; }
-  .notebox > summary { cursor: pointer; font-size: .88rem; color: var(--ink-2); padding: 4px 0; }
+  /* with script the notes live in the badge popovers; the list stays findable (hidden=until-found) and opens on Ctrl+F */
+  .notebox > summary { cursor: pointer; font-size: .88rem; color: var(--ink-2); padding: 4px 0; margin-top: 8px; }
   .notebox > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .fc.js .ln[data-n]::before { content: none; }
   .fc.guided :global(.badge-btn) { display: none; }
@@ -83,6 +81,11 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
   :global(.badge-btn:focus-visible) { outline: 2px solid var(--link); outline-offset: -2px; }
   :global(.pop) { position: absolute; z-index: 20; box-sizing: border-box; padding: 10px 12px; background: var(--card); color: var(--ink); border: 1px solid var(--rule-strong, var(--rule)); border-left: 3px solid var(--c, var(--link)); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); font-size: .92rem; line-height: 1.45; font-family: var(--font-body, inherit); white-space: normal; }
   :global(.pop[hidden]) { display: none; }
+  /* native popover: top layer, light dismiss and Escape come from the browser; the badge is the implicit anchor */
+  :global(.pop[popover]) { --w: min(28rem, calc(100dvw - 1rem)); position: fixed; inline-size: var(--w); margin: 0; overflow: auto; max-block-size: 60dvh; }
+  @supports (top: anchor(bottom)) {
+    :global(.pop[popover]) { inset: auto; top: anchor(bottom); left: max(.5rem, min(anchor(left), calc(100dvw - var(--w) - .5rem))); margin-block: 4px; position-try-fallbacks: flip-block; }
+  }
   :global(.pop .where) { display: block; margin-bottom: 2px; font: 500 .78rem var(--font-mono); color: var(--ink-3); }
   .fc.guided .ln.f:not(.on), .fc.guided .ln:not(.f) { opacity: .4; }
   .fc.guided .ln.f:not(.on) { background: transparent; border-left-color: transparent; }
@@ -103,19 +106,39 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
     const of = document.documentElement.lang === 'de' ? 'von' : 'of';
     let step = 0;
     root.classList.add('js');
+    // the plain notes list moves behind find-in-page: hidden until Ctrl+F matches it (browsers without until-found just hide it)
+    const notebox = $<HTMLDetailsElement>('.notebox');
+    notebox.setAttribute('hidden', 'until-found');
+    const nativePopover = 'popover' in HTMLElement.prototype;
+    const anchored = CSS.supports('top', 'anchor(bottom)');
     // Note popovers anchored at the marked line
     const pops: HTMLElement[] = [];
     const btns: HTMLButtonElement[] = [];
+    const isOpen = (i: number) => (nativePopover ? pops[i]!.matches(':popover-open') : !pops[i]!.hidden);
     const closePops = (refocus = false) => {
-      pops.forEach((p, i) => { if (!p.hidden) { p.hidden = true; btns[i].setAttribute('aria-expanded', 'false'); if (refocus) btns[i].focus(); } });
+      pops.forEach((p, i) => {
+        if (!isOpen(i)) return;
+        if (nativePopover) p.hidePopover(); else { p.hidden = true; btns[i]!.setAttribute('aria-expanded', 'false'); }
+        if (refocus) btns[i]!.focus();
+      });
     };
+    // positioning for browsers without anchor() (and without native popover): same rule as the CSS
     const place = (i: number) => {
-      const p = pops[i], ln = btns[i].closest('.ln') as HTMLElement;
-      const rr = root.getBoundingClientRect(), lr = ln.getBoundingClientRect();
-      const w = Math.min(448, rr.width - 16);
-      p.style.width = w + 'px';
-      p.style.left = Math.max(8, Math.min(btns[i].getBoundingClientRect().left - rr.left, rr.width - w - 8)) + 'px';
-      p.style.top = lr.bottom - rr.top + 4 + 'px';
+      const p = pops[i]!, b = btns[i]!;
+      const br = b.getBoundingClientRect();
+      const rr = root.getBoundingClientRect(), lr = (b.closest('.ln') as HTMLElement).getBoundingClientRect();
+      if (nativePopover) {
+        const w = Math.min(448, innerWidth - 16);
+        p.style.inset = 'auto'; p.style.margin = '0'; p.style.width = w + 'px';
+        p.style.left = Math.max(8, Math.min(br.left, innerWidth - w - 8)) + 'px';
+        const h = p.offsetHeight, below = lr.bottom + 4;
+        p.style.top = (below + h > innerHeight && lr.top - h - 4 > 0 ? lr.top - h - 4 : below) + 'px';
+      } else {
+        const w = Math.min(448, rr.width - 16);
+        p.style.width = w + 'px';
+        p.style.left = Math.max(8, Math.min(br.left - rr.left, rr.width - w - 8)) + 'px';
+        p.style.top = lr.bottom - rr.top + 4 + 'px';
+      }
     };
     notes.forEach((li, i) => {
       const line = root.querySelector<HTMLElement>(`.ln[data-b="${i}"]`);
@@ -129,21 +152,33 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
       b.setAttribute('aria-controls', id);
       line.appendChild(b);
       const pop = document.createElement('div');
-      pop.className = 'pop'; pop.id = id; pop.hidden = true;
+      pop.className = 'pop'; pop.id = id;
       pop.setAttribute('role', 'group');
       pop.setAttribute('aria-label', `${root.dataset.noteLabel} ${i + 1}`);
       pop.innerHTML = li.innerHTML;
       root.appendChild(pop);
       pops[i] = pop; btns[i] = b;
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const wasOpen = !pop.hidden;
-        closePops();
-        if (!wasOpen) { pop.hidden = false; b.setAttribute('aria-expanded', 'true'); place(i); }
-      });
+      if (nativePopover) {
+        // declarative: the button opens/closes the popover; Escape, outside click and focus return are native
+        pop.setAttribute('popover', 'auto');
+        b.setAttribute('popovertarget', id);
+        // explicit anchor: the implicit popovertarget anchor is not honoured for anchor() everywhere (and not by the polyfill)
+        if (anchored) { b.style.setProperty('anchor-name', `--${id}`); pop.style.setProperty('position-anchor', `--${id}`); }
+        pop.addEventListener('beforetoggle', (e) => { if ((e as ToggleEvent).newState === 'open' && !anchored) place(i); });
+        // aria-expanded follows the popover (the source of truth); toggle does not bubble, so listen on the popover
+        pop.addEventListener('toggle', (e) => b.setAttribute('aria-expanded', String((e as ToggleEvent).newState === 'open')));
+      } else {
+        pop.hidden = true;
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const wasOpen = !pop.hidden;
+          closePops();
+          if (!wasOpen) { pop.hidden = false; b.setAttribute('aria-expanded', 'true'); place(i); }
+        });
+      }
     });
-    document.addEventListener('click', (e) => { if (!(e.target as Element).closest('.pop')) closePops(); });
-    window.addEventListener('resize', () => pops.forEach((p, i) => { if (!p.hidden) place(i); }));
+    if (!nativePopover) document.addEventListener('click', (e) => { if (!(e.target as Element).closest('.pop')) closePops(); });
+    window.addEventListener('resize', () => pops.forEach((_, i) => { if (isOpen(i)) place(i); }));
     const show = () => {
       root.querySelectorAll('.ln').forEach((l) => l.classList.toggle('on', (l as HTMLElement).dataset.f === String(step)));
       noteEl.innerHTML = notes[step].innerHTML;
@@ -154,7 +189,7 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       root.querySelector('.ln.on')?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
     };
-    const open = () => { closePops(); root.classList.add('guided'); guide.hidden = false; start.setAttribute('aria-expanded', 'true'); step = 0; show(); next.focus(); };
+    const open = () => { closePops(); notebox.open = false; notebox.setAttribute('hidden', 'until-found'); root.classList.add('guided'); guide.hidden = false; start.setAttribute('aria-expanded', 'true'); step = 0; show(); next.focus(); };
     const close = () => { root.classList.remove('guided'); guide.hidden = true; start.setAttribute('aria-expanded', 'false'); root.querySelectorAll('.ln.on').forEach((l) => l.classList.remove('on')); start.focus(); };
     start.hidden = false;
     start.setAttribute('aria-expanded', 'false');
@@ -162,6 +197,11 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
     prev.addEventListener('click', () => { if (step > 0) { step--; show(); } });
     next.addEventListener('click', () => { if (step < total - 1) { step++; show(); } });
     $('[data-fc-close]').addEventListener('click', close);
-    root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pops.some((p) => !p.hidden)) { e.stopPropagation(); closePops(true); return; } if (e.key === 'Escape' && root.classList.contains('guided')) { e.stopPropagation(); close(); } });
+    root.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!nativePopover && pops.some((_, i) => isOpen(i))) { e.stopPropagation(); closePops(true); return; }
+      // native popovers close themselves on Escape; the walkthrough only closes when none was open
+      if (root.classList.contains('guided') && !pops.some((_, i) => isOpen(i))) { e.stopPropagation(); close(); }
+    });
   }
 </script>

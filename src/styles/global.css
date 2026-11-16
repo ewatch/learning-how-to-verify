@@ -6,37 +6,121 @@
 
 /* ---------- tokens ---------- */
 :root {
-  color-scheme: light;
-  --paper: #f7f4ee;
-  --paper-2: #efeae0;
-  --card: #fffdf9;
-  --ink: #1c1a17;
-  --ink-2: #4a463f;
-  --ink-3: #686258;
-  --rule: #d9d2c4;
-  --rule-strong: #b9b0a0;
-  --focus: #1d5fd1;
-  --link: #1d4fa8;
-
+  /* Raw light/dark pairs, written once. */
+  /* paper */
+  --paper-light: #f7f4ee; --paper-dark: #161513;
+  --paper-2-light: #efeae0; --paper-2-dark: #1e1c19;
+  --card-light: #fffdf9; --card-dark: #1f1d1a;
+  --ink-light: #1c1a17; --ink-dark: #ece7dd;
+  --ink-2-light: #4a463f; --ink-2-dark: #c3bcae;
+  --ink-3-light: #686258; --ink-3-dark: #958d7f;
+  --rule-light: #d9d2c4; --rule-dark: #36322c;
+  --rule-strong-light: #b9b0a0; --rule-strong-dark: #4c463d;
+  --focus-light: #1d5fd1; --focus-dark: #7fb0ff;
+  --link-light: #1d4fa8; --link-dark: #8fb8ff;
   /* funnel strata: cheap (top) → expensive (bottom) */
-  --l-codebase: #2f7d5b;
-  --l-static: #2a6f97;
-  --l-verification: #5a55a6;
-  --l-prose: #a86b12;
-  --l-review: #b24a32;
+  --l-codebase-light: #2f7d5b; --l-codebase-dark: #5fbf92;
+  --l-static-light: #2a6f97; --l-static-dark: #5fa8d3;
+  --l-verification-light: #5a55a6; --l-verification-dark: #9a95e0;
+  --l-prose-light: #a86b12; --l-prose-dark: #e0a54a;
+  --l-review-light: #b24a32; --l-review-dark: #ec8a72;
+  /* lifecycle phases */
+  --p-pre-light: #8a4fb0; --p-pre-dark: #c08ae0;
+  --p-deploy-light: #575d69; --p-deploy-dark: #a1a8b3;
+  --p-release-light: #c07a2b; --p-release-dark: #e8a659;
+  --p-post-light: #3f5fb5; --p-post-dark: #86a3f0;
+  /* status */
+  --ok-light: #24764a; --ok-dark: #63c48d;
+  --bad-light: #b3261e; --bad-dark: #f08a80;
+  --warn-light: #a66300; --warn-dark: #e8b35c;
+  /* code */
+  --code-bg-light: #f1ece2; --code-bg-dark: #24211d;
+  --code-ink-light: #2a2621; --code-ink-dark: #e6e0d4;
 
-  /* lifecycle phases (after the original overview) */
-  --p-pre: #8a4fb0;
-  --p-deploy: #575d69;
-  --p-release: #c07a2b;
-  --p-post: #3f5fb5;
+  /* Fallback (no light-dark()): system preference only. */
+  --paper: var(--paper-light);
+  --paper-2: var(--paper-2-light);
+  --card: var(--card-light);
+  --ink: var(--ink-light);
+  --ink-2: var(--ink-2-light);
+  --ink-3: var(--ink-3-light);
+  --rule: var(--rule-light);
+  --rule-strong: var(--rule-strong-light);
+  --focus: var(--focus-light);
+  --link: var(--link-light);
+  --l-codebase: var(--l-codebase-light);
+  --l-static: var(--l-static-light);
+  --l-verification: var(--l-verification-light);
+  --l-prose: var(--l-prose-light);
+  --l-review: var(--l-review-light);
+  --p-pre: var(--p-pre-light);
+  --p-deploy: var(--p-deploy-light);
+  --p-release: var(--p-release-light);
+  --p-post: var(--p-post-light);
+  --ok: var(--ok-light);
+  --bad: var(--bad-light);
+  --warn: var(--warn-light);
+  --code-bg: var(--code-bg-light);
+  --code-ink: var(--code-ink-light);
+  @media (prefers-color-scheme: dark) {
+    --paper: var(--paper-dark);
+    --paper-2: var(--paper-2-dark);
+    --card: var(--card-dark);
+    --ink: var(--ink-dark);
+    --ink-2: var(--ink-2-dark);
+    --ink-3: var(--ink-3-dark);
+    --rule: var(--rule-dark);
+    --rule-strong: var(--rule-strong-dark);
+    --focus: var(--focus-dark);
+    --link: var(--link-dark);
+    --l-codebase: var(--l-codebase-dark);
+    --l-static: var(--l-static-dark);
+    --l-verification: var(--l-verification-dark);
+    --l-prose: var(--l-prose-dark);
+    --l-review: var(--l-review-dark);
+    --p-pre: var(--p-pre-dark);
+    --p-deploy: var(--p-deploy-dark);
+    --p-release: var(--p-release-dark);
+    --p-post: var(--p-post-dark);
+    --ok: var(--ok-dark);
+    --bad: var(--bad-dark);
+    --warn: var(--warn-dark);
+    --code-bg: var(--code-bg-dark);
+    --code-ink: var(--code-ink-dark);
+  }
 
-  --ok: #24764a;
-  --bad: #b3261e;
-  --warn: #a66300;
+  /* Same pairs resolved by the used color-scheme, so subtrees that set color-scheme and the manual override just work. */
+  @supports (color: light-dark(white, black)) {
+    --paper: light-dark(var(--paper-light), var(--paper-dark));
+    --paper-2: light-dark(var(--paper-2-light), var(--paper-2-dark));
+    --card: light-dark(var(--card-light), var(--card-dark));
+    --ink: light-dark(var(--ink-light), var(--ink-dark));
+    --ink-2: light-dark(var(--ink-2-light), var(--ink-2-dark));
+    --ink-3: light-dark(var(--ink-3-light), var(--ink-3-dark));
+    --rule: light-dark(var(--rule-light), var(--rule-dark));
+    --rule-strong: light-dark(var(--rule-strong-light), var(--rule-strong-dark));
+    --focus: light-dark(var(--focus-light), var(--focus-dark));
+    --link: light-dark(var(--link-light), var(--link-dark));
+    --l-codebase: light-dark(var(--l-codebase-light), var(--l-codebase-dark));
+    --l-static: light-dark(var(--l-static-light), var(--l-static-dark));
+    --l-verification: light-dark(var(--l-verification-light), var(--l-verification-dark));
+    --l-prose: light-dark(var(--l-prose-light), var(--l-prose-dark));
+    --l-review: light-dark(var(--l-review-light), var(--l-review-dark));
+    --p-pre: light-dark(var(--p-pre-light), var(--p-pre-dark));
+    --p-deploy: light-dark(var(--p-deploy-light), var(--p-deploy-dark));
+    --p-release: light-dark(var(--p-release-light), var(--p-release-dark));
+    --p-post: light-dark(var(--p-post-light), var(--p-post-dark));
+    --ok: light-dark(var(--ok-light), var(--ok-dark));
+    --bad: light-dark(var(--bad-light), var(--bad-dark));
+    --warn: light-dark(var(--warn-light), var(--warn-dark));
+    --code-bg: light-dark(var(--code-bg-light), var(--code-bg-dark));
+    --code-ink: light-dark(var(--code-ink-light), var(--code-ink-dark));
+  }
 
-  --code-bg: #f1ece2;
-  --code-ink: #2a2621;
+  /* Follow the system; the toggle pins one scheme through <meta name="color-scheme"> (see Base.astro). */
+  color-scheme: light dark;
+  &:has(> head > meta[name='color-scheme'][content='dark']) { color-scheme: dark; }
+  &:has(> head > meta[name='color-scheme'][content='light']) { color-scheme: light; }
 
   --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
   --font-body: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif;
@@ -48,62 +132,6 @@
   --wide: 74rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --paper: #161513;
-    --paper-2: #1e1c19;
-    --card: #1f1d1a;
-    --ink: #ece7dd;
-    --ink-2: #c3bcae;
-    --ink-3: #958d7f;
-    --rule: #36322c;
-    --rule-strong: #4c463d;
-    --focus: #7fb0ff;
-    --link: #8fb8ff;
-    --l-codebase: #5fbf92;
-    --l-static: #5fa8d3;
-    --l-verification: #9a95e0;
-    --l-prose: #e0a54a;
-    --l-review: #ec8a72;
-    --p-pre: #c08ae0;
-    --p-deploy: #a1a8b3;
-    --p-release: #e8a659;
-    --p-post: #86a3f0;
-    --ok: #63c48d;
-    --bad: #f08a80;
-    --warn: #e8b35c;
-    --code-bg: #24211d;
-    --code-ink: #e6e0d4;
-  }
-}
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --paper: #161513;
-  --paper-2: #1e1c19;
-  --card: #1f1d1a;
-  --ink: #ece7dd;
-  --ink-2: #c3bcae;
-  --ink-3: #958d7f;
-  --rule: #36322c;
-  --rule-strong: #4c463d;
-  --focus: #7fb0ff;
-  --link: #8fb8ff;
-  --l-codebase: #5fbf92;
-  --l-static: #5fa8d3;
-  --l-verification: #9a95e0;
-  --l-prose: #e0a54a;
-  --l-review: #ec8a72;
-  --p-pre: #c08ae0;
-  --p-deploy: #a1a8b3;
-  --p-release: #e8a659;
-  --p-post: #86a3f0;
-  --ok: #63c48d;
-  --bad: #f08a80;
-  --warn: #e8b35c;
-  --code-bg: #24211d;
-  --code-ink: #e6e0d4;
-}
 
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -131,16 +159,26 @@ body::before {
 a { color: var(--link); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
-h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.5em; font-optical-sizing: auto; }
+h1, h2, h3, h4 { text-wrap: balance; font-family: var(--font-display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.5em; font-optical-sizing: auto; }
 h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); font-weight: 650; letter-spacing: -0.02em; overflow-wrap: anywhere; hyphens: auto; }
 h2 { font-size: clamp(1.45rem, 3vw, 1.9rem); margin-top: 0; }
 h3 { font-size: 1.2rem; }
+p, li { text-wrap: pretty; }
 p { margin: 0 0 1em; }
 ul, ol { padding-left: 1.25em; margin: 0 0 1em; }
 li { margin-bottom: 0.35em; }
 code, kbd, pre { font-family: var(--font-mono); font-size: 0.88em; }
 :not(pre) > code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 4px; color: var(--code-ink); overflow-wrap: anywhere; }
 pre { background: var(--code-bg); color: var(--code-ink); padding: 14px 16px; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; margin: 0; border: 1px solid var(--rule); }
+/* Horizontal scroll hint on a solid background: shadows stay at the edges, covers scroll with the content and hide them at the ends. */
+pre {
+  background:
+    linear-gradient(to right, var(--code-bg) 30%, transparent) left / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--code-bg) 30%, transparent) right / 2.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.22), transparent) left / 0.75rem 100% no-repeat,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.22), transparent) right / 0.75rem 100% no-repeat,
+    var(--code-bg);
+}
 hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
 img, svg { max-width: 100%; }
 button { font: inherit; color: inherit; }
@@ -152,21 +190,41 @@ button { font: inherit; color: inherit; }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--ink); color: var(--paper); padding: 8px 12px; z-index: 10; }
 .skip:focus { left: 8px; }
 
-.site-header { border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 5; }
-.site-header .wrap { display: flex; align-items: center; gap: 18px; min-height: 58px; flex-wrap: wrap; }
+.site-header { border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 5; view-transition-name: site-header; }
+.header-inner { display: flex; align-items: center; gap: 0.75rem 1rem; min-block-size: 3.6rem; }
+.header-inner > * { flex-shrink: 0; white-space: nowrap; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-family: var(--font-display); font-weight: 650; font-size: 1.12rem; letter-spacing: -0.01em; }
 .brand svg { flex: none; }
-.nav { display: flex; gap: 2px; flex-wrap: wrap; margin-left: auto; align-items: center; }
-.nav a, .nav button { color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: var(--radius); font-size: 0.95rem; background: none; border: 0; cursor: pointer; }
-.nav a:hover, .nav button:hover { background: var(--paper-2); color: var(--ink); }
-.nav a[aria-current='page'] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); border-radius: 0; }
-.nav .lang { border: 1px solid var(--rule-strong); }
-@media (max-width: 760px) {
-  .site-header { position: static; }
-  .site-header .wrap { padding-top: 8px; padding-bottom: 8px; }
-  .nav { margin-left: 0; width: 100%; flex-wrap: wrap; }
-  .nav a, .nav button { white-space: nowrap; }
-}
+.site-nav { margin-inline-start: auto; }
+.header-actions { display: flex; align-items: center; gap: 2px; }
+.header-actions a, .header-actions button, .menu-button { color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: var(--radius); font-size: 0.95rem; background: none; border: 0; cursor: pointer; min-block-size: 2.25rem; }
+.header-actions a:hover, .header-actions button:hover, .menu-button:hover { background: var(--paper-2); color: var(--ink); }
+.header-actions .lang { border: 1px solid var(--rule-strong); display: inline-flex; align-items: center; }
+/* Collapsed layout is the default (and what no-script gets): the links live in a popover opened by the menu button. */
+.menu-button { border: 1px solid var(--rule-strong); anchor-name: --menu-button; }
+.site-menu { position: fixed; inset: auto; inset-block-start: 4.25rem; inset-block-start: anchor(--menu-button bottom); inset-inline-end: var(--gutter); margin: 0.5rem 0 0; inline-size: min(80dvw, 20rem); max-block-size: calc(100dvh - 6rem); overflow: auto; list-style: none; padding: 6px; background: var(--card); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
+.site-menu li { margin: 0; }
+.site-menu a { display: block; color: var(--ink-2); text-decoration: none; padding: 10px 12px; border-radius: var(--radius); font-size: 1rem; }
+.site-menu a:hover { background: var(--paper-2); color: var(--ink); }
+.site-menu a[aria-current='page'] { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.3em; }
+/* Wide layout: script found that every link fits. */
+.site-header.is-wide .menu-button { display: none; }
+.site-header.is-wide .site-menu { position: static; display: flex; align-items: center; gap: 2px; inline-size: auto; max-block-size: none; overflow: visible; margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.site-header.is-wide .site-menu a { padding: 6px 10px; font-size: 0.95rem; white-space: nowrap; }
+.site-header.is-wide .site-menu a[aria-current='page'] { text-decoration-thickness: 2px; }
+.site-header.no-popover .header-inner { flex-wrap: wrap; }
+.site-header.is-measuring * { transition: none !important; }
+@media (max-width: 47.99em) { .site-header { position: static; } }
+.site-header:not(.is-wide) .brand { white-space: normal; flex-shrink: 1; min-inline-size: 0; font-size: 1rem; line-height: 1.2; }
+/* theme toggle: both actions are in the markup; only the one that matches the rendered scheme is shown */
+.theme-toggle .to-light { display: none; }
+@media (prefers-color-scheme: dark) { .theme-toggle .to-dark { display: none; } .theme-toggle .to-light { display: inline; } }
+:root:has(> head > meta[name='color-scheme'][content='light']) .theme-toggle .to-dark { display: inline; }
+:root:has(> head > meta[name='color-scheme'][content='light']) .theme-toggle .to-light { display: none; }
+:root:has(> head > meta[name='color-scheme'][content='dark']) .theme-toggle .to-dark { display: none; }
+:root:has(> head > meta[name='color-scheme'][content='dark']) .theme-toggle .to-light { display: inline; }
+/* Without light-dark() a manual pin could not take effect: offer no toggle there. */
+@supports not (color: light-dark(white, black)) { .theme-toggle { display: none; } }
 
 main { padding: 36px 0 80px; }
 .site-footer { border-top: 1px solid var(--rule); color: var(--ink-3); font-size: 0.9rem; padding: 28px 0 48px; }
@@ -204,11 +262,45 @@ details.disclose > summary::-webkit-details-marker { display: none; }
 details.disclose > summary::before { content: '+'; font-family: var(--font-mono); color: var(--ink-3); width: 1ch; }
 details.disclose[open] > summary::before { content: '−'; }
 details.disclose > .body { padding: 0 16px 16px; }
+/* Disclosure animation: the closed content stays rendered (content-visibility), so Ctrl+F still finds and opens it. */
+@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+  details::details-content { interpolate-size: allow-keywords; overflow: clip; contain: layout; }
+  details:not([open])::details-content { block-size: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    details::details-content { transition: block-size, content-visibility, display; transition-duration: 0.25s; transition-timing-function: ease-in-out; transition-behavior: allow-discrete; }
+  }
+}
 
-.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
-.tabs [role='tab'] { border: 0; background: none; padding: 8px 12px; cursor: pointer; color: var(--ink-2); border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: 0.95rem; }
-.tabs [role='tab'][aria-selected='true'] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
+/* tabs: one row that scrolls (never wraps); the selected tab is marked by an underline that takes no space */
+.tabs, .sim-tabs { display: flex; flex-wrap: nowrap; gap: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: inline proximity; scroll-padding-inline: 2rem; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
+.tabs { gap: 4px; }
+.tabs [role='tab'], .sim-tabs [role='tab'] { flex: none; scroll-snap-align: start; }
+.tabs [role='tab'] { position: relative; border: 0; background: none; padding: 8px 12px; cursor: pointer; color: var(--ink-2); font-size: 0.95rem; }
+.tabs [role='tab'][aria-selected='true'] { color: var(--ink); }
+.tabs [role='tab'][aria-selected='true']::after { content: ''; position: absolute; inset: auto 0 0; border-block-end: 3px solid var(--ink); }
 .tabs [role='tab']:hover { color: var(--ink); }
+.tabs [role='tab']:focus-visible { outline-offset: -3px; }
+@property --fade-start { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --fade-end { syntax: '<length>'; inherits: false; initial-value: 0px; }
+/* Fade each edge that has more tabs beyond it; no fade (and no hidden scrollbar) where scroll-driven animations are missing. */
+@supports (animation-timeline: scroll()) {
+  .tabs, .sim-tabs {
+    scrollbar-width: none;
+    --fade-size: 2rem; --fade-dir: right; --fade-start-pos: 0; --fade-end-pos: 100%;
+    mask:
+      linear-gradient(black, black) no-clip subtract,
+      linear-gradient(to var(--fade-dir), black, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+      linear-gradient(to var(--fade-dir), transparent, black) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    animation: reveal-fade-start linear both, hide-fade-end linear both;
+    animation-timeline: scroll(self inline);
+    animation-range: 0 var(--fade-size), calc(100% - var(--fade-size)) 100%;
+    &:dir(rtl) { --fade-dir: left; --fade-start-pos: 100%; --fade-end-pos: 0; }
+  }
+  .tabs::-webkit-scrollbar, .sim-tabs::-webkit-scrollbar { display: none; }
+}
+@keyframes reveal-fade-start { to { --fade-start: var(--fade-size); } }
+@keyframes hide-fade-end { from { --fade-end: var(--fade-size); } }
+@media (prefers-reduced-motion: reduce) { .tabs, .sim-tabs { scroll-behavior: auto; } }
 
 .codeblock { position: relative; margin: 10px 0 14px; }
 .codeblock .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 500 0.8rem var(--font-mono); color: var(--ink-3); padding: 0 2px 6px; }
@@ -228,3 +320,28 @@ details.disclose > .body { padding: 0 16px 16px; }
 /* code must look like what you type: no ligatures (>= stays >=) */
 code, pre, kbd, .sim-code, .cm-content { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'calt' 0; }
 .btn.ghost[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* breadcrumbs: ordered list, separators generated in CSS (empty alt keeps them out of the accessibility tree) */
+.breadcrumb { margin-bottom: 18px; }
+.breadcrumb > ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.5rem; list-style: none; margin: 0; padding: 0; }
+.breadcrumb > ol > li { margin: 0; }
+.breadcrumb > ol > li + li::before { content: '/' / ''; color: var(--ink-3); margin-inline-end: 0.5rem; }
+.breadcrumb a { color: var(--ink-2); text-decoration: underline; }
+.breadcrumb a:hover { color: var(--ink); }
+.breadcrumb a[aria-current='page'] { color: var(--ink); font-weight: 700; text-decoration: none; }
+@media (forced-colors: active) { .breadcrumb a[aria-current='page'] { text-decoration: underline; } }
+
+/* page changes: cross-fade the page, keep the sticky header in place; the pager slides in the direction of travel */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(root) { animation-duration: 0.25s; animation-timing-function: ease-in-out; }
+  html:active-view-transition-type(forward)::view-transition-old(root) { animation-name: slide-to-left; }
+  html:active-view-transition-type(forward)::view-transition-new(root) { animation-name: slide-from-right; }
+  html:active-view-transition-type(backward)::view-transition-old(root) { animation-name: slide-to-right; }
+  html:active-view-transition-type(backward)::view-transition-new(root) { animation-name: slide-from-left; }
+}
+@keyframes slide-to-left { to { transform: translateX(-12%); opacity: 0; } }
+@keyframes slide-from-right { from { transform: translateX(12%); opacity: 0; } }
+@keyframes slide-to-right { to { transform: translateX(12%); opacity: 0; } }
+@keyframes slide-from-left { from { transform: translateX(-12%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none !important; } }

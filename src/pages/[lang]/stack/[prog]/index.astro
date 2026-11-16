@@ -14,7 +14,7 @@ const lg = LANGS.find((x) => x.id === prog)!;
 ---
 <Base lang={lang} path={`stack/${prog}/`} md={`/${lang}/stack/${prog}/index.md`} nav="stack" title={lg.name} description={en ? `Verification practices and open-source tools for ${lg.name}.` : `Verifikationspraktiken und Open-Source-Werkzeuge für ${lg.name}.`}>
   <div class="wrap">
-    <nav class="small muted"><a href={href(lang, 'stack/')}>{en ? 'My stack' : 'Mein Stack'}</a> / {lg.name}</nav>
+    <nav class="breadcrumb small" aria-label={en ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'stack/')}>{en ? 'My stack' : 'Mein Stack'}</a></li><li><a href={href(lang, `stack/${prog}/`)} aria-current="page">{lg.name}</a></li></ol></nav>
     <h1>{lg.name}</h1>
     <p class="lede">{en ? 'Every practice, top of the funnel first. Tools in bold are specific to this language; the others work with any language.' : 'Jede Praktik, von oben im Trichter nach unten. Fett gedruckte Werkzeuge sind sprachspezifisch; die anderen funktionieren mit jeder Sprache.'}</p>
     {LAYERS.map((layer) => (
@@ -42,6 +42,7 @@ const lg = LANGS.find((x) => x.id === prog)!;
   </div>
 </Base>
 <style>
+  .layer:nth-of-type(n + 3) { content-visibility: auto; contain-intrinsic-size: auto none auto 18rem; }
   .layer { margin-top: 28px; border-top: 3px solid var(--c); padding-top: 12px; }
   table { width: 100%; border-collapse: collapse; }
   th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; font-weight: 400; }

@@ -14,6 +14,13 @@ export const UI = {
   switchLang: { en: 'Deutsch', de: 'English' },
   skip: { en: 'Skip to content', de: 'Zum Inhalt springen' },
   theme: { en: 'Toggle dark mode', de: 'Dunkelmodus umschalten' },
+  toDark: { en: 'Switch to dark theme', de: 'Zum dunklen Design wechseln' },
+  toLight: { en: 'Switch to light theme', de: 'Zum hellen Design wechseln' },
+  menu: { en: 'Menu', de: 'Menü' },
+  breadcrumb: { en: 'Breadcrumbs', de: 'Brotkrumen' },
+  copyFailed: { en: 'Copy failed', de: 'Kopieren fehlgeschlagen' },
+  prevPractice: { en: 'Previous practice', de: 'Vorherige Praktik' },
+  nextPractice: { en: 'Next practice', de: 'Nächste Praktik' },
 
   inOneSentence: { en: 'In one sentence', de: 'In einem Satz' },
   catches: { en: 'Catches', de: 'Findet' },

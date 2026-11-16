@@ -12,27 +12,29 @@ const firstSnippet = p.snippets?.[0];
 <div class="langtabs" data-langtabs>
   <div class="tabs" role="tablist" aria-label={t(lang, 'yourLanguage')}>
     {LANGS.map((lg, i) => (
-      <button role="tab" type="button" id={`tab-${lg.id}`} aria-controls={`panel-${lg.id}`} aria-selected={i === 0 ? 'true' : 'false'} data-lang={lg.id}>{lg.short}</button>
+      <button role="tab" type="button" id={`tab-${lg.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-lang={lg.id}>{lg.short}</button>
     ))}
   </div>
-  {LANGS.map((lg) => {
+  {LANGS.map((lg, li) => {
     const { own, any } = toolsFor(p, lg.id);
     const snippets = (p.snippets ?? []).filter((s) => s.lang === lg.id || s.lang === 'any');
     const fallback = snippets.length === 0 && firstSnippet ? (p.snippets ?? []).filter((s) => s.lang === firstSnippet.lang) : [];
     const promptId = `prompt-${p.id}-${lg.id}`;
     return (
-      <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel">
+      <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel" hidden={li === 0 ? undefined : 'until-found'}>
         <h3 class="visually-hidden">{lg.name}</h3>
         {!hasAnyTools && <p class="muted">{t(lang, 'noTools')}</p>}
         {hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
         {(own.length > 0 || any.length > 0) && (
-          <table class="tools">
-            <thead><tr><th>{t(lang, 'tools')}</th><th>{t(lang, 'license')}</th><th>{t(lang, 'repo')}</th></tr></thead>
-            <tbody>
-              {own.map((x) => <tr><td><a href={x.url} rel="noopener">{x.name}</a></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
-              {any.map((x) => <tr class="anyrow"><td><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
-            </tbody>
-          </table>
+          <div class="table-wrap" role="region" aria-label={`${t(lang, 'tools')}: ${lg.name}`} tabindex="0">
+            <table class="tools">
+              <thead><tr><th scope="col">{t(lang, 'tools')}</th><th scope="col">{t(lang, 'license')}</th><th scope="col">{t(lang, 'repo')}</th></tr></thead>
+              <tbody>
+                {own.map((x) => <tr><th scope="row"><a href={x.url} rel="noopener">{x.name}</a></th><td data-label={t(lang, 'license')}><code>{x.license}</code></td><td data-label={t(lang, 'repo')}><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
+                {any.map((x) => <tr class="anyrow"><th scope="row"><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></th><td data-label={t(lang, 'license')}><code>{x.license}</code></td><td data-label={t(lang, 'repo')}><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
+              </tbody>
+            </table>
+          </div>
         )}
         {snippets.map((snip, i) => <>
           {snip.description && <p class="small">{snip.description[lang]}</p>}
@@ -53,7 +55,7 @@ const firstSnippet = p.snippets?.[0];
               <strong>{t(lang, 'copyForAgent')}</strong>
               <p class="muted small">{t(lang, 'copyForAgentHint')}</p>
             </div>
-            <button type="button" class="btn" data-copy={promptId}>{t(lang, 'copyForAgent')}</button>
+            <button type="button" class="btn" data-copy={promptId} command="--copy" commandfor={promptId}>{t(lang, 'copyForAgent')}</button>
           </div>
           <details class="preview"><summary class="small">{lang === 'en' ? 'Preview the task' : 'Aufgabe ansehen'}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id)}</pre></details>
         </div>
@@ -62,37 +64,50 @@ const firstSnippet = p.snippets?.[0];
   })}
 </div>
 <style>
-  .tools { width: 100%; border-collapse: collapse; font-size: .95rem; margin-bottom: 8px; }
+  .table-wrap { overflow-x: auto; container-type: inline-size; max-inline-size: 100%; margin-bottom: 8px; }
+  .tools { width: 100%; border-collapse: collapse; font-size: .95rem; }
   .tools th { text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+  .tools tbody th { font-size: inherit; text-transform: none; letter-spacing: 0; color: inherit; font-weight: 400; padding-left: 0; background: transparent; vertical-align: top; padding-block: 7px; }
   .tools td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  .tools td:first-child { padding-left: 0; }
+  /* narrow container: one card per tool, labels injected from data-label */
+  @container (width < 26rem) {
+    .tools, .tools tbody, .tools tr, .tools tbody th, .tools td { display: block; }
+    .tools thead { display: none; }
+    .tools tr { padding: 6px 0; border-bottom: 1px solid var(--rule); }
+    .tools tbody th, .tools td { border: 0; padding: 2px 0; }
+    .tools td::before { content: attr(data-label) ': '; color: var(--ink-3); font-size: .85rem; }
+  }
   .agent { margin-top: 14px; }
   .agent-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
   .agent-head p { margin: 2px 0 0; max-width: 34rem; }
   .preview summary { cursor: pointer; margin-top: 8px; color: var(--ink-2); }
   .preview pre { margin-top: 8px; white-space: pre-wrap; font-size: .82rem; }
-  @media (max-width: 560px) { .tools th:nth-child(3), .tools td:nth-child(3) { display: none; } }
 </style>
 <script>
   for (const root of document.querySelectorAll<HTMLElement>('[data-langtabs]')) {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    const select = (id: string, save = true) => {
+    const select = (id: string, save = true, reveal = true) => {
       tabs.forEach((b) => { const on = b.dataset.lang === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
-      panels.forEach((p) => (p.hidden = p.dataset.panel !== id));
+      // Inactive panels stay findable with Ctrl+F (until-found); browsers without it simply hide them.
+      panels.forEach((p) => { if (p.dataset.panel === id) p.removeAttribute('hidden'); else p.setAttribute('hidden', 'until-found'); });
+      if (reveal) tabs.find((b) => b.dataset.lang === id)?.scrollIntoView({ block: 'nearest', inline: 'nearest', container: 'nearest' } as ScrollIntoViewOptions);
       if (save) try { localStorage.setItem('progLang', id); } catch {}
     };
+    // find-in-page revealed a hidden panel: make its tab the selected one (beforematch bubbles)
+    root.addEventListener('beforematch', (e) => { const p = (e.target as HTMLElement).closest<HTMLElement>('[role="tabpanel"]'); if (p?.dataset.panel) select(p.dataset.panel); });
     tabs.forEach((b, i) => {
       b.addEventListener('click', () => select(b.dataset.lang!));
       b.addEventListener('keydown', (e) => {
-        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-        if (!d) return;
-        const n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); select(n.dataset.lang!);
+        const to = e.key === 'ArrowRight' ? (i + 1) % tabs.length : e.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        const n = tabs[to]; n.focus(); select(n.dataset.lang!);
       });
     });
     const fromUrl = new URLSearchParams(location.search).get('lang');
     let initial = fromUrl ?? 'js';
     if (!fromUrl) try { initial = localStorage.getItem('progLang') ?? 'js'; } catch {}
-    select(tabs.some((b) => b.dataset.lang === initial) ? initial : 'js', Boolean(fromUrl));
+    select(tabs.some((b) => b.dataset.lang === initial) ? initial : 'js', Boolean(fromUrl), false);
   }
 </script>

@@ -41,7 +41,7 @@ export const proseReview: Practice[] = [
 
 ## Things a tool cannot tell you
 - Prices are integers in cents. Never use floats for money.
-- A pet can be reserved by one person only; the server is the source of truth.` }],
+- A pet can be reserved by one person only; the server is the source of truth.`, focus: [{ line: 4, note: l('This line names the command that proves "done", the one thing an agent must run before it stops.', 'Diese Zeile nennt den Befehl, der „fertig“ beweist: das eine, was ein Agent vor dem Aufhören ausführen muss.') }, { line: 5, note: l('An architecture rule an agent cannot guess; ideally move it into an import-boundary lint check.', 'Eine Architekturregel, die ein Agent nicht erraten kann; idealerweise in einen Lint-Check für Importgrenzen verschieben.') }, { line: [8,9], note: l('Facts no tool can check belong here; everything a tool could enforce should be a check instead.', 'Fakten, die kein Werkzeug prüfen kann, gehören hierher; alles, was ein Werkzeug erzwingen könnte, sollte stattdessen eine Prüfung sein.') }] }],
     steps: [
       l('Write a minimal AGENTS.md: the verify command, where things live, and 3–5 facts a tool cannot check.', 'Eine minimale AGENTS.md schreiben: den Prüfbefehl, wo was liegt, und 3–5 Fakten, die kein Werkzeug prüfen kann.'),
       l('For every rule, ask whether it could be a lint rule, type, architecture test or CI check; if yes, move it there and delete it from the file.', 'Für jede Regel fragen, ob sie eine Lint-Regel, ein Typ, ein Architekturtest oder ein CI-Check sein könnte; wenn ja, dorthin verschieben und aus der Datei löschen.'),
@@ -106,7 +106,7 @@ Holdout checks (outside the agent workspace):
 Record per run:
 setup/model version, task commit, checks passed/total,
 unauthorized test edits, elapsed time, tool calls, cost.
-Repeat with the same budget; keep individual results.` }],
+Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note: l('A concrete expected outcome makes success checkable instead of arguable.', 'Ein konkretes erwartetes Ergebnis macht Erfolg prüfbar statt diskutierbar.') }, { line: [5,8], note: l('Holdout checks the agent cannot see stop it from fitting its work to the visible tests.', 'Holdout-Checks, die der Agent nicht sieht, verhindern, dass er seine Arbeit an die sichtbaren Tests anpasst.') }, { line: 8, note: l('Unchanged approved tests catch the cheapest trick: making the tests pass by editing them.', 'Unveränderte freigegebene Tests fangen den billigsten Trick ab: Tests durch Ändern bestehen lassen.') }, { line: [10,13], note: l('Record every run and repeat it, because a single run of a non-deterministic agent proves little.', 'Halte jeden Lauf fest und wiederhole ihn, denn ein einzelner Lauf eines nichtdeterministischen Agenten beweist wenig.') }] }],
     steps: [
       l('Collect 10–20 closed issues from this repo with their merged fixes as reference solutions.', '10–20 geschlossene Issues dieses Repos mit ihren gemergten Lösungen als Referenz sammeln.'),
       l('Script a run: reset to the parent commit, give the agent the issue, run tests, and compare its patch with the reference on generated inputs.', 'Einen Lauf skripten: auf den Eltern-Commit zurücksetzen, dem Agenten das Issue geben, Tests ausführen und seinen Patch auf erzeugten Eingaben mit der Referenz vergleichen.'),
@@ -170,7 +170,7 @@ Repeat with the same budget; keep individual results.` }],
 
 For each finding: file:line, triggering input, expected/actual
 behaviour, severity and suggested verification command.
-List assumptions you could not verify. Do not invent findings.` }],
+List assumptions you could not verify. Do not invent findings.`, focus: [{ line: 4, note: l('Look for the one atomic step; check-then-write is where the double reservation lives.', 'Suche den einen atomaren Schritt; Prüfen-dann-Schreiben ist, wo die Doppelreservierung sitzt.') }, { line: 6, note: l('Changed tests, compiler settings and CI are reviewed on their own, since weakening them hides bugs.', 'Geänderte Tests, Compiler-Einstellungen und CI werden separat geprüft, denn ihre Abschwächung versteckt Bugs.') }, { line: [8,9], note: l('A finding with location, input and a command to check it can be acted on or refuted.', 'Ein Befund mit Ort, Eingabe und Prüfbefehl lässt sich umsetzen oder widerlegen.') }, { line: 10, note: l('Stating unverified assumptions and not inventing findings keeps the review honest.', 'Unbestätigte Annahmen zu nennen und keine Befunde zu erfinden hält das Review ehrlich.') }] }],
     steps: [
       l('Keep changes small (aim for under ~400 changed lines) and require one human approval.', 'Änderungen klein halten (Ziel unter ~400 geänderten Zeilen) und eine menschliche Freigabe verlangen.'),
       l('Post tool findings (lint, coverage of the diff, mutation survivors) into the PR automatically, so reviewers see them.', 'Werkzeugfunde (Lint, Diff-Abdeckung, überlebende Mutanten) automatisch in den PR posten, damit Reviewer sie sehen.'),
@@ -216,7 +216,7 @@ List assumptions you could not verify. Do not invent findings.` }],
 # Review the scan scope before running it.
 docker run --rm -t ghcr.io/zaproxy/zaproxy:stable   zap-baseline.py -t http://host.docker.internal:3000
 # Exit code 1: FAIL finding; 2: WARN finding; 3: other failure.
-# Triage the report. Do not turn every warning into an ignore.` }],
+# Triage the report. Do not turn every warning into an ignore.`, focus: [{ line: 2, note: l('A scan against the wrong target is unauthorised or useless: confirm the scope first.', 'Ein Scan gegen das falsche Ziel ist unerlaubt oder nutzlos: Kläre zuerst den Geltungsbereich.') }, { line: 3, note: l('The baseline scan is passive and safe against a local copy, so it is a first look, not a full test.', 'Der Baseline-Scan ist passiv und gegen eine lokale Kopie sicher, also ein erster Blick, kein vollständiger Test.') }, { line: 4, note: l('The exit codes let CI tell failure, warning and tool error apart.', 'Die Exit-Codes lassen die CI Fehler, Warnung und Tool-Fehler unterscheiden.') }, { line: 5, note: l('Triage each finding; ignoring every warning bulk-hides the real ones.', 'Bewerte jeden Befund einzeln; alle Warnungen zu ignorieren versteckt die echten.') }] }],
     steps: [
       l('Define scope and rules of engagement in writing; test against staging.', 'Umfang und Spielregeln schriftlich festlegen; gegen Staging testen.'), l('For each finding, write a regression test or scanner rule before fixing.', 'Für jeden Fund vor der Behebung einen Regressionstest oder eine Scannerregel schreiben.'),
       l('Retest after the fixes, and re-run the new regression checks to confirm each finding is closed.', 'Nach den Korrekturen erneut testen und die neuen Regressionsprüfungen ausführen, um zu bestätigen, dass jeder Fund geschlossen ist.'),
@@ -268,7 +268,7 @@ Then ask: "What would you expect if someone else reserved Rex?"
 
 # Feed back to the team
 Observation -> affected step -> proposed change -> next session.
-Separate observed behaviour from your interpretation.` }],
+Separate observed behaviour from your interpretation.`, focus: [{ line: [2,3], note: l('The task states a goal, not clicks, so you see whether people find the way themselves.', 'Die Aufgabe nennt ein Ziel, keine Klicks, sodass du siehst, ob Menschen den Weg selbst finden.') }, { line: 7, note: l('Do not help: a hint hides exactly the confusion you came to observe.', 'Hilf nicht: Ein Hinweis verdeckt genau die Verwirrung, die du beobachten willst.') }, { line: 8, note: l('This probes whether the participant understands the conflict case, not just the happy path.', 'Das prüft, ob die Person den Konfliktfall versteht, nicht nur den Normalfall.') }, { line: 12, note: l('Keep what you saw apart from what you think it means, or the team argues about opinions.', 'Trenne, was du gesehen hast, von dem, was du darin vermutest, sonst streitet das Team über Meinungen.') }] }],
     steps: [l('Write 3 realistic tasks ("reserve a dog under 3 years for next weekend").', '3 realistische Aufgaben schreiben („reserviere einen Hund unter 3 Jahren für nächstes Wochenende“).'), l('Watch 5 people do them, thinking aloud, without helping; note every hesitation.', '5 Personen dabei zusehen, laut denkend, ohne zu helfen; jedes Zögern notieren.'), l('Fix the top 3 problems and test again.', 'Die 3 größten Probleme beheben und erneut testen.')],
     done: l('Five sessions are documented, and the top problems have fixes or tickets.', 'Fünf Sitzungen sind dokumentiert, und die größten Probleme haben Korrekturen oder Tickets.'),
     think: [
@@ -317,7 +317,7 @@ Dashboard: <reservation success rate, latency, release version>
 5. Verify recovery with user-visible signals, not just healthy pods.
 
 After recovery: timeline, contributing conditions, one regression
-check, one alert/runbook improvement and an owner for each.` }],
+check, one alert/runbook improvement and an owner for each.`, focus: [{ line: 2, note: l('Every alert needs an owner and an escalation path, or nobody acts at 3 a.m.', 'Jeder Alarm braucht einen Verantwortlichen und einen Eskalationsweg, sonst handelt nachts um drei niemand.') }, { line: 6, note: l('Expected 409 conflicts are not outages; mixing them with 5xx sends responders after noise.', 'Erwartete 409-Konflikte sind keine Ausfälle; sie mit 5xx zu mischen schickt Einsatzkräfte dem Rauschen nach.') }, { line: 8, note: l('The rollback condition is decided in advance, so nobody debates it during the incident.', 'Die Rollback-Bedingung steht vorab fest, sodass im Vorfall niemand darüber diskutiert.') }, { line: 9, note: l('Healthy pods are not proof; success is what users can do again.', 'Gesunde Pods sind kein Beweis; Erfolg ist, was Nutzer wieder tun können.') }] }],
     steps: [l('After every incident, write a blameless postmortem within a week.', 'Nach jedem Vorfall binnen einer Woche ein schuldfreies Postmortem schreiben.'), l('For each, add at least one check higher in the funnel (test, lint rule, alert, contract) that would have caught it earlier.', 'Für jeden mindestens eine Prüfung weiter oben im Trichter ergänzen (Test, Lint-Regel, Alarm, Vertrag), die ihn früher gefangen hätte.'), l('Review alert noise monthly and delete alerts nobody acts on.', 'Monatlich das Alarmrauschen prüfen und Alarme löschen, auf die niemand reagiert.')],
     done: l('Every incident has a postmortem with at least one upstream check added.', 'Jeder Vorfall hat ein Postmortem mit mindestens einer ergänzten Prüfung weiter oben.'),
     think: [

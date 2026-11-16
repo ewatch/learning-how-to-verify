@@ -35,7 +35,12 @@ export const staticChecks: Practice[] = [
       { lang: 'js', file: 'reserve.ts', code: `// TypeScript 6: npx tsc --ignoreConfig --target es2022 --strict --noUncheckedIndexedAccess --noEmit reserve.ts
 // This version intentionally fails: 'pet' is possibly 'undefined'.
 // Add the guard from the simulator, then rerun the same command.
-${TYPE_REVISIONS[0].code}` },
+${TYPE_REVISIONS[0].code}`,
+      focus: [
+        { line: 4, note: l("`Pet` allows `reservedBy` to be `null`, so the compiler knows exactly where a missing owner must be handled.", "`Pet` erlaubt `null` bei `reservedBy`, der Compiler weiß also genau, wo ein fehlender Besitzer behandelt werden muss.") },
+        { line: 9, note: l("With `noUncheckedIndexedAccess`, a lookup by id may return `undefined`: the classic crash on an unknown pet.", "Mit `noUncheckedIndexedAccess` kann der Zugriff per id `undefined` liefern: der klassische Absturz bei einem unbekannten Tier.") },
+        { line: 10, note: l("This dereference is what fails to compile until you add the guard that returns `missing`.", "Dieser Zugriff scheitert beim Kompilieren, bis du den Guard ergänzt, der `missing` zurückgibt.") },
+      ] },
       { lang: 'js', file: 'tsconfig.json', code: `{
   "compilerOptions": {
     "strict": true,
@@ -43,11 +48,21 @@ ${TYPE_REVISIONS[0].code}` },
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true
   }
-}` },
+}`,
+      focus: [
+        { line: 3, note: l("`strict` turns on the whole family of null and implicit-any checks in one switch.", "`strict` aktiviert die ganze Familie der null- und implicit-any-Prüfungen mit einem Schalter.") },
+        { line: 4, note: l("Array and map lookups become `T | undefined`, which catches off-by-one and unknown-key bugs.", "Zugriffe auf Arrays und Maps werden zu `T | undefined`; das fängt Off-by-one- und Unknown-Key-Fehler.") },
+        { line: 5, note: l("Distinguishes “missing” from “explicitly undefined”, a trap for partially filled reservations.", "Unterscheidet „fehlt“ von „explizit undefined“, eine Falle bei teilweise gefüllten Reservierungen.") },
+      ] },
       { lang: 'python', file: 'pyproject.toml', code: `[tool.mypy]
 strict = true
 warn_unreachable = true
-disallow_any_explicit = true` },
+disallow_any_explicit = true`,
+      focus: [
+        { line: 2, note: l("`strict = true` makes untyped functions and implicit `Optional` errors instead of silent gaps.", "`strict = true` macht untypisierte Funktionen und implizites `Optional` zu Fehlern statt zu stillen Lücken.") },
+        { line: 3, note: l("Flags code that can never run, often a sign of a wrongly assumed state.", "Meldet Code, der nie läuft, oft ein Zeichen für einen falsch angenommenen Zustand.") },
+        { line: 4, note: l("Bans explicit `Any`, the escape hatch an agent reaches for to silence the checker.", "Verbietet explizites `Any`, den Notausgang, mit dem ein Agent den Checker zum Schweigen bringt.") },
+      ] },
       { lang: 'php', file: 'Reservation.php', code: `<?php declare(strict_types=1);
 // composer require --dev phpstan/phpstan
 // vendor/bin/phpstan analyse --level=max src
@@ -63,7 +78,13 @@ function owner(Reservation $reservation): string
 {
     return $reservation->person;
 }
-// owner(null); // PHPStan reports: Reservation expected, null given.` },
+// owner(null); // PHPStan reports: Reservation expected, null given.`,
+      focus: [
+        { line: 1, note: l("`strict_types` stops PHP from silently coercing a string to an int at a call.", "`strict_types` verhindert, dass PHP beim Aufruf stillschweigend einen String in einen Int umwandelt.") },
+        { line: 4, note: l("`final readonly` means a reservation cannot be changed after creation.", "`final readonly` heißt: Eine Reservierung lässt sich nach dem Erzeugen nicht mehr ändern.") },
+        { line: 12, note: l("The parameter type promises a real `Reservation`; this is what the analyser holds callers to.", "Der Parametertyp verspricht eine echte `Reservation`; daran misst der Analyzer die Aufrufer.") },
+        { line: 16, note: l("The commented-out call shows the bug class: `null` where a value was assumed.", "Der auskommentierte Aufruf zeigt die Fehlerklasse: `null`, wo ein Wert angenommen wurde.") },
+      ] },
     ],
     steps: [
       l('Enable the strictest compiler/type-checker settings listed below and run the check.', 'Die strengsten Compiler-/Typprüfer-Einstellungen unten aktivieren und die Prüfung laufen lassen.'),
@@ -126,11 +147,22 @@ export default tseslint.config(...tseslint.configs.strictTypeChecked, {
       message: 'Inject a random source; domain code must be deterministic.',
     }],
   },
-});` },
+});`,
+      focus: [
+        { line: 3, note: l("Type-aware rules need the compiler’s type information, which is what makes them catch real bugs.", "Typbewusste Regeln brauchen die Typinformation des Compilers, erst dadurch fangen sie echte Fehler.") },
+        { line: 6, note: l("A forgotten `await` on a reservation call means the pet looks reserved while the write is still pending.", "Ein vergessenes `await` am Reservierungsaufruf lässt das Tier reserviert wirken, während das Schreiben noch läuft.") },
+        { line: 7, note: l("Forbids `any`, so an agent cannot dodge the type checks by loosening a type.", "Verbietet `any`, damit ein Agent die Typprüfung nicht durch einen aufgeweichten Typ umgeht.") },
+        { line: [8, 11], note: l("A project rule in code: random values in domain logic make tests flaky, so inject them instead.", "Eine Projektregel als Code: Zufall in der Fachlogik macht Tests flaky, also injizieren.") },
+      ] },
       { lang: 'python', file: 'pyproject.toml', code: `[tool.ruff.lint]
 select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
-"random".msg = "Inject a random source; domain code must be deterministic."` },
+"random".msg = "Inject a random source; domain code must be deterministic."`,
+      focus: [
+        { line: 2, note: l("Selects bug-finding rule sets (`F`, `B`, `S`), not just style, so the output points at real defects.", "Wählt fehlerfindende Regelsätze (`F`, `B`, `S`), nicht nur Stil, damit die Ausgabe auf echte Defekte zeigt.") },
+        { line: 3, note: l("A banned-API rule is how you enforce a house convention that no generic linter knows.", "Eine Banned-API-Regel erzwingt eine Hauskonvention, die kein generischer Linter kennt.") },
+        { line: 4, note: l("The message tells the agent what to do instead, so the error is a fix hint rather than a dead end.", "Die Meldung sagt dem Agenten, was er stattdessen tun soll: ein Fix-Hinweis statt einer Sackgasse.") },
+      ] },
     ],
     steps: [
       l('Install the linter and start from its recommended strict preset.', 'Den Linter installieren und mit dem empfohlenen strengen Preset beginnen.'),
@@ -188,7 +220,13 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     message: The server must recompute the price; never trust req.body.price.
     severity: ERROR
     languages: [typescript, javascript]
-    pattern: $ORDER.priceCents = $REQ.body.priceCents` },
+    pattern: $ORDER.priceCents = $REQ.body.priceCents`,
+      focus: [
+        { line: 2, note: l("The rule has a stable id, so a suppression is explicit and reviewable.", "Die Regel hat eine stabile id, damit ist eine Unterdrückung explizit und reviewbar.") },
+        { line: 3, note: l("The message states the invariant and the fix; this is what the developer or agent reads on failure.", "Die Meldung nennt Invariante und Lösung; das liest die Entwicklerin oder der Agent beim Fehlschlag.") },
+        { line: 4, note: l("`ERROR` makes it block the build instead of becoming a warning nobody reads.", "`ERROR` lässt den Build scheitern, statt zur Warnung zu werden, die niemand liest.") },
+        { line: 6, note: l("The pattern matches the dangerous shape (client price assigned to the order) whatever the variable names.", "Das Pattern trifft die gefährliche Form (Client-Preis an die Bestellung zugewiesen), egal wie die Variablen heißen.") },
+      ] },
     ],
     steps: [
       l('Run the analyser on the whole repo and record a baseline of existing findings.', 'Den Analysator auf dem ganzen Repo laufen lassen und eine Baseline der bestehenden Funde festhalten.'),
@@ -248,7 +286,11 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
-      - id: gitleaks` },
+      - id: gitleaks`,
+      focus: [
+        { line: 3, note: l("A pinned `rev` keeps the scanner reproducible; a floating version could change results overnight.", "Eine festgenagelte `rev` hält den Scanner reproduzierbar; eine schwebende Version könnte über Nacht die Ergebnisse ändern.") },
+        { line: 5, note: l("Running as a pre-commit hook stops a leaked key before it enters git history, where removal is painful.", "Als Pre-commit-Hook stoppt der Scan einen geleakten Schlüssel, bevor er in der Git-History landet, wo das Entfernen mühsam ist.") },
+      ] },
     ],
     steps: [
       l('Add secret scanning as a pre-commit hook and in CI over the full git history.', 'Secret-Scans als Pre-Commit-Hook und in der CI über die gesamte Git-Historie einrichten.'),
@@ -315,7 +357,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - run: npm run ci   # the same command developers and agents run locally` },
+      - run: npm run ci   # the same command developers and agents run locally`,
+      focus: [
+        { line: 2, note: l("Runs on pull requests, so every agent change is checked before a human sees it.", "Läuft bei Pull Requests, damit jede Agent-Änderung geprüft wird, bevor ein Mensch sie sieht.") },
+        { line: 6, note: l("A timeout stops a hung test from blocking the pipeline, or silently burning CI minutes.", "Ein Timeout verhindert, dass ein hängender Test die Pipeline blockiert oder still CI-Minuten verbrennt.") },
+        { line: 8, note: l("Actions pinned to a version keep the pipeline reproducible and limit supply-chain surprises.", "An Versionen gebundene Actions halten die Pipeline reproduzierbar und begrenzen Überraschungen in der Lieferkette.") },
+        { line: 12, note: l("One command shared by humans, agents and CI means “green locally” and “green in CI” cannot drift apart.", "Ein gemeinsamer Befehl für Menschen, Agenten und CI sorgt dafür, dass „lokal grün“ und „in CI grün“ nicht auseinanderlaufen.") },
+      ] },
     ],
     steps: [
       l('Create one script (`ci`) that runs lint, type check, tests and build in order, and document it as the command to run before every PR.', 'Ein Skript (`ci`) anlegen, das Lint, Typprüfung, Tests und Build nacheinander ausführt, und es als Befehl vor jedem PR dokumentieren.'),
@@ -380,7 +428,12 @@ describe('reserve', () => {
     reserve(pets, 'rex', 'anna');
     expect(reserve(pets, 'rex', 'ben')).toEqual({ ok: false, reason: 'taken' });
   });
-});` },
+});`,
+      focus: [
+        { line: 1, note: l("The test is written and approved before the implementation, so it cannot be bent to fit the code.", "Der Test entsteht und wird freigegeben vor der Implementierung, er lässt sich also nicht dem Code anpassen.") },
+        { line: [3, 6], note: l("The happy path pins what a successful reservation returns.", "Der Happy Path legt fest, was eine erfolgreiche Reservierung zurückgibt.") },
+        { line: [7, 11], note: l("The invariant itself: a second reservation must fail with `taken`, the case an agent most easily gets wrong.", "Die Invariante selbst: Die zweite Reservierung muss mit `taken` scheitern, der Fall, den ein Agent am leichtesten falsch löst.") },
+      ] },
       { lang: 'php', file: 'ReservationTest.php', code: `<?php declare(strict_types=1);
 // Write this test first. Implement PetStore only after seeing it fail.
 use PHPUnit\\Framework\\TestCase;
@@ -394,7 +447,12 @@ final class ReservationTest extends TestCase
         $this->expectException(PetAlreadyReserved::class);
         $store->reserve('rex', 'ben');
     }
-}` },
+}`,
+      focus: [
+        { line: 2, note: l("The instruction to see the test fail first proves the test can fail at all.", "Die Anweisung, den Test zuerst scheitern zu sehen, beweist, dass er überhaupt scheitern kann.") },
+        { line: 10, note: l("The first reservation is the setup; the test only means something if it succeeds.", "Die erste Reservierung ist das Setup; der Test taugt nur, wenn sie gelingt.") },
+        { line: [11, 12], note: l("The second reservation must raise, so the “never twice” rule is checked, not assumed.", "Die zweite Reservierung muss eine Exception werfen, damit die Regel „nie zweimal“ geprüft statt angenommen wird.") },
+      ] },
     ],
     steps: [
       l('Write the acceptance tests or the spec for the next change and get them approved before any implementation.', 'Die Akzeptanztests oder die Spezifikation für die nächste Änderung schreiben und vor jeder Implementierung freigeben lassen.'),
@@ -447,12 +505,22 @@ final class ReservationTest extends TestCase
       { lang: 'any', file: '.github/CODEOWNERS', code: `# Changes to tests and CI need a human owner's approval.
 /test/          @your-team/maintainers
 /.github/       @your-team/maintainers
-*.test.ts       @your-team/maintainers` },
+*.test.ts       @your-team/maintainers`,
+      focus: [
+        { line: 1, note: l("The rule is about tests and CI: the files that define “done” need a human owner.", "Die Regel gilt für Tests und CI: Die Dateien, die „fertig“ definieren, brauchen eine menschliche Verantwortung.") },
+        { line: 3, note: l("CI config is covered too, since an agent could otherwise just remove the failing check.", "Auch die CI-Konfiguration ist erfasst, sonst könnte ein Agent einfach die fehlschlagende Prüfung entfernen.") },
+        { line: 4, note: l("The glob catches tests wherever they live, not only in one folder.", "Das Glob erfasst Tests, wo auch immer sie liegen, nicht nur in einem Ordner.") },
+      ] },
       { lang: 'js', file: 'dangerfile.ts', code: `import { danger, fail } from 'danger';
 const diff = await danger.git.diffForFile('test/reserve.test.ts');
 if (diff && /\\b(it|test|describe)\\.(skip|only)\\b/.test(diff.added)) {
   fail('Tests were skipped or focused in this change.');
-}` },
+}`,
+      focus: [
+        { line: 2, note: l("The check reads the actual diff of the test file, so it sees what changed rather than what was claimed.", "Die Prüfung liest den echten Diff der Testdatei, sie sieht also, was sich geändert hat, nicht was behauptet wird.") },
+        { line: 3, note: l("`skip` and `only` are the cheapest way to turn a test green without fixing anything.", "`skip` und `only` sind der billigste Weg, einen Test grün zu bekommen, ohne etwas zu reparieren.") },
+        { line: 4, note: l("`fail` blocks the merge, so this is a gate, not a suggestion.", "`fail` blockiert den Merge, das ist also eine Schranke und kein Vorschlag.") },
+      ] },
     ],
     steps: [
       l('Protect test directories and CI config with CODEOWNERS or branch rules so changes need human approval.', 'Testverzeichnisse und CI-Konfiguration per CODEOWNERS oder Branch-Regeln schützen, sodass Änderungen menschliche Freigabe brauchen.'),

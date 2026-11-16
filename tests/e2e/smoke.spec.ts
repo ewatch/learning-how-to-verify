@@ -76,3 +76,15 @@ test('llms.txt and Markdown twins are served', async ({ request }) => {
   const md = await request.get('/de/practices/unit-tests/index.md');
   expect(await md.text()).toContain('# Unit-Tests');
 });
+
+test('code walkthrough opens, advances and closes with Escape', async ({ page }) => {
+  await page.goto('/en/practices/unit-tests/');
+  const block = page.locator('[data-fc]:visible').first();
+  await expect(block).toBeVisible();
+  await block.locator('[data-fc-start]').click();
+  await expect(block.locator('[data-fc-count]')).toHaveText('1 / ' + (await block.getAttribute('data-total')));
+  await block.locator('[data-fc-next]').click();
+  await expect(block.locator('[data-fc-count]')).toContainText('2 /');
+  await page.keyboard.press('Escape');
+  await expect(block.locator('[data-fc-guide]')).toBeHidden();
+});

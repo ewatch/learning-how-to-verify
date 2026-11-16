@@ -36,6 +36,23 @@ describe('practice data', () => {
         [...p.worth, ...p.limits, ...p.steps].forEach((x, i) => filled(x, `${p.id}[${i}]`));
         p.think.forEach((t, i) => { filled(t.q, `${p.id}.think${i}.q`); filled(t.a, `${p.id}.think${i}.a`); });
       });
+      it('has valid focus annotations on snippets', () => {
+        for (const [si, s] of (p.snippets ?? []).entries()) {
+          if (!s.focus) continue;
+          const n = s.code.split('\n').length;
+          const where = `${p.id} snippet ${si}`;
+          expect(s.focus.length, where).toBeGreaterThan(0);
+          expect(s.focus.length, `${where} max 5`).toBeLessThanOrEqual(5);
+          for (const f of s.focus) {
+            const [a, b] = Array.isArray(f.line) ? f.line : [f.line, f.line];
+            expect(Number.isInteger(a) && Number.isInteger(b), `${where} integer`).toBe(true);
+            expect(a, `${where} line ${a}`).toBeGreaterThanOrEqual(1);
+            expect(b, `${where} range ${a}-${b}`).toBeGreaterThanOrEqual(a);
+            expect(b, `${where} line ${b} <= ${n}`).toBeLessThanOrEqual(n);
+            filled(f.note, `${where} focus note`);
+          }
+        }
+      });
       it('references only known practices, tools, sources and guides', () => {
         for (const r of p.related) expect(PRACTICE_BY_ID.has(r), `related ${r}`).toBe(true);
         for (const ids of Object.values(p.tools)) for (const t of ids!) expect(TOOL_BY_ID.has(t), `tool ${t}`).toBe(true);

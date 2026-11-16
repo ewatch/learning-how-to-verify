@@ -44,7 +44,12 @@ describe('adoptionFee', () => {
   it('charges the base fee', () => expect(adoptionFee({ species: 'dog', ageYears: 3 })).toBe(12000));
   it('halves the fee for senior pets (8+ years)', () => expect(adoptionFee({ species: 'dog', ageYears: 8 })).toBe(6000));
   it('rejects a negative age', () => expect(() => adoptionFee({ species: 'dog', ageYears: -1 })).toThrow());
-});` },
+});`,
+      focus: [
+        { line: 5, note: l("The base case anchors the tests: a named expected value (12000) instead of recomputing the formula.", "Der Basisfall verankert die Tests: ein konkreter Erwartungswert (12000) statt die Formel nachzurechnen.") },
+        { line: 6, note: l("Age 8 is exactly the boundary; off-by-one errors in `>` versus `>=` hide here.", "Alter 8 ist genau die Grenze; Off-by-one-Fehler bei `>` gegen `>=` verstecken sich hier.") },
+        { line: 7, note: l("The test says what must not work; invalid input should fail loudly, not produce a price.", "Der Test sagt, was nicht funktionieren darf; ungültige Eingabe soll laut scheitern, nicht einen Preis liefern.") },
+      ] },
       { lang: 'python', file: 'test_fee.py', code: `import pytest
 from fee import adoption_fee
 
@@ -56,7 +61,12 @@ def test_senior_pets_pay_half():
 
 def test_negative_age_is_rejected():
     with pytest.raises(ValueError):
-        adoption_fee(species="dog", age_years=-1)` },
+        adoption_fee(species="dog", age_years=-1)`,
+      focus: [
+        { line: 5, note: l("The expected value is a literal, so a bug in the formula cannot also hide in the test.", "Der Erwartungswert ist ein Literal, ein Fehler in der Formel kann sich also nicht im Test mitverstecken.") },
+        { line: 8, note: l("The senior rule starts at 8, so this test pins the discount, not just any number.", "Die Senior-Regel beginnt bei 8, dieser Test hält also genau den Rabatt fest, nicht irgendeine Zahl.") },
+        { line: [11, 12], note: l("`pytest.raises` makes the rejection part of the contract and fails if no error comes.", "`pytest.raises` macht die Ablehnung zum Teil des Vertrags und scheitert, wenn kein Fehler kommt.") },
+      ] },
       { lang: 'php', file: 'FeeTest.php', code: `<?php declare(strict_types=1);
 // composer require --dev phpunit/phpunit
 // vendor/bin/phpunit tests/FeeTest.php --bootstrap vendor/autoload.php
@@ -75,7 +85,12 @@ final class FeeTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         adoptionFee('dog', -1);
     }
-}` },
+}`,
+      focus: [
+        { line: 1, note: l("`strict_types` stops PHP from coercing a string age into an int, so the boundary test sees real types.", "`strict_types` verhindert, dass PHP ein Alter als String still in einen Int umwandelt, der Grenztest sieht also echte Typen.") },
+        { line: [10, 11], note: l("7 and 8 sit on both sides of the boundary, the place off-by-one bugs live.", "7 und 8 liegen auf beiden Seiten der Grenze, dort wohnen Off-by-one-Fehler.") },
+        { line: [16, 17], note: l("Invalid input must throw, so the test fails if a negative age quietly yields a price.", "Ungültige Eingabe muss eine Exception werfen, der Test scheitert also, wenn ein negatives Alter still einen Preis liefert.") },
+      ] },
     ],
     steps: [
       l('Pick one module with business logic and list its behaviours, including every error case.', 'Ein Modul mit Fachlogik wählen und seine Verhaltensweisen auflisten, inklusive jedes Fehlerfalls.'),
@@ -139,7 +154,12 @@ test('a second person cannot take a reserved pet', () => {
   expect(store.reserve('anna')).toBe('reserved');
   expect(store.reserve('ben')).toBe('taken');
   expect(store.owner()).toBe('anna');
-});` }],
+});`,
+      focus: [
+        { line: 2, note: l("Each call gets its own `petstore()`, so tests cannot leak state into each other.", "Jeder Aufruf bekommt sein eigenes `petstore()`, damit Tests keinen Zustand teilen.") },
+        { line: [5, 9], note: l("The rule under test: a taken pet is never overwritten, so the second person gets `taken`.", "Die Regel unter Test: Ein vergebenes Tier wird nie überschrieben, die zweite Person bekommt `taken`.") },
+        { line: 17, note: l("Checking the owner afterwards proves the failed call did not change state, not just its return value.", "Der Blick auf den Besitzer danach beweist, dass der fehlgeschlagene Aufruf nichts verändert hat, nicht nur seinen Rückgabewert.") },
+      ] }],
     steps: [
       l('For one feature, list its requirements as given/when/then sentences.', 'Für eine Funktion die Anforderungen als Gegeben/Wenn/Dann-Sätze auflisten.'),
       l('Write one test per sentence that uses only the public interface (API, exported function, CLI).', 'Pro Satz einen Test schreiben, der nur die öffentliche Schnittstelle nutzt (API, exportierte Funktion, CLI).'),
@@ -196,7 +216,12 @@ test('sends the chosen pet, not a hard-coded one', () => {
   const button = reserveButton('rex', reserve);
   button.click();
   expect(reserve).toHaveBeenCalledExactlyOnceWith('rex');
-});` }],
+});`,
+      focus: [
+        { line: 1, note: l("`jsdom` gives the component a real DOM without a browser, which keeps the test fast.", "`jsdom` gibt der Komponente ein echtes DOM ohne Browser, das hält den Test schnell.") },
+        { line: 6, note: l("The click handler closes over `petId`; the classic bug is a hard-coded or stale id here.", "Der Click-Handler fängt `petId` ein; der klassische Fehler ist hier eine fest verdrahtete oder veraltete id.") },
+        { line: 13, note: l("Asserting “exactly once with `rex`” catches both the wrong pet and a double submit.", "„Genau einmal mit `rex`“ fängt sowohl das falsche Tier als auch ein doppeltes Absenden.") },
+      ] }],
     steps: [
       l('Choose a component and fake only what crosses its boundary (HTTP, database, clock).', 'Eine Komponente wählen und nur fälschen, was ihre Grenze überquert (HTTP, Datenbank, Uhr).'), l('Test its behaviour through its own interface, e.g. render the UI component and interact by role.', 'Ihr Verhalten über ihre eigene Schnittstelle testen, z. B. die UI-Komponente rendern und über Rollen interagieren.'),
       l('Run it in CI and add one test where a fake returns an error, to check the component\'s failure handling.', 'In der CI ausführen und einen Test ergänzen, in dem ein Fake einen Fehler liefert, um die Fehlerbehandlung der Komponente zu prüfen.'),
@@ -258,7 +283,13 @@ test('competing reservations leave exactly one owner', async () => {
     await pool.end();
     await db.stop();
   }
-}, 60_000);` }],
+}, 60_000);`,
+      focus: [
+        { line: 5, note: l("A real Postgres in a container, so the database’s actual locking and constraints are tested, not a mock.", "Ein echtes Postgres im Container, damit Locking und Constraints der Datenbank getestet werden, nicht ein Mock.") },
+        { line: 11, note: l("`AND owner IS NULL` makes the update atomic: the check and the write happen in one statement.", "`AND owner IS NULL` macht das Update atomar: Prüfung und Schreiben passieren in einem Statement.") },
+        { line: 13, note: l("Both reservations run concurrently; sequential calls would never expose a race condition.", "Beide Reservierungen laufen gleichzeitig; sequenzielle Aufrufe würden eine Race Condition nie zeigen.") },
+        { line: 14, note: l("Exactly one row updated and one not: the “never twice” rule as an assertion.", "Genau eine Zeile geändert, eine nicht: die Regel „nie zweimal“ als Assertion.") },
+      ] }],
     steps: [
       l('Start the real dependency (e.g. Postgres) in a container per test run.', 'Die echte Abhängigkeit (z. B. Postgres) pro Testlauf in einem Container starten.'), l('Test the boundary code (repository, client) against it, including a concurrent case: two reservations of the same pet at once.', 'Den Grenzcode (Repository, Client) dagegen testen, inklusive eines nebenläufigen Falls: zwei gleichzeitige Reservierungen desselben Tiers.'),
       l('Reset the database state per test (transaction rollback or fresh schema), so tests do not depend on each other.', 'Den Datenbankzustand pro Test zurücksetzen (Transaktions-Rollback oder frisches Schema), damit Tests nicht voneinander abhängen.'),
@@ -306,7 +337,12 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
   await expect(page.getByText('Rex is reserved for you')).toBeVisible();
   await page.goto('/pets');
   await expect(page.getByRole('button', { name: 'Reserve Rex' })).toHaveCount(0);
-});` }],
+});`,
+      focus: [
+        { line: 5, note: l("Selecting by role and accessible name tests what a user sees and survives markup changes.", "Die Auswahl per Rolle und Name testet, was Nutzer sehen, und übersteht Markup-Änderungen.") },
+        { line: 8, note: l("Waits for visible feedback with auto-retry, avoiding sleeps that make tests flaky.", "Wartet mit Auto-Retry auf sichtbares Feedback und vermeidet Sleeps, die Tests flaky machen.") },
+        { line: [9, 10], note: l("Reloading and checking the list proves the reservation was persisted, not just shown.", "Neu laden und die Liste prüfen beweist, dass die Reservierung gespeichert und nicht nur angezeigt wurde.") },
+      ] }],
     steps: [l('Pick the 3–5 user journeys that must never break.', 'Die 3–5 Nutzerabläufe wählen, die nie brechen dürfen.'), l('Write one end-to-end test per journey using role/label selectors, against a freshly seeded environment.', 'Pro Ablauf einen End-to-End-Test mit Rollen-/Label-Selektoren schreiben, gegen eine frisch befüllte Umgebung.'), l('Record traces on failure and run the suite in CI.', 'Bei Fehlschlag Traces aufzeichnen und die Suite in der CI ausführen.')],
     done: l('The critical journeys pass end-to-end in CI, and a deliberately broken route makes one fail with a trace.', 'Die kritischen Abläufe laufen End-to-End in der CI, und eine absichtlich kaputte Route lässt einen mit Trace scheitern.'),
     think: [
@@ -347,7 +383,13 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     And Anna has reserved Rex
     When Ben tries to reserve Rex
     Then Ben is told that Rex is already reserved
-    And Rex is still reserved for Anna` }],
+    And Rex is still reserved for Anna`,
+      focus: [
+        { line: 2, note: l("The title is a rule in business language; it is the sentence everyone agrees on.", "Der Titel ist eine Regel in Fachsprache; das ist der Satz, auf den sich alle einigen.") },
+        { line: [3, 4], note: l("Given sets up the state with no technical detail, so the scenario stays readable.", "Given beschreibt den Zustand ohne technische Details, so bleibt das Szenario lesbar.") },
+        { line: 6, note: l("The expected message is what the user is told, so the user-visible outcome is specified.", "Die erwartete Meldung ist das, was die Nutzerin erfährt, das sichtbare Ergebnis ist also festgelegt.") },
+        { line: 7, note: l("The final `And` checks nothing was lost: the first reservation must survive.", "Das abschließende `And` prüft, dass nichts verloren ging: Die erste Reservierung muss bestehen bleiben.") },
+      ] }],
     steps: [
       l('Write acceptance criteria for the next feature with the person who asked for it.', 'Akzeptanzkriterien für die nächste Funktion mit der Person schreiben, die sie wollte.'), l('Turn each criterion into an executable test before implementation and protect the files.', 'Jedes Kriterium vor der Implementierung in einen ausführbaren Test verwandeln und die Dateien schützen.'),
       l('Add the unhappy cases to the criteria (reserved pet, unknown id, expired voucher) and have the requester confirm them.', 'Die unglücklichen Fälle in die Kriterien aufnehmen (reserviertes Tier, unbekannte ID, abgelaufener Gutschein) und vom Auftraggeber bestätigen lassen.'),
@@ -396,7 +438,12 @@ test('regression: a rejected reservation preserves the first owner', () => {
   expect(pets.rex.reservedBy).toBe('anna');
   // Incident: an earlier implementation returned "taken"
   // after already overwriting reservedBy with "ben".
-});` }],
+});`,
+      focus: [
+        { line: 4, note: l("The test uses a fixed starting state, so the bug is reproduced the same way each run.", "Der Test nutzt einen festen Startzustand, der Fehler wird also in jedem Lauf gleich reproduziert.") },
+        { line: 6, note: l("The bug was a side effect: checking only the return value would have missed it.", "Der Fehler war ein Seiteneffekt: Nur den Rückgabewert zu prüfen, hätte ihn verpasst.") },
+        { line: [7, 8], note: l("The comment links the test to the incident, so nobody deletes it as “redundant”.", "Der Kommentar verknüpft den Test mit dem Vorfall, damit ihn niemand als „überflüssig“ löscht.") },
+      ] }],
     steps: [l('Reproduce the bug as a failing test and commit it.', 'Den Fehler als fehlschlagenden Test reproduzieren und committen.'), l('Fix the code until the test passes, without changing the test.', 'Den Code reparieren, bis der Test grün ist, ohne den Test zu ändern.'), l('Reference the issue in the test name.', 'Das Issue im Testnamen referenzieren.')],
     done: l('The test fails on the commit before the fix and passes after it.', 'Der Test scheitert auf dem Commit vor der Behebung und ist danach grün.'),
     think: [
@@ -434,7 +481,12 @@ test('regression: a rejected reservation preserves the first owner', () => {
     snippets: [{ lang: 'any', file: 'smoke.sh', code: `#!/usr/bin/env sh
 set -e
 curl -fsS "$BASE_URL/health"                 # service is up
-curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data` }],
+curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data`,
+      focus: [
+        { line: 2, note: l("`set -e` makes the first failing check abort the script, so the deploy gets a red result.", "`set -e` bricht beim ersten Fehler ab, damit der Deploy ein rotes Ergebnis bekommt.") },
+        { line: 3, note: l("A health check only proves the process is up, not that it works.", "Ein Health-Check beweist nur, dass der Prozess läuft, nicht dass er funktioniert.") },
+        { line: 4, note: l("A real read through the API with a content check catches a service that is up but empty.", "Ein echter Lesezugriff über die API mit Inhaltsprüfung fängt einen Dienst, der läuft, aber leer ist.") },
+      ] }],
     steps: [
       l('Write 3–5 checks: health endpoint, one read, one page load.', '3–5 Prüfungen schreiben: Health-Endpunkt, ein Lesezugriff, ein Seitenaufruf.'), l('Run them after every deploy and block further rollout on failure.', 'Nach jedem Deploy ausführen und den weiteren Rollout bei Fehlschlag stoppen.'),
       l('Make the check fail on a wrong version or missing config, not just on connection refused, and fix every false alarm at once.', 'Die Prüfung auch bei falscher Version oder fehlender Konfiguration scheitern lassen, nicht nur bei „connection refused“, und jeden Fehlalarm sofort beheben.'),
@@ -473,7 +525,11 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data` }],
     snippets: [{ lang: 'js', file: 'invoice.test.ts', code: `it('renders the adoption invoice exactly as before', () => {
   expect(renderInvoice(sampleAdoption)).toMatchSnapshot();
 });
-// Update only deliberately:  npx vitest -u   (and review the diff)` },
+// Update only deliberately:  npx vitest -u   (and review the diff)`,
+      focus: [
+        { line: 2, note: l("The snapshot pins the whole output, so any unintended change shows up as a diff.", "Der Snapshot hält die gesamte Ausgabe fest, jede unbeabsichtigte Änderung erscheint als Diff.") },
+        { line: 4, note: l("Updating is a deliberate act with a diff review; blind `-u` turns the test into a rubber stamp.", "Aktualisieren ist eine bewusste Handlung mit Diff-Review; blindes `-u` macht den Test zum Abnicker.") },
+      ] },
       { lang: 'php', file: 'InvoiceTest.php', code: `<?php declare(strict_types=1);
 // composer require --dev spatie/phpunit-snapshot-assertions
 use PHPUnit\\Framework\\TestCase;
@@ -490,7 +546,12 @@ final class InvoiceTest extends TestCase
     }
 }
 // Review newly created snapshots before committing them.
-// Update deliberately: vendor/bin/update-snapshots tests/InvoiceTest.php` },
+// Update deliberately: vendor/bin/update-snapshots tests/InvoiceTest.php`,
+      focus: [
+        { line: 8, note: l("The trait provides snapshot assertions, so output is compared against a stored file.", "Das Trait liefert Snapshot-Assertions, die Ausgabe wird mit einer gespeicherten Datei verglichen.") },
+        { line: 12, note: l("The input is fixed and small, so a changed snapshot means the code changed, not the data.", "Die Eingabe ist fest und klein, ein geänderter Snapshot heißt also: Der Code hat sich geändert, nicht die Daten.") },
+        { line: [16, 17], note: l("A new snapshot passes automatically, so review it before commit, or a wrong output becomes the baseline.", "Ein neuer Snapshot besteht automatisch, also vor dem Commit prüfen, sonst wird eine falsche Ausgabe zur Referenz.") },
+      ] },
     ],
     steps: [l('Before refactoring, write snapshot tests over a representative set of inputs for the code you will change.', 'Vor dem Refactoring Snapshot-Tests über eine repräsentative Menge Eingaben für den betroffenen Code schreiben.'), l('Refactor; the snapshots must stay unchanged.', 'Refaktorieren; die Snapshots müssen unverändert bleiben.'), l('If a snapshot must change, do it in a separate commit and explain why.', 'Muss sich ein Snapshot ändern, in einem eigenen Commit mit Begründung.')],
     done: l('Snapshot files are unchanged by the refactoring commit(s).', 'Die Snapshot-Dateien sind durch die Refactoring-Commits unverändert.'),
@@ -543,7 +604,12 @@ test('provider payload meets the consumer contract', () => {
   expect(ReservedPet.safeParse({
     petId: 'rex', status: 'reserved',
   }).success).toBe(false);
-});` }],
+});`,
+      focus: [
+        { line: 3, note: l("The contract states what the consumer needs: a non-empty owner for a reserved pet.", "Der Vertrag beschreibt, was der Consumer braucht: einen nicht leeren Besitzer bei einem reservierten Tier.") },
+        { line: 6, note: l("`min(1)` forbids an empty owner, the kind of drift between provider and consumer this catches.", "`min(1)` verbietet einen leeren Besitzer, genau die Art Abweichung zwischen Provider und Consumer, die das fängt.") },
+        { line: [12, 14], note: l("The negative case: a payload missing `owner` must be rejected, or the contract guards nothing.", "Der Negativfall: Ein Payload ohne `owner` muss abgelehnt werden, sonst schützt der Vertrag nichts.") },
+      ] }],
     steps: [
       l('Write the API contract (OpenAPI schema or consumer pacts) and commit it.', 'Den API-Vertrag (OpenAPI-Schema oder Consumer-Pacts) schreiben und committen.'), l('Verify the provider against the contract in its CI; verify consumers against it in theirs.', 'Den Anbieter in seiner CI gegen den Vertrag prüfen, die Konsumenten in ihrer.'),
       l('Publish the contract where both teams (or agents) can read it, and break the build on any incompatible change.', 'Den Contract dort veröffentlichen, wo beide Teams (oder Agenten) ihn lesen können, und den Build bei jeder inkompatiblen Änderung scheitern lassen.'),
@@ -587,7 +653,12 @@ test('pet list has no detectable accessibility violations', async ({ page }) => 
   const { violations } = await new AxeBuilder({ page }).analyze();
   expect(violations).toEqual([]);
   await expect(page).toHaveScreenshot('pets.png', { maxDiffPixelRatio: 0.01 });
-});` }],
+});`,
+      focus: [
+        { line: 2, note: l("axe finds missing labels and contrast problems that no unit test would notice.", "axe findet fehlende Labels und Kontrastprobleme, die kein Unit-Test bemerkt.") },
+        { line: 7, note: l("An empty violation list is the contract; any new violation fails the test.", "Eine leere Liste von Verstößen ist der Vertrag; jede neue Verletzung lässt den Test scheitern.") },
+        { line: 8, note: l("A screenshot with a small tolerance catches visual regressions; too strict a threshold makes it flaky.", "Ein Screenshot mit kleiner Toleranz fängt visuelle Regressionen; ein zu strenger Schwellwert macht ihn flaky.") },
+      ] }],
     steps: [l('Add an automated accessibility scan for the main pages to CI.', 'Einen automatischen Barrierefreiheits-Scan der Hauptseiten in die CI aufnehmen.'), l('Add screenshot comparisons for 3–5 key screens in a fixed browser container.', 'Screenshot-Vergleiche für 3–5 Schlüsselansichten in einem festen Browser-Container ergänzen.'), l('Check keyboard-only navigation of the main journey by hand once.', 'Die Tastaturbedienung des Hauptablaufs einmal von Hand prüfen.')],
     done: l('No axe violations on main pages; screenshot tests pass and fail on a deliberate layout break.', 'Keine axe-Verstöße auf den Hauptseiten; Screenshot-Tests sind grün und scheitern bei einem absichtlichen Layoutbruch.'),
     think: [

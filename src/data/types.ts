@@ -27,6 +27,14 @@ export interface Snippet {
   /** code shown as-is; comments in English (code is the lingua franca) */
   code: string;
   file?: string;
+  /** What to look at: 2–4 marked lines with a short note each, in reading order. */
+  focus?: Focus[];
+}
+
+/** A highlighted line (1-based) or inclusive line range inside a snippet, with a note. */
+export interface Focus {
+  line: number | [number, number];
+  note: L;
 }
 
 export interface ThinkFirst {

@@ -52,12 +52,12 @@ ClientCheck(b) == /\\ pc[b] = "shopping"
 
 \\* Invariant: no pet ever belongs to two buyers.
 NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
-\\* TLC finds a 7-step counterexample when the server does not re-check.` },
+\\* TLC finds a 7-step counterexample when the server does not re-check.`, focus: [{ line: [2,3], note: l('Check and order are two separate steps: the gap between them is where a second buyer slips in.', 'Prüfen und Bestellen sind zwei getrennte Schritte: In der Lücke dazwischen schlüpft ein zweiter Käufer durch.') }, { line: 7, note: l('The invariant states what must never happen; the model checker tries to break it.', 'Die Invariante nennt, was nie passieren darf; der Model Checker versucht, sie zu brechen.') }, { line: 8, note: l('The counterexample is a concrete step sequence you can turn into a test.', 'Das Gegenbeispiel ist eine konkrete Schrittfolge, die du in einen Test verwandeln kannst.') }] },
       { lang: 'any', file: 'Allocate.dfy (contract)', code: `method Allocate(amount: nat, weights: seq<nat>) returns (shares: seq<nat>)
   requires amount <= Sum(weights)
   ensures |shares| == |weights|
   ensures Sum(weights) > 0 ==> Sum(shares) == amount
-  ensures forall i :: 0 <= i < |shares| ==> shares[i] <= weights[i]` },
+  ensures forall i :: 0 <= i < |shares| ==> shares[i] <= weights[i]`, focus: [{ line: 2, note: l('The precondition is the caller\'s obligation; the proof assumes it and nothing more.', 'Die Vorbedingung ist die Pflicht des Aufrufers; der Beweis nimmt sie an und nichts darüber hinaus.') }, { line: 4, note: l('The key guarantee: the shares sum to the amount for every valid input, not just tested ones.', 'Die zentrale Garantie: Die Anteile ergeben den Betrag für jede gültige Eingabe, nicht nur für getestete.') }, { line: 5, note: l('Every share stays within its weight; the verifier must prove it for all indices.', 'Jeder Anteil bleibt innerhalb seines Gewichts; der Verifier muss das für alle Indizes beweisen.') }] },
     ],
     steps: [
       l('Choose the one piece where a bug is most expensive: a concurrent protocol (→ TLA+/P) or a core algorithm (→ Dafny/Verus/Kani).', 'Das eine Stück wählen, wo ein Fehler am teuersten ist: ein nebenläufiges Protokoll (→ TLA+/P) oder ein Kernalgorithmus (→ Dafny/Verus/Kani).'),
@@ -116,14 +116,14 @@ export function allocate(amount: number, weights: number[]): number[] {
   assert(shares.reduce((a, b) => a + b, 0) === (total ? amount : 0), 'post: shares sum to amount');
   assert(shares.every((s, i) => s <= weights[i]), 'post: no share exceeds its weight');
   return shares;
-}` },
+}`, focus: [{ line: 5, note: l('The precondition rejects bad calls at the boundary instead of producing silent wrong shares.', 'Die Vorbedingung weist schlechte Aufrufe an der Grenze ab, statt still falsche Anteile zu liefern.') }, { line: 7, note: l('The postcondition checks the result against the spec; a bug in computeShares fails here.', 'Die Nachbedingung prüft das Ergebnis gegen die Spezifikation; ein Bug in computeShares scheitert hier.') }, { line: 8, note: l('A second postcondition: no share exceeds its weight.', 'Eine zweite Nachbedingung: Kein Anteil überschreitet sein Gewicht.') }] },
       { lang: 'python', file: 'allocate.py', code: `import icontract
 
 @icontract.require(lambda amount, weights: 0 <= amount <= sum(weights))
 @icontract.ensure(lambda amount, weights, result: sum(result) == (amount if sum(weights) else 0))
 @icontract.ensure(lambda weights, result: all(s <= w for s, w in zip(result, weights)))
 def allocate(amount: int, weights: list[int]) -> list[int]:
-    ...` },
+    ...`, focus: [{ line: 3, note: l('The require decorator documents and enforces what callers must provide.', 'Der require-Decorator dokumentiert und erzwingt, was Aufrufer liefern müssen.') }, { line: 4, note: l('The ensure checks the sum on every call, including those from tests and fuzzers.', 'Das ensure prüft die Summe bei jedem Aufruf, auch aus Tests und Fuzzern.') }, { line: 5, note: l('The contract lives next to the signature, so a changed function cannot drift from its rule unnoticed.', 'Der Vertrag steht neben der Signatur, sodass eine geänderte Funktion nicht unbemerkt von ihrer Regel abdriftet.') }] },
       { lang: 'php', file: 'allocate.php', code: `<?php declare(strict_types=1);
 // composer require webmozart/assert
 use Webmozart\\Assert\\Assert;
@@ -146,7 +146,7 @@ function allocate(int $amount, array $weights): array
     }
     return $shares;
 }
-// Unlike PHP's built-in assert(), these checks remain active in production.` },
+// Unlike PHP's built-in assert(), these checks remain active in production.`, focus: [{ line: [8,12], note: l('Preconditions: validate shape and range before any computation, so errors point at the caller.', 'Vorbedingungen: Form und Bereich prüfen, bevor gerechnet wird, damit Fehler auf den Aufrufer zeigen.') }, { line: [14,17], note: l('Postconditions check the result for count, type, sign and total.', 'Nachbedingungen prüfen das Ergebnis auf Anzahl, Typ, Vorzeichen und Summe.') }, { line: [18,20], note: l('The per-share bound is the rule that catches an allocation that over-charges one pet.', 'Die Grenze je Anteil ist die Regel, die eine Verteilung erwischt, die ein Tier zu stark belastet.') }, { line: 23, note: l('Unlike assert(), these stay active in production, so check cost matters.', 'Anders als assert() bleiben diese in Produktion aktiv, daher zählt der Aufwand der Prüfung.') }] },
     ],
     steps: [l('For 2–3 core functions, write the pre- and postconditions in plain words.', 'Für 2–3 Kernfunktionen die Vor- und Nachbedingungen in Worten aufschreiben.'), l('Encode them as assertions or contract decorators that run in tests and staging.', 'Sie als Assertions oder Vertragsdekoratoren kodieren, die in Tests und Staging laufen.'), l('Run property-based tests or fuzzing against the functions so the contracts get exercised.', 'Property-Based Tests oder Fuzzing gegen die Funktionen laufen lassen, damit die Verträge geprüft werden.')],
     done: l('Contracts are in place, documented in words, and a generated-input test run triggers no contract violation.', 'Verträge sind vorhanden und in Worten dokumentiert, und ein Testlauf mit erzeugten Eingaben löst keine Vertragsverletzung aus.'),
@@ -187,8 +187,8 @@ function allocate(int $amount, array $weights): array
     snippets: [{ lang: 'cpp', file: 'CMakeLists.txt', code: `# Test build with AddressSanitizer + UndefinedBehaviorSanitizer
 add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
 add_link_options(-fsanitize=address,undefined)
-# Separate build for data races:  -fsanitize=thread` }, { lang: 'go', file: 'Makefile', code: `test-race:
-\tgo test -race ./...` }],
+# Separate build for data races:  -fsanitize=thread`, focus: [{ line: 2, note: l('AddressSanitizer and UBSan catch memory errors and undefined behaviour that tests pass silently.', 'AddressSanitizer und UBSan finden Speicherfehler und undefiniertes Verhalten, die Tests still durchlassen.') }, { line: 3, note: l('Link with the same flags, or the sanitizer runtime is missing and the instrumented build fails.', 'Mit denselben Flags linken, sonst fehlt die Sanitizer-Runtime und der instrumentierte Build scheitert.') }, { line: 4, note: l('Race detection needs its own build; it cannot be combined with the address sanitizer.', 'Race-Erkennung braucht einen eigenen Build; sie lässt sich nicht mit dem Address Sanitizer kombinieren.') }] }, { lang: 'go', file: 'Makefile', code: `test-race:
+\tgo test -race ./...`, focus: [{ line: 1, note: l('A dedicated CI target means race checks run on every change, not when someone remembers.', 'Ein eigenes CI-Target heißt: Race-Checks laufen bei jeder Änderung, nicht wenn jemand daran denkt.') }, { line: 2, note: l('The race detector only sees executed paths, so concurrent tests are what make it useful.', 'Der Race Detector sieht nur ausgeführte Pfade, daher machen nebenläufige Tests ihn erst nützlich.') }] }],
     steps: [l('Add a CI job that builds and runs the full test suite with ASan + UBSan (or -race in Go, Miri in Rust).', 'Einen CI-Job ergänzen, der die ganze Testsuite mit ASan + UBSan (bzw. -race in Go, Miri in Rust) baut und ausführt.'), l('Run fuzz targets with sanitizers enabled.', 'Fuzz-Targets mit aktivierten Sanitizern laufen lassen.'), l('Treat every sanitizer report as a failing test.', 'Jeden Sanitizer-Bericht wie einen fehlschlagenden Test behandeln.')],
     done: l('The sanitizer CI job is green and fails on a planted out-of-bounds read.', 'Der Sanitizer-CI-Job ist grün und scheitert bei einem eingeschleusten Lesen außerhalb der Grenzen.'),
     think: [
@@ -234,7 +234,7 @@ test('candidate preserves the reservation owner', () => {
   const candidate = { petId: 'rex', owner: 'anna', requestId: 'new-2' };
   expect(normalise(candidate)).toEqual(normalise(reference));
   // Change candidate.owner to 'ben': this comparison must fail.
-});` }],
+});`, focus: [{ line: 3, note: l('Normalise away fields that legitimately differ, such as request IDs; compare only what must match.', 'Felder entfernen, die legitim abweichen, etwa Request-IDs; nur vergleichen, was übereinstimmen muss.') }, { line: 7, note: l('The comparison itself: same owner for the same pet in the old and the new system.', 'Der Vergleich selbst: derselbe Besitzer für dasselbe Tier im alten und im neuen System.') }, { line: 8, note: l('Prove the check can fail: change the owner and watch it go red.', 'Beweise, dass die Prüfung fehlschlagen kann: Ändere den Besitzer und sieh zu, wie sie rot wird.') }] }],
     steps: [l('Mirror a sample of read-only requests to old and new versions.', 'Eine Stichprobe lesender Anfragen an alte und neue Version spiegeln.'), l('Compare responses field by field; learn noise by comparing two old instances.', 'Antworten Feld für Feld vergleichen; Rauschen lernen, indem man zwei alte Instanzen vergleicht.'), l('Investigate every non-noise difference before shifting traffic.', 'Jeden Unterschied außer Rauschen untersuchen, bevor Verkehr verlagert wird.')],
     done: l('A day of sampled traffic shows no unexplained differences between old and new.', 'Ein Tag Stichprobenverkehr zeigt keine unerklärten Unterschiede zwischen alt und neu.'),
     think: [
@@ -279,7 +279,7 @@ route:
   request_mirror_policies:
     - cluster: shadow
       runtime_fraction:
-        default_value: { numerator: 10, denominator: HUNDRED }` }],
+        default_value: { numerator: 10, denominator: HUNDRED }`, focus: [{ line: 5, note: l('Only GET is mirrored: shadow traffic must never cause side effects such as a reservation.', 'Nur GET wird gespiegelt: Schatten-Traffic darf nie Nebenwirkungen wie eine Reservierung auslösen.') }, { line: [8,9], note: l('The mirror sends a copy to the shadow cluster; users only see the primary answer.', 'Der Mirror schickt eine Kopie an den Shadow-Cluster; Nutzer sehen nur die Antwort des Primary.') }, { line: [10,11], note: l('A small fraction limits load on the shadow while still giving real traffic to compare.', 'Ein kleiner Anteil begrenzt die Last auf dem Shadow und liefert trotzdem echten Traffic zum Vergleichen.') }] }],
     steps: [l('Configure the proxy to mirror a percentage of traffic to the shadow deployment.', 'Den Proxy so konfigurieren, dass er einen Prozentsatz des Verkehrs an das Schatten-Deployment spiegelt.'), l('Stub all external side effects in the shadow.', 'Alle externen Seiteneffekte im Schatten abklemmen.'), l('Compare error rate, latency and resource use with production.', 'Fehlerrate, Latenz und Ressourcenverbrauch mit der Produktion vergleichen.')],
     done: l('The shadow ran on mirrored traffic for a defined period with error rate and latency within agreed bounds, and no external side effects.', 'Der Schatten lief eine festgelegte Zeit auf gespiegeltem Verkehr, mit Fehlerrate und Latenz in vereinbarten Grenzen und ohne externe Seiteneffekte.'),
     think: [
@@ -320,7 +320,7 @@ route:
       - setWeight: 25
       - pause: { duration: 10m }
       - setWeight: 100
-# error-rate: fail if 5xx rate of canary > baseline + 1%  →  automatic rollback` }],
+# error-rate: fail if 5xx rate of canary > baseline + 1%  →  automatic rollback`, focus: [{ line: 3, note: l('Start at 5%: a bad release reaches few users before anything is judged.', 'Mit 5 % starten: Ein schlechter Release erreicht wenige Nutzer, bevor etwas bewertet wird.') }, { line: 4, note: l('The canary only moves on if the analysis passes. This line is the safety net.', 'Der Canary geht nur weiter, wenn die Analyse besteht. Diese Zeile ist das Sicherheitsnetz.') }, { line: 7, note: l('A pause gives slow failures, such as leaks, time to appear before the full rollout.', 'Eine Pause gibt langsamen Fehlern, etwa Lecks, Zeit aufzutreten, bevor der volle Rollout kommt.') }, { line: 9, note: l('The rollback rule is explicit: canary worse than baseline by 1% means automatic rollback.', 'Die Rollback-Regel ist explizit: Canary um 1 % schlechter als die Baseline bedeutet automatischen Rollback.') }] }],
     steps: [l('Define 2–3 health metrics that compare canary to baseline (error rate, p95 latency, a business metric like reservations per minute).', '2–3 Gesundheitsmetriken festlegen, die Canary und Baseline vergleichen (Fehlerrate, p95-Latenz, eine Geschäftsmetrik wie Reservierungen pro Minute).'), l('Configure a stepped rollout (5% → 25% → 100%) with automated analysis between steps.', 'Einen gestuften Rollout (5 % → 25 % → 100 %) mit automatischer Analyse zwischen den Stufen konfigurieren.'), l('Test the rollback by deploying a deliberately broken version to staging.', 'Das Zurückrollen testen, indem man eine absichtlich kaputte Version in Staging deployt.')],
     done: l('A deliberately broken release is rolled back automatically at the first step without manual action.', 'Ein absichtlich kaputtes Release wird auf der ersten Stufe ohne manuellen Eingriff automatisch zurückgerollt.'),
     think: [
@@ -367,7 +367,7 @@ route:
       - name: candidate
         weight: 5
 # Before increasing candidate weight:
-# compare errors/latency and exercise the rollback procedure.` }],
+# compare errors/latency and exercise the rollback procedure.`, focus: [{ line: [5,6], note: l('The stable version keeps almost all traffic, so most users never meet the candidate.', 'Die stabile Version behält fast den ganzen Traffic, sodass die meisten Nutzer den Kandidaten nie sehen.') }, { line: 8, note: l('The weight is the blast radius: raise it only after the numbers look good.', 'Das Gewicht ist der Wirkungsradius: Erhöhe es erst, wenn die Zahlen gut aussehen.') }, { line: 10, note: l('Exercise the rollback before you need it; an untested rollback is a hope, not a plan.', 'Probiere den Rollback aus, bevor du ihn brauchst; ein ungetesteter Rollback ist Hoffnung, kein Plan.') }] }],
     steps: [l('Put a proxy in front of the service that supports weighted and header-based routing.', 'Einen Proxy vor den Dienst setzen, der gewichtetes und headerbasiertes Routing kann.'), l('Route internal users to the new version by header, then shift a small percentage of public traffic.', 'Interne Nutzer per Header zur neuen Version leiten, dann einen kleinen Prozentsatz öffentlichen Verkehrs verlagern.'), l('Add rate limits and circuit breakers for the new version.', 'Rate Limits und Circuit Breaker für die neue Version ergänzen.')],
     done: l('Traffic split is configurable per release; internal users can reach the new version by header.', 'Die Verkehrsaufteilung ist pro Release konfigurierbar; interne Nutzer erreichen die neue Version per Header.'),
     think: [
@@ -406,7 +406,7 @@ const flags = OpenFeature.getClient();
 export async function reserve(petId: PetId, person: PersonId) {
   const useNewFlow = await flags.getBooleanValue('reservation-v2', false, { targetingKey: person });
   return useNewFlow ? reserveV2(petId, person) : reserveV1(petId, person);
-}` }],
+}`, focus: [{ line: 5, note: l('The default false is the fallback if the flag service fails; targetingKey keeps each person on one flow.', 'Der Default false ist der Fallback, wenn der Flag-Dienst ausfällt; targetingKey hält jede Person im selben Ablauf.') }, { line: 6, note: l('Both flows stay deployed, so switching the flag off is the rollback, with no redeploy.', 'Beide Abläufe bleiben deployt, sodass das Abschalten des Flags der Rollback ist, ohne Redeploy.') }] }],
     steps: [l('Introduce a flag service behind a vendor-neutral API (OpenFeature).', 'Einen Flag-Dienst hinter einer herstellerneutralen API (OpenFeature) einführen.'), l('Wrap the new feature in a flag that defaults to off; test both paths.', 'Die neue Funktion in ein standardmäßig ausgeschaltetes Flag packen; beide Pfade testen.'), l('Give every flag an owner and an expiry date; fail CI on expired flags.', 'Jedem Flag einen Verantwortlichen und ein Ablaufdatum geben; die CI bei abgelaufenen Flags scheitern lassen.')],
     done: l('The feature can be switched off in production within a minute; both flag states are tested; the flag has an expiry date.', 'Die Funktion lässt sich in Produktion binnen einer Minute abschalten; beide Flag-Zustände sind getestet; das Flag hat ein Ablaufdatum.'),
     think: [
@@ -459,7 +459,7 @@ export async function reserve(petId: PetId, person: PersonId) {
         labels: { severity: page }
         annotations:
           summary: "Reservation error ratio exceeds 5%"
-# Count expected 'taken' conflicts separately from server errors.` }],
+# Count expected 'taken' conflicts separately from server errors.`, focus: [{ line: [6,7], note: l('Dividing by clamp_min avoids a divide-by-zero, so a quiet system does not trigger false alerts.', 'Die Division durch clamp_min vermeidet eine Division durch null, sodass ein ruhiges System keine Fehlalarme auslöst.') }, { line: 8, note: l('The threshold defines what counts as broken: above 5% errors is the line to page someone.', 'Die Schwelle definiert, was als kaputt gilt: Über 5 % Fehler ist die Grenze, jemanden zu alarmieren.') }, { line: 9, note: l('The for clause ignores short spikes, trading a little speed for far fewer false pages.', 'Die for-Klausel ignoriert kurze Spitzen und tauscht etwas Geschwindigkeit gegen weit weniger Fehlalarme.') }, { line: 13, note: l('Expected conflicts are not errors: count them separately or normal use will page you.', 'Erwartete Konflikte sind keine Fehler: Zähle sie getrennt, sonst alarmiert dich normale Nutzung.') }] }],
     steps: [l('Instrument the four golden signals and one business metric for the main service.', 'Die vier goldenen Signale und eine Geschäftsmetrik für den Hauptdienst instrumentieren.'), l('Define an SLO (e.g. 99.5% of reservations succeed within 1 s) and alert on burn rate.', 'Ein SLO definieren (z. B. 99,5 % der Reservierungen gelingen binnen 1 s) und auf die Burn Rate alarmieren.'), l('Link every alert to a runbook.', 'Jeden Alarm mit einem Runbook verknüpfen.')],
     done: l('Dashboards show golden signals and the business metric; an SLO alert fires on a simulated error spike and links to a runbook.', 'Dashboards zeigen die goldenen Signale und die Geschäftsmetrik; ein SLO-Alarm löst bei einer simulierten Fehlerspitze aus und verweist auf ein Runbook.'),
     think: [
@@ -505,7 +505,7 @@ export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
       throw error;
     } finally { span.end(); }
   });
-}` }],
+}`, focus: [{ line: [7,8], note: l('Record the exception and mark the span as an error, so the failure is searchable with its context.', 'Die Exception erfassen und den Span als Fehler markieren, damit der Fehler samt Kontext auffindbar ist.') }, { line: 9, note: l('Rethrow: tracking must observe the failure without changing what the caller sees.', 'Weiterwerfen: Das Tracking muss den Fehler beobachten, ohne zu ändern, was der Aufrufer sieht.') }, { line: 10, note: l('The span always ends, even on failure; otherwise broken requests vanish from the trace.', 'Der Span endet immer, auch bei Fehlern; sonst verschwinden kaputte Requests aus dem Trace.') }] }],
     steps: [
       l('Install an error tracker SDK in server and client, tagged with the release version.', 'Ein Error-Tracker-SDK in Server und Client einbauen, mit Release-Version getaggt.'), l('Scrub personal data; alert on new issue types after a release.', 'Personenbezogene Daten entfernen; auf neue Problemarten nach einem Release alarmieren.'),
       l('Mark a test error as resolved in the tracker and check that it reopens when it occurs again in a later release.', 'Einen Testfehler im Tracker als erledigt markieren und prüfen, dass er in einem späteren Release wieder geöffnet wird, wenn er erneut auftritt.'),
@@ -562,7 +562,7 @@ type = "file"
 inputs = ["events"]
 path = "/tmp/petstore-copy.jsonl"
 encoding.codec = "json"
-# Input: {"event":"reserved","petId":"rex"}` }],
+# Input: {"event":"reserved","petId":"rex"}`, focus: [{ line: 7, note: l('Both sinks read the same events, so the primary output is the reference for the copy.', 'Beide Sinks lesen dieselben Events, sodass die Primary-Ausgabe die Referenz für die Kopie ist.') }, { line: 13, note: l('The second sink gets an identical stream; here you can try a change without touching production data.', 'Der zweite Sink bekommt einen identischen Strom; hier kannst du eine Änderung ausprobieren, ohne Produktivdaten anzufassen.') }, { line: 16, note: l('A known input makes the comparison of both files meaningful.', 'Eine bekannte Eingabe macht den Vergleich beider Dateien aussagekräftig.') }] }],
     steps: [
       l('Tee a sample of requests or events to durable storage with personal data removed.', 'Eine Stichprobe von Anfragen oder Ereignissen, ohne personenbezogene Daten, in einen dauerhaften Speicher abzweigen.'), l('Replay the sample against a test deployment before releases.', 'Die Stichprobe vor Releases gegen ein Test-Deployment abspielen.'),
       l('Check that the tee does not change latency or errors of the live path, and set a retention limit for the stored copies.', 'Prüfen, dass der Tee Latenz und Fehler des Live-Pfads nicht verändert, und eine Aufbewahrungsgrenze für die gespeicherten Kopien setzen.'),
@@ -606,7 +606,7 @@ encoding.codec = "json"
       code: `# Replace 12345 with the PID of your local test service.
 py-spy record --pid 12345 --duration 30 --output reservation.svg
 # During those 30 seconds, exercise the reservation endpoint.
-# After a targeted change, profile the same workload again.` }],
+# After a targeted change, profile the same workload again.`, focus: [{ line: 2, note: l('Sample a running process for a fixed time; no code change or restart is needed.', 'Einen laufenden Prozess für feste Zeit samplen; weder Codeänderung noch Neustart sind nötig.') }, { line: 3, note: l('Profile while real work runs; an idle service shows nothing useful.', 'Profiliere, während echte Arbeit läuft; ein untätiger Dienst zeigt nichts Brauchbares.') }, { line: 4, note: l('Profile the same workload again after the change; otherwise you cannot tell whether it helped.', 'Profiliere nach der Änderung dieselbe Last erneut; sonst weißt du nicht, ob sie geholfen hat.') }] }],
     steps: [
       l('Profile the slowest endpoint under realistic load and produce a flame graph.', 'Den langsamsten Endpunkt unter realistischer Last profilen und einen Flame Graph erzeugen.'), l('Optimise only the top hot spot, then measure again with a benchmark.', 'Nur den größten Hotspot optimieren, dann mit einem Benchmark erneut messen.'),
       l('Keep the profile of the release before and after as an artifact, so later regressions can be compared with it.', 'Das Profil vor und nach dem Release als Artefakt aufbewahren, damit spätere Regressionen damit verglichen werden können.'),
@@ -652,7 +652,7 @@ py-spy record --pid 12345 --duration 30 --output reservation.svg
 }
 logReservation('rex', 'taken', 'local-example-1');
 // Query by correlationId to follow a failed request across services.
-// Do not log credentials, raw request bodies or adopter names.` }],
+// Do not log credentials, raw request bodies or adopter names.`, focus: [{ line: 4, note: l('Structured fields can be queried; a free-text message cannot be filtered reliably.', 'Strukturierte Felder lassen sich abfragen; eine Freitextmeldung lässt sich nicht verlässlich filtern.') }, { line: 4, note: l('The correlationId ties one request together across services.', 'Die correlationId verbindet eine Anfrage über Dienste hinweg.') }, { line: 8, note: l('Query by this ID to follow one failed request end to end.', 'Frage mit dieser ID ab, um eine fehlgeschlagene Anfrage von Anfang bis Ende zu verfolgen.') }, { line: 9, note: l('Logs outlive the request: never write credentials, raw bodies or personal names into them.', 'Logs überdauern die Anfrage: Schreibe nie Zugangsdaten, rohe Bodies oder Personennamen hinein.') }] }],
     steps: [l('Switch to structured logging with a request id on every line.', 'Auf strukturiertes Logging mit Request-ID in jeder Zeile umstellen.'), l('Emit one business event per important state change (reserved, released, adopted).', 'Pro wichtiger Zustandsänderung ein Geschäftsereignis ausgeben (reserviert, freigegeben, adoptiert).'), l('Run a scheduled query that checks an invariant over the events and alerts on violations.', 'Eine regelmäßige Abfrage ausführen, die eine Invariante über die Ereignisse prüft und bei Verletzung alarmiert.')],
     done: l('Logs are structured with request ids; an invariant query runs on a schedule and alerts on a planted violation.', 'Logs sind strukturiert mit Request-IDs; eine Invariantenabfrage läuft regelmäßig und alarmiert bei einer eingeschleusten Verletzung.'),
     think: [
@@ -692,7 +692,7 @@ toxiproxy-cli create -l 127.0.0.1:15432 -u 127.0.0.1:5432 petstore-db
 # App DB URL must use port 15432 for the experiment to have an effect.
 toxiproxy-cli toxic add -t latency -a latency=500 petstore-db
 # Exercise reserve: bounded timeout, no duplicate reservation on retry.
-toxiproxy-cli toxic remove -n latency_downstream petstore-db` }],
+toxiproxy-cli toxic remove -n latency_downstream petstore-db`, focus: [{ line: 3, note: l('If the app does not use the proxy port, the experiment does nothing and still looks green.', 'Nutzt die App den Proxy-Port nicht, bewirkt das Experiment nichts und sieht trotzdem grün aus.') }, { line: 4, note: l('The toxic injects a half second of latency: a slow database, not a dead one.', 'Der Toxic fügt eine halbe Sekunde Latenz hinzu: eine langsame Datenbank, keine tote.') }, { line: 5, note: l('State the hypothesis first: timeouts stay bounded and a retry must not reserve twice.', 'Formuliere zuerst die Hypothese: Timeouts bleiben begrenzt und ein Retry darf nicht doppelt reservieren.') }, { line: 6, note: l('Always remove the fault afterwards and check the system recovers.', 'Entferne den Fehler danach immer und prüfe, dass sich das System erholt.') }] }],
     steps: [l('Write a hypothesis: "If the payment service is 2 s slow, reservations still succeed and show \'payment pending\'".', 'Eine Hypothese schreiben: „Ist der Zahlungsdienst 2 s langsam, gelingen Reservierungen trotzdem und zeigen ‚Zahlung ausstehend‘.“'), l('Inject the fault in staging with Toxiproxy or Chaos Mesh, with a time limit.', 'Den Fehler in Staging mit Toxiproxy oder Chaos Mesh einspeisen, mit Zeitlimit.'), l('Compare what happened with the hypothesis and fix what differed.', 'Das Geschehene mit der Hypothese vergleichen und reparieren, was abwich.')],
     done: l('At least one experiment ran with a written hypothesis, result and follow-up fix.', 'Mindestens ein Experiment lief mit schriftlicher Hypothese, Ergebnis und Folgekorrektur.'),
     think: [
@@ -753,7 +753,7 @@ test('page changes do not reassign a participant', () => {
 });
 test('a missing participant ID is excluded', () => {
   expect(assign('', 'pet-detail').inExperiment).toBe(false);
-});` }],
+});`, focus: [{ line: 5, note: l('A stable hash of the ID with fixed weights keeps each participant in one variation.', 'Ein stabiler Hash der ID mit festen Gewichten hält jeden Teilnehmer in einer Variante.') }, { line: 19, note: l('The same person must see the same variant on every page, or results mix and mean nothing.', 'Dieselbe Person muss auf jeder Seite dieselbe Variante sehen, sonst vermischen sich die Ergebnisse und bedeuten nichts.') }, { line: 23, note: l('Missing IDs are excluded instead of assigned randomly, which would pollute the data.', 'Fehlende IDs werden ausgeschlossen statt zufällig zugewiesen, was die Daten verfälschen würde.') }] }],
     steps: [
       l('Write the hypothesis, the primary metric, guardrail metrics and the sample size before starting.', 'Vor dem Start Hypothese, Hauptmetrik, Guardrail-Metriken und Stichprobengröße festlegen.'), l('Randomise by user, not by request; run until the planned sample size is reached.', 'Nach Nutzer randomisieren, nicht nach Anfrage; laufen lassen, bis die geplante Stichprobengröße erreicht ist.'),
       l('Check that the groups are balanced (about the expected split) before reading the result, and decide in advance what counts as a win.', 'Prüfen, dass die Gruppen ausgewogen sind (etwa das erwartete Verhältnis), bevor das Ergebnis gelesen wird, und vorab festlegen, was als Gewinn gilt.'),
@@ -804,7 +804,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
   });
 }
 // Enable database instrumentation and context propagation in SDK setup.
-// Never put credentials or adopter names into span attributes.` }],
+// Never put credentials or adopter names into span attributes.`, focus: [{ line: 4, note: l('Spans wrap an operation, so a slow or failing step shows up in the request trace.', 'Spans umschließen eine Operation, sodass ein langsamer oder fehlschlagender Schritt im Trace sichtbar wird.') }, { line: 5, note: l('Attributes make traces searchable by what matters, such as the pet.', 'Attribute machen Traces nach dem Wesentlichen durchsuchbar, etwa dem Tier.') }, { line: 7, note: l('The span ends in finally, so failed calls still appear with their duration.', 'Der Span endet in finally, sodass auch fehlgeschlagene Aufrufe mit ihrer Dauer erscheinen.') }, { line: 11, note: l('Attributes travel to the tracing backend: keep secrets and personal data out.', 'Attribute wandern ins Tracing-Backend: Halte Geheimnisse und personenbezogene Daten fern.') }] }],
     steps: [
       l('Add OpenTelemetry auto-instrumentation to each service and export to a tracing backend.', 'OpenTelemetry-Autoinstrumentierung in jeden Dienst einbauen und an ein Tracing-Backend exportieren.'), l('Propagate trace context through HTTP and queues; add custom spans around domain operations.', 'Trace-Kontext durch HTTP und Queues weiterreichen; eigene Spans um Fachoperationen legen.'),
       l('Link trace ids to logs and error reports, so you can jump from an error to its trace.', 'Trace-IDs mit Logs und Fehlerberichten verknüpfen, damit man vom Fehler zum Trace springen kann.'),
@@ -849,7 +849,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
       code: `schemathesis run http://localhost:3000/openapi.json   --url http://localhost:3000
 # Save the minimal failing request from the report.
 # Replay it as a regression test; ask the agent to fix the cause.
-# Schema conformance alone cannot prove "never reserve twice".` }],
+# Schema conformance alone cannot prove "never reserve twice".`, focus: [{ line: 1, note: l('Generate cases from the schema: no hand-written examples needed.', 'Fälle aus dem Schema erzeugen: keine handgeschriebenen Beispiele nötig.') }, { line: [2,3], note: l('Keep the minimal failing request and replay it as a regression test, so the bug stays fixed.', 'Behalte die minimale fehlschlagende Anfrage und spiele sie als Regressionstest ab, damit der Bug behoben bleibt.') }, { line: 4, note: l('Passing means the API follows its schema, not that the business rule holds.', 'Bestehen heißt, die API hält ihr Schema ein, nicht dass die Geschäftsregel gilt.') }] }],
     steps: [
       l('Point an OpenAPI-based explorer at a staging deployment.', 'Einen OpenAPI-basierten Explorer auf ein Staging-Deployment richten.'), l('Triage every 5xx and schema violation; turn real bugs into regression tests.', 'Jeden 5xx-Fehler und jede Schemaverletzung sichten; echte Fehler in Regressionstests überführen.'),
       l('Give the explorer test credentials with limited rights and clean up the data it created afterwards.', 'Dem Explorer Testzugangsdaten mit eingeschränkten Rechten geben und die von ihm erzeugten Daten danach aufräumen.'),
@@ -902,7 +902,7 @@ onCLS(report);
 onINP(report);
 onLCP(report);
 // Replace local-example with your build's release identifier.
-// Receiver: validate, sample and aggregate; do not store raw user IDs.` }],
+// Receiver: validate, sample and aggregate; do not store raw user IDs.`, focus: [{ line: 3, note: l('sendBeacon survives the user leaving the page, so you do not lose the last measurements.', 'sendBeacon überlebt das Verlassen der Seite, sodass die letzten Messungen nicht verloren gehen.') }, { line: 5, note: l('The release field lets you tie a regression to the deployment that caused it.', 'Das Feld release lässt dich eine Regression dem Deployment zuordnen, das sie verursacht hat.') }, { line: [9,11], note: l('These three vitals measure what users feel: layout shift, responsiveness and load time.', 'Diese drei Vitals messen, was Nutzer spüren: Layoutverschiebung, Reaktionsfähigkeit und Ladezeit.') }, { line: 13, note: l('Aggregate on the server and store no raw user IDs: monitoring is not tracking.', 'Aggregiere auf dem Server und speichere keine rohen Nutzer-IDs: Monitoring ist kein Tracking.') }] }],
     steps: [
       l('Collect Core Web Vitals and client errors, tagged by release, with consent.', 'Core Web Vitals und Clientfehler mit Einwilligung sammeln, nach Release getaggt.'), l('Set budgets (e.g. LCP < 2.5 s at p75) and alert on regressions after a release.', 'Budgets setzen (z. B. LCP < 2,5 s bei p75) und nach einem Release auf Verschlechterungen alarmieren.'),
       l('Tag the data by release and by page, so you can tell which change made a metric worse.', 'Die Daten nach Release und Seite taggen, damit erkennbar ist, welche Änderung eine Metrik verschlechtert hat.'),
@@ -955,7 +955,7 @@ INSERT INTO reservation_audit (event_id, actor_id, pet_id, action)
 VALUES ('evt-1', 'synthetic-actor', 'rex', 'reserved');
 SELECT event_id, actor_id, action
 FROM reservation_audit WHERE pet_id = 'rex' ORDER BY occurred_at;
--- A table alone is not tamper-proof or a compliance guarantee.` }],
+-- A table alone is not tamper-proof or a compliance guarantee.`, focus: [{ line: 2, note: l('A unique event ID makes retries idempotent: the same event cannot be written twice.', 'Eine eindeutige Event-ID macht Wiederholungen idempotent: Dasselbe Ereignis kann nicht doppelt geschrieben werden.') }, { line: 4, note: l('Every entry names who acted; without that, an audit trail answers nothing.', 'Jeder Eintrag nennt, wer gehandelt hat; ohne das beantwortet ein Audit-Trail nichts.') }, { line: 6, note: l('The CHECK limits actions to known values, so a typo cannot create a meaningless record.', 'Das CHECK beschränkt Aktionen auf bekannte Werte, sodass ein Tippfehler keinen sinnlosen Eintrag erzeugt.') }, { line: 12, note: l('A table is not tamper-proof: protect writes, retention and access separately.', 'Eine Tabelle ist nicht manipulationssicher: Schütze Schreibrechte, Aufbewahrung und Zugriff separat.') }] }],
     steps: [l('Log every privileged action with actor identity (human or agent), time and target to append-only storage.', 'Jede privilegierte Aktion mit Identität des Handelnden (Mensch oder Agent), Zeit und Ziel in einen Nur-Anhängen-Speicher protokollieren.'), l('Give agents their own identities and least-privilege credentials.', 'Agenten eigene Identitäten und minimale Zugangsrechte geben.'), l('Schedule queries that flag unexpected actions and review them weekly.', 'Abfragen einplanen, die unerwartete Aktionen markieren, und sie wöchentlich durchsehen.')],
     done: l('Privileged actions are logged with a distinct identity per agent, and a scheduled query flags a planted out-of-scope action.', 'Privilegierte Aktionen werden mit eigener Identität pro Agent protokolliert, und eine geplante Abfrage markiert eine eingeschleuste Aktion außerhalb des Rahmens.'),
     think: [

@@ -36,14 +36,14 @@ const firstSnippet = p.snippets?.[0];
         )}
         {snippets.map((snip, i) => <>
           {snip.description && <p class="small">{snip.description[lang]}</p>}
-          <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snip-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
+          <CodeBlock code={snip.code} file={snip.file} lang={lang} focus={snip.focus} id={`snip-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
         </>)}
         {fallback.length > 0 && (
           <>
             <p class="muted small">{t(lang, 'exampleOtherLang')} {langName(fallback[0].lang)}:</p>
             {fallback.map((snip, i) => <>
               {snip.description && <p class="small">{snip.description[lang]}</p>}
-              <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snipfb-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
+              <CodeBlock code={snip.code} file={snip.file} lang={lang} focus={snip.focus} id={`snipfb-${p.id}-${lg.id}${i ? `-${i}` : ''}`} />
             </>)}
           </>
         )}

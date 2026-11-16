@@ -51,6 +51,12 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
       out.push(`**${T(loc, 'example')}${s.file ? ` (${s.file})` : ''}:**`, '');
       if (s.description) out.push(s.description[loc], '');
       out.push('```' + syntax, s.code, '```', '');
+      for (const f of s.focus ?? []) {
+        const [a, b] = Array.isArray(f.line) ? f.line : [f.line, f.line];
+        const label = a === b ? `${loc === 'de' ? 'Zeile' : 'Line'} ${a}` : `${loc === 'de' ? 'Zeilen' : 'Lines'} ${a}–${b}`;
+        out.push(`- ${label}: ${f.note[loc]}`);
+      }
+      if (s.focus?.length) out.push('');
     }
     out.push(loc === 'de' ? '## Vorgehen' : '## How to set it up', ...p.steps.map((s, i) => `${i + 1}. ${s[loc]}`), '');
     out.push(`**${loc === 'de' ? 'Fertig, wenn' : 'Done when'}:** ${p.done[loc]}`, '');

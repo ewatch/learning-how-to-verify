@@ -56,6 +56,11 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
   if (pet.status.kind !== 'available') return err('taken');
   return ok({ ...pet, status: { kind: 'reserved', by: person, since: now } });
 }`,
+      focus: [
+        { line: 2, note: l("The union allows exactly one owner per state, so “reserved without a person” cannot even be typed.", "Die Union erlaubt pro Zustand genau einen Besitzer, „reserviert ohne Person“ lässt sich gar nicht erst schreiben.") },
+        { line: 4, note: l("`reserved` carries `by` and `since`; the data lives inside the state, so the two cannot disagree.", "`reserved` trägt `by` und `since`; die Daten stecken im Zustand, beide können sich nicht widersprechen.") },
+        { line: [8, 10], note: l("One entry point decides: anything not `available` is `taken`, so a double reservation is rejected here.", "Ein einziger Einstieg entscheidet: Alles außer `available` ist `taken`, eine Doppelreservierung scheitert hier.") },
+      ],
       },
     ],
     steps: [
@@ -123,7 +128,12 @@ const after = (owner: string | null) =>
   owner === null ? 'available' : \`reserved for \${owner}\`;
 test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
   expect(after(owner)).toBe(before(owner));
-});` }],
+});`,
+      focus: [
+        { line: 2, note: l("The old version: the contract to preserve is that `null` means available.", "Die alte Version: Der Vertrag, den du erhalten musst, ist `null` bedeutet verfügbar.") },
+        { line: 7, note: l("The refactor keeps the strict `=== null` check; a truthiness check would treat `''` as available.", "Das Refactoring behält den strengen `=== null`-Vergleich; eine Truthiness-Prüfung würde `''` als verfügbar werten.") },
+        { line: [8, 10], note: l("The empty string is the edge case that exposes a silent behaviour change between old and new.", "Der leere String ist der Randfall, der eine stille Verhaltensänderung zwischen alt und neu aufdeckt.") },
+      ] }],
     steps: [
       l('Before changing anything, add characterization tests that record the current behaviour of the code you will touch.', 'Vor jeder Änderung Charakterisierungstests ergänzen, die das aktuelle Verhalten des betroffenen Codes festhalten.'),
       l('Refactor in small commits; each commit must keep all tests green.', 'In kleinen Commits refaktorieren; jeder Commit muss alle Tests grün lassen.'),
@@ -181,7 +191,13 @@ test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
 | Client supplies a negative fee | compute fee on server | ignore submitted fee |
 
 Owner: name the reviewer before implementation.
-Open question: can an admin override a reservation, and who audits it?` }],
+Open question: can an admin override a reservation, and who audits it?`,
+      focus: [
+        { line: 2, note: l("The asset to protect comes first; every threat below is measured against it.", "Zuerst steht, was geschützt wird; jede Bedrohung unten misst sich daran.") },
+        { line: 6, note: l("Identity comes from the verified session, never from a field the client can forge.", "Die Identität kommt aus der verifizierten Session, nie aus einem Feld, das der Client fälschen kann.") },
+        { line: 7, note: l("The double-reservation threat gets an atomic conditional update, which a concurrency test can then verify.", "Die Doppelreservierung bekommt ein atomares bedingtes Update, das ein Concurrency-Test dann prüfen kann.") },
+        { line: 10, note: l("Without a named owner nobody turns these rows into tests, and the model goes stale.", "Ohne benannte Person macht niemand aus diesen Zeilen Tests, und das Modell veraltet.") },
+      ] }],
     steps: [
       l('Draw the data flow of one feature (e.g. reserving a pet): actors, processes, data stores, trust boundaries.', 'Den Datenfluss einer Funktion zeichnen (z. B. Tier reservieren): Akteure, Prozesse, Datenspeicher, Vertrauensgrenzen.'),
       l('For each element, walk through STRIDE (spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege).', 'Für jedes Element STRIDE durchgehen (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege).'),

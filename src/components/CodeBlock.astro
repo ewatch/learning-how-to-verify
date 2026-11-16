@@ -1,10 +1,109 @@
 ---
 import { t } from '../i18n/ui';
-import type { Locale } from '../data/types';
-interface Props { code: string; file?: string; lang: Locale; id: string }
-const { code, file, lang, id } = Astro.props;
+import { inline } from '../lib/inline';
+import type { Locale, Focus } from '../data/types';
+interface Props { code: string; file?: string; lang: Locale; id: string; focus?: Focus[] }
+const { code, file, lang, id, focus } = Astro.props;
+const NUMS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
+const lines = code.split('\n');
+const range = (f: Focus): [number, number] => (Array.isArray(f.line) ? f.line : [f.line, f.line]);
+// line number (1-based) -> focus index (first one wins) and which line carries the badge
+const owner = new Map<number, number>();
+const first = new Map<number, number>();
+(focus ?? []).forEach((f, i) => {
+  const [a, b] = range(f);
+  first.set(a, i);
+  for (let n = a; n <= b; n++) if (!owner.has(n)) owner.set(n, i);
+});
+const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${lang === 'de' ? 'Zeile' : 'Line'} ${a}` : `${lang === 'de' ? 'Zeilen' : 'Lines'} ${a}–${b}`; };
 ---
-<div class="codeblock">
-  <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button></div>
-  <pre id={id} tabindex="0"><code>{code}</code></pre>
-</div>
+{!focus?.length ? (
+  <div class="codeblock">
+    <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button></div>
+    <pre id={id} tabindex="0"><code>{code}</code></pre>
+  </div>
+) : (
+  <div class="codeblock fc" data-fc data-total={focus.length}>
+    <div class="head">
+      <span>{file ?? ''}</span>
+      <span class="actions">
+        <button type="button" class="btn ghost sm" data-fc-start hidden>{t(lang, 'walkthrough')}</button>
+        <button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button>
+      </span>
+    </div>
+    <pre id={id} hidden>{code}</pre>
+    <pre tabindex="0" class="view" aria-label={file ?? undefined}><code>{lines.map((ln, i) => {
+      const n = i + 1;
+      const o = owner.get(n);
+      const b = first.get(n);
+      return <span class={`ln${o !== undefined ? ' f' : ''}`} data-f={o} data-n={b !== undefined ? NUMS[b] : undefined}>{ln}</span>;
+    })}</code></pre>
+    <ol class="notes" aria-label={t(lang, 'whatToLookAt')}>
+      {focus.map((f, i) => <li data-note={i} data-n={NUMS[i]}><span class="where">{lineLabel(f)}</span> <span set:html={inline(f.note[lang])} /></li>)}
+    </ol>
+    <div class="guide" data-fc-guide hidden role="group" aria-label={t(lang, 'walkthrough')}>
+      <div class="gnote" data-fc-note aria-live="polite" aria-atomic="true"></div>
+      <div class="gctl">
+        <button type="button" class="btn ghost sm" data-fc-prev>{t(lang, 'prevStep')}</button>
+        <span class="count" data-fc-count aria-hidden="true"></span>
+        <button type="button" class="btn sm" data-fc-next>{t(lang, 'nextStep')}</button>
+        <button type="button" class="btn ghost sm" data-fc-close>{t(lang, 'closeWalkthrough')}</button>
+      </div>
+    </div>
+  </div>
+)}
+<style>
+  .actions { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .view code { display: block; width: max-content; min-width: 100%; }
+  .ln { display: block; min-height: 1.5em; padding-left: 1.9em; margin-left: -12px; border-left: 3px solid transparent; position: relative; transition: opacity .2s, background-color .2s; }
+  .ln.f { background: color-mix(in srgb, var(--c, var(--link)) 13%, transparent); border-left-color: var(--c, var(--link)); }
+  .ln[data-n]::before { content: attr(data-n); position: absolute; left: .35em; top: 0; font-family: var(--font-sans, inherit); font-size: .95rem; line-height: 1.5; font-weight: 700; color: var(--c, var(--link)); }
+  .notes { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; font-size: .92rem; }
+  .notes li { display: grid; grid-template-columns: 1.6em 1fr; column-gap: 6px; }
+  .notes li::before { content: attr(data-n); font-weight: 700; color: var(--c, var(--link)); grid-row: 1; grid-column: 1; }
+  .notes li > * { grid-column: 2; }
+  .where { font: 500 .78rem var(--font-mono); color: var(--ink-3); }
+  .guide { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--rule); border-left: 3px solid var(--c, var(--link)); border-radius: var(--radius); background: var(--card); }
+  .gnote { font-size: .95rem; min-height: 2.6em; }
+  .gctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .count { font: 500 .85rem var(--font-mono); color: var(--ink-2); min-width: 3.5em; text-align: center; }
+  .fc.guided .notes { display: none; }
+  .fc.guided .ln.f:not(.on), .fc.guided .ln:not(.f) { opacity: .4; }
+  .fc.guided .ln.f:not(.on) { background: transparent; border-left-color: transparent; }
+  .fc.guided .ln.on { background: color-mix(in srgb, var(--c, var(--link)) 24%, transparent); }
+  @media (prefers-reduced-motion: reduce) { .ln { transition: none; } }
+</style>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-fc]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const start = $<HTMLButtonElement>('[data-fc-start]');
+    const guide = $('[data-fc-guide]');
+    const noteEl = $('[data-fc-note]');
+    const count = $('[data-fc-count]');
+    const prev = $<HTMLButtonElement>('[data-fc-prev]');
+    const next = $<HTMLButtonElement>('[data-fc-next]');
+    const notes = [...root.querySelectorAll<HTMLElement>('[data-note]')];
+    const total = notes.length;
+    const of = document.documentElement.lang === 'de' ? 'von' : 'of';
+    let step = 0;
+    const show = () => {
+      root.querySelectorAll('.ln').forEach((l) => l.classList.toggle('on', (l as HTMLElement).dataset.f === String(step)));
+      noteEl.innerHTML = notes[step].innerHTML;
+      count.textContent = `${step + 1} / ${total}`;
+      count.setAttribute('aria-label', `${step + 1} ${of} ${total}`);
+      prev.disabled = step === 0;
+      next.disabled = step === total - 1;
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      root.querySelector('.ln.on')?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    };
+    const open = () => { root.classList.add('guided'); guide.hidden = false; start.setAttribute('aria-expanded', 'true'); step = 0; show(); next.focus(); };
+    const close = () => { root.classList.remove('guided'); guide.hidden = true; start.setAttribute('aria-expanded', 'false'); root.querySelectorAll('.ln.on').forEach((l) => l.classList.remove('on')); start.focus(); };
+    start.hidden = false;
+    start.setAttribute('aria-expanded', 'false');
+    start.addEventListener('click', open);
+    prev.addEventListener('click', () => { if (step > 0) { step--; show(); } });
+    next.addEventListener('click', () => { if (step < total - 1) { step++; show(); } });
+    $('[data-fc-close]').addEventListener('click', close);
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('guided')) { e.stopPropagation(); close(); } });
+  }
+</script>

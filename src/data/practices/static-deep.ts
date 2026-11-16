@@ -54,7 +54,7 @@ test('shares always add up exactly to the discount, and none exceeds its weight'
       shares.forEach((s, i) => expect(s).toBeLessThanOrEqual(weights[i]));
     },
   ));
-});` },
+});`, focus: [{ line: [6,8], note: l('The generators throw many random inputs at the code, including edge cases you would never write by hand.', 'Die Generatoren schicken viele Zufallseingaben an den Code, auch Randfälle, die du nie von Hand schreiben würdest.') }, { line: 11, note: l('Build valid inputs by construction; filtering them away would waste runs and hide what is actually tested.', 'Gültige Eingaben direkt konstruieren; Herausfiltern würde Läufe verschwenden und verschleiern, was wirklich getestet wird.') }, { line: 13, note: l('This is the property: the shares always add up exactly, so no cent is lost or invented by rounding.', 'Das ist die Eigenschaft: Die Anteile ergeben immer genau die Summe, kein Cent geht durch Rundung verloren oder entsteht neu.') }, { line: 14, note: l('A second invariant in the same test: no share may exceed its weight.', 'Eine zweite Invariante im selben Test: Kein Anteil darf sein Gewicht überschreiten.') }] },
       { lang: 'python', file: 'test_allocate.py', code: `from hypothesis import given, strategies as st
 from allocate import allocate
 
@@ -64,7 +64,7 @@ def test_shares_add_up(weights, raw):
     amount = 0 if total == 0 else raw % (total + 1)
     shares = allocate(amount, weights)
     assert sum(shares) == (0 if total == 0 else amount)
-    assert all(s <= w for s, w in zip(shares, weights))` },
+    assert all(s <= w for s, w in zip(shares, weights))`, focus: [{ line: 4, note: l('The strategies define the input space; a failing input is shrunk to a minimal counterexample.', 'Die Strategies legen den Eingaberaum fest; eine fehlschlagende Eingabe wird auf ein minimales Gegenbeispiel verkleinert.') }, { line: 7, note: l('Derive a valid amount from the generated one instead of rejecting inputs, so no runs are wasted.', 'Leite einen gültigen Betrag aus dem generierten ab, statt Eingaben zu verwerfen, damit keine Läufe verschwendet werden.') }, { line: 9, note: l('The property itself: shares sum to the amount, whatever the weights are.', 'Die Eigenschaft selbst: Die Anteile ergeben den Betrag, egal wie die Gewichte aussehen.') }, { line: 10, note: l('The bound is checked on every generated case, not on three hand-picked ones.', 'Die Grenze wird bei jedem generierten Fall geprüft, nicht nur bei drei handverlesenen.') }] },
       { lang: 'php', file: 'AllocateTest.php', code: `<?php declare(strict_types=1);
 // composer require --dev phpunit/phpunit giorgiosironi/eris
 use Eris\\Generators;
@@ -93,7 +93,7 @@ final class AllocateTest extends TestCase
             }
         });
     }
-}` },
+}`, focus: [{ line: [13,16], note: l('Generators define the input space; the third range is wider so the modulo can reach every amount.', 'Generatoren legen den Eingaberaum fest; der dritte Bereich ist breiter, damit das Modulo jeden Betrag erreichen kann.') }, { line: 22, note: l('assertSame compares exactly: the shares must add up to the amount, with no rounding drift.', 'assertSame vergleicht exakt: Die Anteile müssen den Betrag ergeben, ohne Rundungsdrift.') }, { line: [24,25], note: l('Bounds on every share: never negative, never above its weight. Violations point to an allocation bug.', 'Grenzen für jeden Anteil: nie negativ, nie über seinem Gewicht. Verstöße deuten auf einen Fehler in der Verteilung.') }] },
     ],
     steps: [
       l('Pick one function with clear rules (parser, calculation, data transformation).', 'Eine Funktion mit klaren Regeln wählen (Parser, Berechnung, Datentransformation).'),
@@ -162,7 +162,7 @@ module.exports.fuzz = (data) => {
     if (e instanceof SearchSyntaxError) return; // expected rejection
     throw e;                                    // anything else is a finding
   }
-};` },
+};`, focus: [{ line: 4, note: l('The fuzzer, not you, chooses the hostile inputs: this function receives arbitrary bytes.', 'Der Fuzzer, nicht du, wählt die feindlichen Eingaben: Diese Funktion bekommt beliebige Bytes.') }, { line: [8,9], note: l('Round-trip is the oracle: no expected output needed, only that print then parse gives the same query back.', 'Der Round-Trip ist das Orakel: Keine erwartete Ausgabe nötig, nur dass print und parse dieselbe Query zurückliefern.') }, { line: 11, note: l('A clean syntax error is the parser doing its job, not a bug.', 'Ein sauberer Syntaxfehler ist der Parser bei seiner Arbeit, kein Bug.') }, { line: 12, note: l('Anything else, such as a crash or a hang, is a finding. This rethrow turns it into a report.', 'Alles andere, etwa ein Absturz, ist ein Fund. Dieses Weiterwerfen macht daraus einen Bericht.') }] },
       { lang: 'go', file: 'search_test.go', code: `func FuzzParseSearch(f *testing.F) {
     f.Add("flat -category:fish price<50")
     f.Fuzz(func(t *testing.T, q string) {
@@ -173,7 +173,7 @@ module.exports.fuzz = (data) => {
         }
     })
 }
-// go test -fuzz=FuzzParseSearch` },
+// go test -fuzz=FuzzParseSearch`, focus: [{ line: 2, note: l('Seeds give the fuzzer a realistic starting point to mutate instead of random noise.', 'Seeds geben dem Fuzzer einen realistischen Startpunkt zum Mutieren statt reinem Rauschen.') }, { line: 5, note: l('Rejecting bad input is fine; only crashes and wrong behaviour count as failures.', 'Schlechte Eingaben abzulehnen ist in Ordnung; nur Abstürze und falsches Verhalten zählen als Fehler.') }, { line: [6,8], note: l('The oracle: whatever the parser accepts must survive printing and parsing again.', 'Das Orakel: Was der Parser akzeptiert, muss Ausgeben und erneutes Parsen überstehen.') }] },
     ],
     steps: [
       l('Pick the code that handles untrusted input (parser, decoder, request handler).', 'Den Code wählen, der nicht vertrauenswürdige Eingaben verarbeitet (Parser, Decoder, Request-Handler).'),
@@ -234,11 +234,11 @@ module.exports.fuzz = (data) => {
   "mutate": ["src/domain/**/*.ts"],
   "thresholds": { "high": 90, "low": 75, "break": 70 },
   "incremental": true
-}` },
+}`, focus: [{ line: 2, note: l('Only mutate the domain code; mutating everything wastes time on code that carries no business rules.', 'Nur den Domain-Code mutieren; alles zu mutieren verschwendet Zeit an Code ohne Geschäftsregeln.') }, { line: 4, note: l('The break threshold fails the build when too many mutants survive, meaning the tests are too weak.', 'Die Schwelle break lässt den Build fehlschlagen, wenn zu viele Mutanten überleben, die Tests also zu schwach sind.') }, { line: 5, note: l('Incremental reuses earlier results so reruns stay fast enough to run on every change.', 'Incremental nutzt frühere Ergebnisse wieder, damit Wiederholungen schnell genug für jede Änderung bleiben.') }] },
       { lang: 'python', file: 'pyproject.toml', code: `[tool.mutmut]
 paths_to_mutate = ["src/domain/"]
 tests_dir = ["tests/"]
-# run:   mutmut run && mutmut results` },
+# run:   mutmut run && mutmut results`, focus: [{ line: 2, note: l('Limit mutation to the code that holds the rules, such as reservation logic.', 'Mutation auf den Code mit den Regeln beschränken, etwa die Reservierungslogik.') }, { line: 3, note: l('The mutants are run against these tests; a survivor means no test noticed the change.', 'Die Mutanten laufen gegen diese Tests; ein Überlebender heißt, kein Test hat die Änderung bemerkt.') }, { line: 4, note: l('Read the surviving mutants, not just the score: each one names a behaviour no test pins down.', 'Lies die überlebenden Mutanten, nicht nur den Score: Jeder nennt ein Verhalten, das kein Test festlegt.') }] },
     ],
     steps: [
       l('Run the mutation tool on the domain logic only (not UI glue) and note the score and surviving mutants.', 'Das Mutationswerkzeug nur auf der Fachlogik ausführen (nicht auf UI-Klebecode) und Score sowie überlebende Mutanten notieren.'),
@@ -296,7 +296,7 @@ export default defineConfig({
       thresholds: { statements: 90, branches: 90 },
     },
   },
-});` }],
+});`, focus: [{ line: 6, note: l('Measure only the code you care about; including everything dilutes the number.', 'Nur den relevanten Code messen; alles einzubeziehen verwässert die Zahl.') }, { line: 7, note: l('The report lists the uncovered lines: use it to find untested paths, not to chase a percentage.', 'Der Report listet die ungedeckten Zeilen: Nutze ihn, um ungetestete Pfade zu finden, nicht um einer Prozentzahl nachzujagen.') }, { line: 8, note: l('The threshold fails the run when too little code executes. It shows what ran, not what was checked.', 'Die Schwelle lässt den Lauf scheitern, wenn zu wenig Code läuft. Sie zeigt, was lief, nicht was geprüft wurde.') }] }],
     steps: [l('Enable branch coverage (not just line coverage) and generate a report.', 'Zweigabdeckung (nicht nur Zeilenabdeckung) aktivieren und einen Bericht erzeugen.'), l('List uncovered branches in domain logic and decide for each: add a test or delete the code.', 'Nicht abgedeckte Zweige in der Fachlogik auflisten und für jeden entscheiden: Test ergänzen oder Code löschen.'), l('Show coverage of the changed lines in pull requests; do not enforce a global percentage.', 'Die Abdeckung der geänderten Zeilen in Pull Requests anzeigen; keinen globalen Prozentsatz erzwingen.')],
     done: l('Every uncovered branch in domain logic is either tested or removed; PRs show diff coverage.', 'Jeder nicht abgedeckte Zweig in der Fachlogik ist getestet oder entfernt; PRs zeigen die Diff-Abdeckung.'),
     think: [
@@ -338,7 +338,7 @@ test('new pricing agrees with the old one on every cart', () => {
   fc.assert(fc.property(arbitraryCart(), arbitraryVoucher(), (cart, voucher) => {
     expect(priceCart(cart, voucher)).toEqual(priceCartOld(cart, voucher));
   }), { numRuns: 5_000 });
-});` },
+});`, focus: [{ line: [2,3], note: l('Both implementations stay in the codebase during the refactor; the old one is your oracle.', 'Beide Implementierungen bleiben während des Refactorings im Code; die alte ist dein Orakel.') }, { line: 6, note: l('The generators decide how nasty the inputs are: include odd carts and unknown vouchers.', 'Die Generatoren bestimmen, wie fies die Eingaben sind: Nimm ungewöhnliche Warenkörbe und unbekannte Gutscheine auf.') }, { line: 7, note: l('Any input where old and new differ is a behaviour change you must explain or fix.', 'Jede Eingabe, bei der alt und neu abweichen, ist eine Verhaltensänderung, die du erklären oder beheben musst.') }, { line: 8, note: l('More runs widen the search; 5,000 is a budget, not a proof.', 'Mehr Läufe weiten die Suche aus; 5.000 sind ein Budget, kein Beweis.') }] },
       { lang: 'php', file: 'PriceComparisonTest.php', code: `<?php declare(strict_types=1);
 use Eris\\Generators;
 use Eris\\TestTrait;
@@ -360,7 +360,7 @@ final class PriceComparisonTest extends TestCase
                 }
             });
     }
-}` },
+}`, focus: [{ line: 12, note: l('Generated prices cover far more cents than hand-picked examples, including rounding edges.', 'Generierte Preise decken weit mehr Cent-Beträge ab als handverlesene Beispiele, auch Rundungsränder.') }, { line: 14, note: l('Voucher variants include a lowercase spelling: exactly the kind of case a refactor silently changes.', 'Gutschein-Varianten enthalten eine Kleinschreibung: genau der Fall, den ein Refactoring unbemerkt ändert.') }, { line: [16,17], note: l('Old and new must agree exactly; a difference is a regression or a deliberate change to document.', 'Alt und neu müssen exakt übereinstimmen; eine Abweichung ist eine Regression oder eine bewusste, zu dokumentierende Änderung.') }] },
     ],
     steps: [l('Keep the old implementation (or a simple reference) importable next to the new one.', 'Die alte Implementierung (oder eine einfache Referenz) neben der neuen importierbar halten.'), l('Write one property: for generated inputs, both give the same result (or both reject).', 'Eine Eigenschaft schreiben: Für erzeugte Eingaben liefern beide dasselbe Ergebnis (oder lehnen beide ab).'), l('List intended differences explicitly and exclude only those.', 'Gewollte Unterschiede ausdrücklich auflisten und nur diese ausnehmen.')],
     done: l('The differential property passes 5,000+ runs; every intended difference is listed with a reason.', 'Die differenzielle Eigenschaft besteht 5.000+ Läufe; jeder gewollte Unterschied ist mit Begründung gelistet.'),
@@ -410,7 +410,7 @@ bench.add('look up the last pet with a set', () => {
   if (!index.has('pet-9999')) throw new Error('missing pet');
 });
 await bench.run();
-console.table(bench.table());` }],
+console.table(bench.table());`, focus: [{ line: 3, note: l('Realistic data size matters: array and set only differ noticeably at scale.', 'Eine realistische Datenmenge zählt: Array und Set unterscheiden sich erst bei großer Menge spürbar.') }, { line: 5, note: l('The throw ensures the lookup really works, so you never time a broken or optimised-away operation.', 'Das throw stellt sicher, dass die Suche wirklich funktioniert, sodass du keine kaputte oder wegoptimierte Operation misst.') }, { line: 7, note: l('The index is built outside the timed function, so only the lookup is compared.', 'Der Index wird außerhalb der gemessenen Funktion gebaut, sodass nur die Suche verglichen wird.') }, { line: 12, note: l('Compare the table across runs and machines; a single number says little.', 'Vergleiche die Tabelle über Läufe und Rechner hinweg; eine einzelne Zahl sagt wenig.') }] }],
     steps: [
       l('Write benchmarks for the 2–3 hottest functions with realistic input sizes, including a large one.', 'Benchmarks für die 2–3 heißesten Funktionen mit realistischen Eingabegrößen schreiben, darunter eine große.'), l('Store a baseline and fail when a change is more than X% slower on the same machine.', 'Eine Baseline speichern und scheitern, wenn eine Änderung auf derselben Maschine mehr als X % langsamer ist.'),
       l('Pin the environment (machine type, runtime version) and repeat each measurement several times before comparing.', 'Die Umgebung festlegen (Maschinentyp, Runtime-Version) und jede Messung mehrfach wiederholen, bevor verglichen wird.'),
@@ -463,7 +463,7 @@ export const options = {
 export default function () {
   http.get(\`\${__ENV.BASE_URL}/pets/rex\`);
   sleep(1);
-}` }],
+}`, focus: [{ line: 4, note: l('One virtual user for 30 seconds: this measures a latency baseline, not capacity.', 'Ein virtueller Nutzer für 30 Sekunden: Das misst eine Latenz-Basislinie, keine Kapazität.') }, { line: 6, note: l('The p95 threshold makes a slow change fail CI instead of being noticed by users.', 'Die p95-Schwelle lässt eine langsame Änderung in der CI scheitern, statt dass Nutzer sie bemerken.') }, { line: 7, note: l('Fast but failing is not fast: errors are a threshold too.', 'Schnell, aber fehlerhaft ist nicht schnell: Auch Fehler sind eine Schwelle.') }] }],
     steps: [
       l('Define targets for the critical endpoints (p95 latency, error rate, throughput).', 'Ziele für die kritischen Endpunkte festlegen (p95-Latenz, Fehlerrate, Durchsatz).'), l('Write a scripted workload and run it against a production-like environment with thresholds that fail the run.', 'Eine skriptbasierte Last schreiben und gegen eine produktionsähnliche Umgebung mit Schwellen laufen lassen, die den Lauf scheitern lassen.'),
       l('Seed the environment with production-sized, anonymised data and record the result for each release.', 'Die Umgebung mit produktionsgroßen, anonymisierten Daten füllen und das Ergebnis pro Release festhalten.'),
@@ -517,7 +517,7 @@ export default function () {
     { headers: { 'Content-Type': 'application/json' } },
   );
   check(res, { 'reserved or taken, never 5xx': (r) => r.status === 201 || r.status === 409 });
-}` }],
+}`, focus: [{ line: 6, note: l('Ramp up, then hold: the plateau is where queues, pools and locks show their limits.', 'Hochfahren und halten: Auf dem Plateau zeigen Warteschlangen, Pools und Locks ihre Grenzen.') }, { line: 7, note: l('These thresholds define "done": under load, p95 stays below 300 ms and almost nothing fails.', 'Diese Schwellen definieren „fertig“: Unter Last bleibt p95 unter 300 ms und fast nichts schlägt fehl.') }, { line: 13, note: l('All users compete for the same pet: that contention is what a double reservation needs.', 'Alle Nutzer konkurrieren um dasselbe Tier: Genau diese Konkurrenz braucht eine Doppelreservierung.') }, { line: 16, note: l('Both 201 and 409 are correct answers; a 5xx under contention is the bug.', '201 und 409 sind beide richtige Antworten; ein 5xx unter Konkurrenz ist der Fehler.') }] }],
     steps: [l('Script the main user journey with realistic think times and data.', 'Den Hauptablauf mit realistischen Pausen und Daten skripten.'), l('Ramp up to expected peak ×2 in a staging environment with thresholds for latency and errors.', 'In einer Staging-Umgebung auf erwartete Spitze ×2 hochfahren, mit Schwellen für Latenz und Fehler.'), l('After the run, check data invariants (no pet reserved twice).', 'Nach dem Lauf Dateninvarianten prüfen (kein Tier doppelt reserviert).')],
     done: l('The load test passes its thresholds at 2× expected peak, and the invariant check after the run is clean.', 'Der Lasttest erfüllt seine Schwellen bei 2× erwarteter Spitze, und die Invariantenprüfung danach ist sauber.'),
     think: [
@@ -567,7 +567,7 @@ export const options = {
 export default function () {
   http.get(\`\${__ENV.BASE_URL}/pets/rex\`);
   sleep(1);
-}` }],
+}`, focus: [{ line: 4, note: l('Constant VUs keep the load flat, so any trend in the metrics comes from the system, not the test.', 'Konstante VUs halten die Last gleich, sodass jeder Trend in den Metriken vom System kommt, nicht vom Test.') }, { line: 5, note: l('Two hours at modest load: leaks and slow degradation only show up with time, not volume.', 'Zwei Stunden bei mäßiger Last: Lecks und schleichende Verschlechterung zeigen sich erst mit der Zeit, nicht durch Menge.') }, { line: 7, note: l('The error threshold must hold at hour two as well as minute one.', 'Die Fehlerschwelle muss in Stunde zwei genauso halten wie in Minute eins.') }] }],
     steps: [
       l('Run the load script at ~60% of peak for 12–24 hours.', 'Das Lastskript mit ~60 % der Spitze für 12–24 Stunden laufen lassen.'), l('Track memory, open connections, queue length and latency over time; fail on a steady upward trend.', 'Speicher, offene Verbindungen, Warteschlangenlänge und Latenz über die Zeit verfolgen; bei stetigem Anstieg scheitern.'),
       l('Compare the start and end of the run, then find the cause of any trend with a heap snapshot or profile.', 'Anfang und Ende des Laufs vergleichen und die Ursache jedes Trends mit einem Heap-Snapshot oder Profil suchen.'),
@@ -616,7 +616,7 @@ deny contains msg if {
   not c.resources.limits.memory
   msg := sprintf("container %s has no memory limit", [c.name])
 }
-# conftest test k8s/*.yaml` }],
+# conftest test k8s/*.yaml`, focus: [{ line: 3, note: l('A deny rule turns a policy into a failing check, so a bad manifest cannot merge.', 'Eine deny-Regel macht aus einer Richtlinie eine fehlschlagende Prüfung, sodass ein schlechtes Manifest nicht gemergt wird.') }, { line: 6, note: l('Fires when the limit is missing: the unsafe default that otherwise lets one container eat the node.', 'Greift, wenn das Limit fehlt: der unsichere Default, mit dem sonst ein Container den ganzen Node auffrisst.') }, { line: 7, note: l('The message names the container and the problem, so the fix is obvious from the CI log.', 'Die Meldung nennt Container und Problem, sodass der Fix aus dem CI-Log offensichtlich ist.') }, { line: 9, note: l('Run this in CI against the files you actually deploy.', 'Führe das in der CI gegen die Dateien aus, die du tatsächlich ausrollst.') }] }],
     steps: [l('Validate every config file against a schema in CI.', 'Jede Konfigurationsdatei in der CI gegen ein Schema prüfen.'), l('Add 3–5 policies for rules that have bitten you (memory limits, no public buckets, sane timeouts).', '3–5 Policies für Regeln ergänzen, die schon wehgetan haben (Speicherlimits, keine öffentlichen Buckets, vernünftige Timeouts).'), l('Load the config in the app at startup in a test and fail on unknown keys.', 'Die Konfiguration in einem Test beim Start der App laden und bei unbekannten Schlüsseln scheitern.')],
     done: l('Config changes are schema- and policy-checked in CI; an unknown key or missing limit fails the build.', 'Konfigurationsänderungen werden in der CI gegen Schema und Policies geprüft; ein unbekannter Schlüssel oder fehlendes Limit lässt den Build scheitern.'),
     think: [

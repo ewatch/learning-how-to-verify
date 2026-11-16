@@ -5,14 +5,16 @@ Source: independent review of the build from 2026-11-16 (all 147 pages, 1,063 li
 
 ## P1 · Bugs (fix first)
 
-- [ ] **S** Run buttons stay disabled forever if the user changes options during a run: `formal.ts` (model checker), `pbt.ts`, `invariant.ts`. Re-enable in `render()`/`clear()` or use `try/finally` like `mutation.ts`.
-- [ ] **S** German headings overflow at 390 px (`/de/practices/threat-modeling/`, `tdd`, `snapshot-tests`): `h1 { overflow-wrap: anywhere; hyphens: auto }`.
-- [ ] **S** Mobile nav scrolls sideways and hides the language switch and theme toggle: pin both, or wrap the nav.
-- [ ] **S** Jazzer.js snippet (fuzz-tests): import `printSearch` and `SearchSyntaxError`.
-- [ ] **S** k6 snippet: add `Content-Type: application/json`. Contracts JS snippet: import `assert` (`node:assert/strict`).
-- [ ] **S** Model-checker lesson says "2 people" when 3–4 are selected.
-- [ ] **S** Simulator controls are read twice by screen readers (visible label plus legend): use `aria-labelledby`.
-- [ ] **S** "Human review" label overflows the tip of the mini funnel on practice pages.
+- [x] **S** Run buttons stay disabled forever if the user changes options during a run: `formal.ts` (model checker), `pbt.ts`, `invariant.ts`. Re-enabled in `render()`/`clear()`; cancellation checks after animation waits prevent stale output.
+- [x] **S** German headings overflow at 390 px (`/de/practices/threat-modeling/`, `tdd`, `snapshot-tests`): `h1 { overflow-wrap: anywhere; hyphens: auto }`.
+- [x] **S** Mobile nav scrolls sideways and hides the language switch and theme toggle: pin both, or wrap the nav.
+- [x] **S** Jazzer.js snippet (fuzz-tests): import `printSearch` and `SearchSyntaxError`.
+- [x] **S** k6 snippet: add `Content-Type: application/json`. Contracts JS snippet: import `assert` (`node:assert/strict`).
+- [x] **S** Model-checker lesson says "2 people" when 3–4 are selected.
+- [x] **S** Simulator controls are read twice by screen readers (visible label plus legend): use `aria-labelledby`.
+- [x] **S** "Human review" label overflows the tip of the mini funnel on practice pages.
+
+Completed on branch `fix/p1-review`. Browser probes reproduced all three stuck-button bugs before the fix and checked cancellation, reruns, selected people counts, group labels and 390 px layout in EN/DE afterward. Full `npm run ci`: 206 unit/data/property tests, 147 built pages and 30 browser tests passed. Existing tests were unchanged. Snippets were checked structurally; their external application dependencies were not run.
 
 ## P2 · Honesty of the evidence
 

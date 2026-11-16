@@ -76,6 +76,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   }
   function render() {
     S.run++;
+    runBtn.disabled = false;
     code.replaceChildren(listing(S.v));
     desc.replaceChildren(...rich(S.v.desc[lang]), ...(S.v.removedInvariant ? [' ', ...rich(t.removed)] : []));
     obls.replaceChildren(...OBLIGATIONS.map((o) => h('div', { class: 'sim-card', 'data-k': o.key },
@@ -91,6 +92,7 @@ export function mount(root: HTMLElement, lang: Lang) {
     const errors: { line: number; code: FailureCode }[] = [];
     runBtn.disabled = true;
     for (const o of OBLIGATIONS) {
+      if (id !== S.run) return;
       const card = obls.querySelector<HTMLElement>(`[data-k="${o.key}"]`)!;
       const pillBox = card.querySelector('.sim-card-title')!;
       const setPill = (el: HTMLElement) => { pillBox.lastElementChild!.replaceWith(el); };
@@ -115,6 +117,7 @@ export function mount(root: HTMLElement, lang: Lang) {
         st.textContent = `${checked.toLocaleString(lang)} ${t.relevant} · ${o.key === 'init' ? fmtA(s as Arr) : fmtS(...(s as State))}`;
         if (per < space.length) await sleep(16);
       }
+      if (id !== S.run) return;
       if (fail) {
         setPill(pill('bad', t.failed));
         card.querySelector('.cex')!.replaceChildren(h('strong', { style: 'color:var(--bad)' }, t.cex), ' ', h('code', {}, cexText(fail, lang)));
@@ -125,6 +128,7 @@ export function mount(root: HTMLElement, lang: Lang) {
       }
       if (!reducedMotion()) await sleep(250);
     }
+    if (id !== S.run) return;
     code.replaceChildren(listing(v, errors.map((e) => e.line)));
     const lines = ['$ dafny verify max.dfy', ...errors.map((e) => `max.dfy(${e.line + 1}): Error: ${DAFNY[e.code]}`), '', `Dafny program verifier finished with ${OBLIGATIONS.length - errors.length} verified, ${t.errors(errors.length)}`];
     term.replaceChildren(...lines.map((l, i) => h('span', { class: l.includes('Error:') || (i === lines.length - 1 && errors.length) ? 'bad' : i === lines.length - 1 ? 'ok' : '' }, l + '\n')));

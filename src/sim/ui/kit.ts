@@ -95,7 +95,7 @@ export { rng } from '../engine/rng';
 /** A segmented control (radio group) */
 export function segmented<T extends string>(label: string, options: { value: T; label: string }[], value: T, onChange: (v: T) => void): HTMLElement {
   const name = `seg-${Math.random().toString(36).slice(2)}`;
-  const g = h('fieldset', { class: 'sim-seg' }, h('legend', { class: 'visually-hidden' }, label));
+  const g = h('fieldset', { class: 'sim-seg', 'aria-labelledby': `${name}-label` }, h('legend', { id: `${name}-label`, class: 'small muted' }, label));
   for (const o of options) {
     const id = `${name}-${o.value}`;
     const input = h('input', { type: 'radio', name, id, value: o.value, checked: o.value === value, onchange: () => onChange(o.value) });

@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 dist/
 .astro/
 .DS_Store
@@ -11,3 +11,4 @@ vendor/**/.tmp/
 vendor/**/reports/
 .env
 *.log
+.worktrees/

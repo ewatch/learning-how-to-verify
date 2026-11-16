@@ -38,7 +38,7 @@ export function mount(root: HTMLElement, lang: Lang) {
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
-    h('div', { class: 'sim-row' }, h('span', { class: 'small muted' }, t.target), seg),
+    h('div', { class: 'sim-row' }, seg),
     pctRow,
     h('div', { class: 'sim-row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.incident = true; render(); } }, `⚡ ${t.incident}`), killBtn),
     h('div', { class: 'sim-card' },

@@ -40,7 +40,7 @@ export function mount(root: HTMLElement, lang: Lang) {
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
-    h('div', { class: 'sim-row' }, h('span', { class: 'small muted' }, t.bug), segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b] })), S.bug, (v) => { S.bug = v; reset(); })),
+    h('div', { class: 'sim-row' }, segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b] })), S.bug, (v) => { S.bug = v; reset(); })),
     h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { S.biz = (e.target as HTMLInputElement).checked; reset(); } }), t.biz),
     h('div', { class: 'sim-row' }, startBtn),
     h('div', { class: 'sim-card' }, svg),

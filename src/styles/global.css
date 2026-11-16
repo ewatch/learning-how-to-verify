@@ -132,7 +132,7 @@ a { color: var(--link); text-underline-offset: 0.18em; text-decoration-thickness
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
 h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.5em; font-optical-sizing: auto; }
-h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); font-weight: 650; letter-spacing: -0.02em; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); font-weight: 650; letter-spacing: -0.02em; overflow-wrap: anywhere; hyphens: auto; }
 h2 { font-size: clamp(1.45rem, 3vw, 1.9rem); margin-top: 0; }
 h3 { font-size: 1.2rem; }
 p { margin: 0 0 1em; }
@@ -164,7 +164,7 @@ button { font: inherit; color: inherit; }
 @media (max-width: 760px) {
   .site-header { position: static; }
   .site-header .wrap { padding-top: 8px; padding-bottom: 8px; }
-  .nav { margin-left: 0; width: calc(100% + 2 * var(--gutter)); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .nav { margin-left: 0; width: 100%; flex-wrap: wrap; }
   .nav a, .nav button { white-space: nowrap; }
 }
 

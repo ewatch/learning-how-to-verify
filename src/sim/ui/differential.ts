@@ -32,7 +32,7 @@ export function mount(root: HTMLElement, lang: Lang) {
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
-    h('div', { class: 'sim-row' }, h('span', { class: 'small muted' }, t.neu), segmented(t.neu, NEW.map((n) => ({ value: n.id, label: t.versions[n.id as keyof typeof t.versions] })), S.v, (v) => { S.v = v; render(); out.replaceChildren(); })),
+    h('div', { class: 'sim-row' }, segmented(t.neu, NEW.map((n) => ({ value: n.id, label: t.versions[n.id as keyof typeof t.versions] })), S.v, (v) => { S.v = v; render(); out.replaceChildren(); })),
     h('div', { class: 'sim-cols' },
       h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, t.old), codeView(OLD.code)),
       h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, t.neu), newCode)),

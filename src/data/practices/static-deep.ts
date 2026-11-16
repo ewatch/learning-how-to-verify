@@ -118,7 +118,7 @@ def test_shares_add_up(weights, raw):
     sim: 'fuzz',
     snippets: [
       { lang: 'js', file: 'search.fuzz.js', code: `// npx jazzer search.fuzz.js
-const { parseSearch } = require('./search');
+const { parseSearch, printSearch, SearchSyntaxError } = require('./search');
 
 module.exports.fuzz = (data) => {
   const query = data.toString('utf8');
@@ -346,7 +346,11 @@ export const options = {
 };
 
 export default function () {
-  const res = http.post(\`\${__ENV.BASE_URL}/api/reservations\`, JSON.stringify({ petId: 'rex', person: \`u\${__VU}\` }));
+  const res = http.post(
+    \`\${__ENV.BASE_URL}/api/reservations\`,
+    JSON.stringify({ petId: 'rex', person: \`u\${__VU}\` }),
+    { headers: { 'Content-Type': 'application/json' } },
+  );
   check(res, { 'reserved or taken, never 5xx': (r) => r.status === 201 || r.status === 409 });
 }` }],
     steps: [l('Script the main user journey with realistic think times and data.', 'Den Hauptablauf mit realistischen Pausen und Daten skripten.'), l('Ramp up to expected peak ×2 in a staging environment with thresholds for latency and errors.', 'In einer Staging-Umgebung auf erwartete Spitze ×2 hochfahren, mit Schwellen für Latenz und Fehler.'), l('After the run, check data invariants (no pet reserved twice).', 'Nach dem Lauf Dateninvarianten prüfen (kein Tier doppelt reserviert).')],

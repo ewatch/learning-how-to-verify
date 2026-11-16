@@ -38,8 +38,8 @@ export function mount(root: HTMLElement, lang: Lang) {
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
-    h('div', { class: 'sim-row' }, h('span', { class: 'small muted' }, t.impl), segmented(t.impl, (Object.keys(IMPLS) as (keyof typeof IMPLS)[]).map((k) => ({ value: k, label: t.impls[k as keyof typeof t.impls] })), S.impl, (v) => { S.impl = v; renderCode(); clear(); })),
-    h('div', { class: 'sim-row' }, h('span', { class: 'small muted' }, t.prop), segmented(t.prop, PROPERTIES.map((p) => ({ value: p.id, label: t.props[p.id as keyof typeof t.props] })), S.prop, (v) => { S.prop = v; clear(); })),
+    h('div', { class: 'sim-row' }, segmented(t.impl, (Object.keys(IMPLS) as (keyof typeof IMPLS)[]).map((k) => ({ value: k, label: t.impls[k as keyof typeof t.impls] })), S.impl, (v) => { S.impl = v; renderCode(); clear(); })),
+    h('div', { class: 'sim-row' }, segmented(t.prop, PROPERTIES.map((p) => ({ value: p.id, label: t.props[p.id as keyof typeof t.props] })), S.prop, (v) => { S.prop = v; clear(); })),
     codeBox,
     h('div', { class: 'sim-row' }, runBtn, h('label', { class: 'inline' }, t.seed, seedInput), h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { S.seed = Math.floor(Math.random() * 1e6); seedInput.value = String(S.seed); } }, t.newSeed)),
     result,
@@ -49,7 +49,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   ));
 
   function renderCode() { codeBox.replaceChildren(codeView(IMPLS[S.impl].code)); }
-  function clear() { S.run++; log.replaceChildren(); shrinkLog.replaceChildren(); result.hidden = true; }
+  function clear() { S.run++; runBtn.disabled = false; log.replaceChildren(); shrinkLog.replaceChildren(); result.hidden = true; }
 
   async function run() {
     clear();
@@ -65,6 +65,7 @@ export function mount(root: HTMLElement, lang: Lang) {
       log.scrollTop = log.scrollHeight;
       if (!fast && i % 2 === 0) await sleep(25);
     }
+    if (id !== S.run) return;
     if (r.failure) {
       for (const [i, s] of r.failure.steps.entries()) {
         if (id !== S.run) return;
@@ -72,6 +73,7 @@ export function mount(root: HTMLElement, lang: Lang) {
         shrinkLog.scrollTop = shrinkLog.scrollHeight;
         if (!fast) await sleep(140);
       }
+      if (id !== S.run) return;
       const m = r.failure.minimal;
       result.className = 'sim-callout bad';
       result.replaceChildren(h('p', {}, h('strong', {}, t.failed(r.failure.runs))), h('p', {}, `${t.minimal}: `, h('code', {}, `allocate(${m.amount}, [${m.weights.join(', ')}])`), ' → ', h('code', {}, `[${r.failure.out.join(', ')}]`)), h('p', {}, t.explainFail));

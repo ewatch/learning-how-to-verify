@@ -4,16 +4,17 @@ import { LAYERS, PHASES, COST_LABEL, FEEDBACK_LABEL } from '../data/taxonomy';
 import { t, href } from '../i18n/ui';
 interface Props { p: Practice; lang: Locale }
 const { p, lang } = Astro.props;
-const W = 160, BAND = 22;
-const hw = (y: number) => 78 - (78 - 14) * (y / (BAND * 5));
+const W = 250, BAND = 22, CENTER = 55;
+const hw = (y: number) => 54 - (54 - 10) * (y / (BAND * 5));
 ---
 <div class="where">
   <a class="mini" href={href(lang, `#layer-${p.layer}`)} aria-label={`${t(lang, 'layer')}: ${LAYERS.find((l) => l.id === p.layer)!.name[lang]}`}>
-    <svg viewBox={`0 0 ${W} ${BAND * 5 + 2}`} width="160" aria-hidden="true">
+    <svg viewBox={`0 0 ${W} ${BAND * 5 + 2}`} width={W} aria-hidden="true">
       {LAYERS.map((l, i) => {
         const y0 = i * BAND + 1, y1 = y0 + BAND, a = hw(y0), b = hw(y1), on = l.id === p.layer;
-        return <g><path d={`M${80 - a} ${y0} L${80 + a} ${y0} L${80 + b} ${y1} L${80 - b} ${y1} Z`} fill={on ? `var(--l-${l.id})` : 'var(--card)'} stroke="var(--ink-2)" stroke-width="1" />
-          <text x="80" y={y0 + 15} text-anchor="middle" font-size="10" fill={on ? 'var(--paper)' : 'var(--ink-3)'} font-weight={on ? 700 : 400}>{l.name[lang]}</text></g>;
+        return <g><path d={`M${CENTER - a} ${y0} L${CENTER + a} ${y0} L${CENTER + b} ${y1} L${CENTER - b} ${y1} Z`} fill={on ? `var(--l-${l.id})` : 'var(--card)'} stroke="var(--ink-2)" stroke-width="1" />
+          <line x1={CENTER + hw(y0 + BAND / 2)} x2="118" y1={y0 + BAND / 2} y2={y0 + BAND / 2} stroke="var(--rule-strong)" />
+          <text x="125" y={y0 + 15} font-size="11" fill={on ? 'var(--ink)' : 'var(--ink-3)'} font-weight={on ? 700 : 400}>{l.name[lang]}</text></g>;
       })}
     </svg>
   </a>

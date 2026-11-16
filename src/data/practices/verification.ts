@@ -104,7 +104,9 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
     variants: [{ name: l('Runtime verification', 'Laufzeitverifikation'), text: l('Check production logs or traces against a formal spec (e.g. AWS checks logs against P specifications).', 'Produktionslogs oder Traces gegen eine formale Spezifikation prüfen (z. B. prüft AWS Logs gegen P-Spezifikationen).') }],
     tools: { js: ['zod'], python: ['icontract', 'deal', 'crosshair'], java: ['openjml'], rust: ['kani', 'prusti'], cpp: ['gsl'], any: ['dafny'] },
     snippets: [
-      { lang: 'js', file: 'allocate.ts', code: `export function allocate(amount: number, weights: number[]): number[] {
+      { lang: 'js', file: 'allocate.ts', code: `import assert from 'node:assert/strict';
+
+export function allocate(amount: number, weights: number[]): number[] {
   const total = weights.reduce((a, b) => a + b, 0);
   assert(Number.isInteger(amount) && amount >= 0 && amount <= total, 'pre: 0 <= amount <= total');
   const shares = /* ... */ computeShares(amount, weights, total);

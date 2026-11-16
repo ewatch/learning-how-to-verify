@@ -362,18 +362,21 @@ final class PriceComparisonTest extends TestCase
     ai: l('Agents optimise for "tests pass", not for speed, and readily write quadratic loops. A benchmark with a regression threshold makes performance part of "done".', 'Agenten optimieren auf „Tests grün“, nicht auf Geschwindigkeit, und schreiben bereitwillig quadratische Schleifen. Ein Benchmark mit Regressionsschwelle macht Performance zum Teil von „fertig“.'),
     evidence: { general: ev('weak', f('jin2012', 'A study of 109 real performance bugs showed recurring patterns; rules extracted from 25 fixes found 332 previously unknown performance problems.', 'Eine Studie über 109 echte Performancefehler zeigte wiederkehrende Muster; aus 25 Korrekturen abgeleitete Regeln fanden 332 unbekannte Performanceprobleme.')), ai: none() },
     tools: { php: ['phpbench'], js: ['tinybench', 'vitest'], python: ['pytest-benchmark'], java: ['jmh'], dotnet: ['benchmarkdotnet'], go: ['go-bench'], rust: ['criterion'], cpp: ['google-benchmark'], any: ['hyperfine'] },
-    snippets: [{ lang: "js", file: "reserve.bench.ts",
-      description: l("Run npx vitest bench with Vitest installed. Compare the same workload before and after a change. A microbenchmark of in-memory allocation does not measure database latency.",
-        "Mit installiertem Vitest npx vitest bench starten. Denselben Workload vor und nach einer Änderung vergleichen. Ein Microbenchmark für In-memory-Allokation misst keine Datenbanklatenz."),
-      code: `import { bench } from 'vitest';
+    snippets: [{ lang: "js", file: "reserve.bench.mjs",
+      description: l("Install tinybench, then run node reserve.bench.mjs. Compare the same workload before and after a change. This benchmark measures lookups in existing collections; it excludes index construction and database latency.",
+        "tinybench installieren, dann node reserve.bench.mjs starten. Denselben Workload vor und nach einer Änderung vergleichen. Dieser Benchmark misst Lookups in vorhandenen Collections; Indexaufbau und Datenbanklatenz sind nicht enthalten."),
+      code: `import { Bench } from 'tinybench';
+const bench = new Bench({ time: 100 });
 const ids = Array.from({ length: 10_000 }, (_, i) => \`pet-\${i}\`);
-bench('look up the last pet with an array', () => {
+bench.add('look up the last pet with an array', () => {
   if (!ids.includes('pet-9999')) throw new Error('missing pet');
 });
 const index = new Set(ids);
-bench('look up the last pet with a set', () => {
+bench.add('look up the last pet with a set', () => {
   if (!index.has('pet-9999')) throw new Error('missing pet');
-});` }],
+});
+await bench.run();
+console.table(bench.table());` }],
     steps: [l('Write benchmarks for the 2–3 hottest functions with realistic input sizes, including a large one.', 'Benchmarks für die 2–3 heißesten Funktionen mit realistischen Eingabegrößen schreiben, darunter eine große.'), l('Store a baseline and fail when a change is more than X% slower on the same machine.', 'Eine Baseline speichern und scheitern, wenn eine Änderung auf derselben Maschine mehr als X % langsamer ist.')],
     done: l('Benchmarks run reproducibly; a deliberately quadratic change is flagged as a regression.', 'Benchmarks laufen reproduzierbar; eine absichtlich quadratische Änderung wird als Regression gemeldet.'),
     think: [q('Your search benchmark uses 10 pets. Why might it miss the regression that hurts production?', 'Dein Such-Benchmark nutzt 10 Tiere. Warum übersieht er womöglich die Regression, die in Produktion weh tut?', 'At n = 10, O(n) and O(n²) look the same. Benchmark at production sizes, or at several sizes to see the growth curve.', 'Bei n = 10 sehen O(n) und O(n²) gleich aus. In Produktionsgrößen messen, oder in mehreren Größen, um die Wachstumskurve zu sehen.')],

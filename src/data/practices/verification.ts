@@ -465,7 +465,7 @@ encoding.codec = "json"
     ai: l('A flame graph is concrete input for an agent asked to optimise: "this function is 40% of CPU" beats "make it faster".', 'Ein Flame Graph ist konkreter Input für einen Agenten mit Optimierungsauftrag: „diese Funktion ist 40 % der CPU“ schlägt „mach es schneller“.'),
     evidence: { general: ev('weak', f('gwp2010', 'Google runs always-on, fleet-wide sampling profiling (descriptive, no effect measurement).', 'Google betreibt dauerhaftes, flottenweites Stichproben-Profiling (beschreibend, keine Wirkungsmessung).')), ai: none() },
     tools: { js: ['clinic'], python: ['py-spy'], java: ['async-profiler'], dotnet: ['dotnet-trace'], go: ['pprof'], rust: ['samply'], cpp: ['pprof', 'samply'], any: ['pyroscope', 'parca'] },
-    snippets: [{ lang: "any", file: "profile.sh",
+    snippets: [{ lang: "python", file: "profile.sh",
       description: l("With py-spy installed, profile your local Python service while replaying the slow request. Open the SVG and find the hottest stack before changing code. Attaching may require local process permissions; avoid collecting real user data.",
         "Mit installiertem py-spy den lokalen Python-Service beim Wiederholen des langsamen Requests profilieren. Das SVG öffnen und den häufigsten Stack vor Codeänderungen finden. Das Anhängen kann lokale Prozessrechte erfordern; keine echten Nutzerdaten sammeln."),
       code: `# Replace 12345 with the PID of your local test service.
@@ -554,21 +554,31 @@ toxiproxy-cli toxic remove -n latency_downstream petstore-db` }],
     evidence: { general: ev('strong', f('kohavi2013', 'Bing ran over 200 concurrent experiments on a typical day; many ideas moved key metrics by only about 1% and were poorly predicted in advance, and experiments caught many negative features before they shipped.', 'Bing führte an einem typischen Tag über 200 Experimente gleichzeitig durch; viele Ideen bewegten Kennzahlen nur um etwa 1 % und waren schlecht vorhersagbar, und Experimente fingen viele schädliche Funktionen vor dem Launch.')), ai: none() },
     tools: { any: ['growthbook', 'unleash', 'openfeature'] },
     snippets: [{ lang: "js", file: "experiment-assignment.test.ts",
-      description: l("Run this Vitest fixture to check stable assignment and event shape before wiring an experiment SDK. A deterministic bucket alone does not establish statistical validity; define your metric, guardrails and stopping rule separately.",
-        "Dieses Vitest-Fixture prüft stabile Zuweisung und Event-Form vor der Anbindung eines Experiment-SDKs. Ein deterministischer Bucket belegt keine statistische Aussagekraft; Metrik, Guardrails und Stoppregel getrennt festlegen."),
+      description: l("Install vitest and @growthbook/growthbook, then run this local SDK example. The same participant must keep their variant across page changes; a missing identity must not enter the experiment. No service or credentials are needed. Define metrics, guardrails and a stopping rule separately.",
+        "vitest und @growthbook/growthbook installieren, dann dieses lokale SDK-Beispiel ausführen. Dieselbe Person muss bei Seitenwechseln ihre Variante behalten; ohne Identität darf sie nicht am Experiment teilnehmen. Kein Service und keine Zugangsdaten nötig. Metriken, Guardrails und Stoppregel getrennt festlegen."),
       code: `import { expect, test } from 'vitest';
-// Synthetic fixture: use your experiment SDK for real assignment.
-const assignments = new Map([['synthetic-user-1', 'control']]);
-function exposure(id: string) {
-  const variant = assignments.get(id);
-  if (!variant) throw new Error('no assignment');
-  return { experiment: 'reservation-copy-v1', variant };
+import { GrowthBook } from '@growthbook/growthbook';
+const experiment = {
+  key: 'reservation-copy-v1', variations: ['control', 'candidate'],
+  weights: [0.5, 0.5], hashAttribute: 'id', hashVersion: 2,
+};
+function assign(id: string, page: string) {
+  const sdk = new GrowthBook({ attributes: { id, page } });
+  try { return sdk.run(experiment); }
+  finally { sdk.destroy(); }
 }
-test('the same participant stays in the same variant', () => {
-  expect(exposure('synthetic-user-1')).toEqual({
-    experiment: 'reservation-copy-v1', variant: 'control',
-  });
-  expect(exposure('synthetic-user-1')).toEqual(exposure('synthetic-user-1'));
+test('page changes do not reassign a participant', () => {
+  const first = assign('synthetic-user-1', 'pet-detail');
+  expect(first.inExperiment).toBe(true);
+  expect(first.hashAttribute).toBe('id');
+  for (const page of ['checkout', 'confirmation', 'pet-list']) {
+    const next = assign('synthetic-user-1', page);
+    expect(next.inExperiment).toBe(true);
+    expect(next.variationId).toBe(first.variationId);
+  }
+});
+test('a missing participant ID is excluded', () => {
+  expect(assign('', 'pet-detail').inExperiment).toBe(false);
 });` }],
     steps: [l('Write the hypothesis, the primary metric, guardrail metrics and the sample size before starting.', 'Vor dem Start Hypothese, Hauptmetrik, Guardrail-Metriken und Stichprobengröße festlegen.'), l('Randomise by user, not by request; run until the planned sample size is reached.', 'Nach Nutzer randomisieren, nicht nach Anfrage; laufen lassen, bis die geplante Stichprobengröße erreicht ist.')],
     done: l('The experiment has a pre-registered metric and sample size, and the decision follows the result.', 'Das Experiment hat eine vorab festgelegte Metrik und Stichprobengröße, und die Entscheidung folgt dem Ergebnis.'),
@@ -657,12 +667,15 @@ export async function traceReservation<T>(save: () => Promise<T>) {
       code: `import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
 function report({ name, value, id }: Metric) {
   navigator.sendBeacon('/metrics/web-vitals',
-    new Blob([JSON.stringify({ name, value, id, page: 'pet-detail' })],
+    new Blob([JSON.stringify({
+      name, value, id, page: 'pet-detail', release: 'local-example',
+    })],
       { type: 'application/json' }));
 }
 onCLS(report);
 onINP(report);
 onLCP(report);
+// Replace local-example with your build's release identifier.
 // Receiver: validate, sample and aggregate; do not store raw user IDs.` }],
     steps: [l('Collect Core Web Vitals and client errors, tagged by release, with consent.', 'Core Web Vitals und Clientfehler mit Einwilligung sammeln, nach Release getaggt.'), l('Set budgets (e.g. LCP < 2.5 s at p75) and alert on regressions after a release.', 'Budgets setzen (z. B. LCP < 2,5 s bei p75) und nach einem Release auf Verschlechterungen alarmieren.')],
     done: l('Web vitals per release are visible, and a budget breach alerts.', 'Web Vitals pro Release sind sichtbar, und eine Budgetüberschreitung alarmiert.'),

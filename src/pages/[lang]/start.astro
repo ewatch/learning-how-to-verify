@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import type { Locale } from '../../data/types';
+import { PRACTICE_BY_ID } from '../../data/practices';
+import { href } from '../../i18n/ui';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+type Step = { url: string; title: string; why: string };
+const p = (id: string, why: [string, string]): Step => ({ url: href(lang, `practices/${id}/`), title: PRACTICE_BY_ID.get(id)!.name[lang], why: en ? why[0] : why[1] });
+const steps: Step[] = [
+  { url: href(lang), title: en ? 'The funnel' : 'Der Trichter', why: en ? 'The one idea behind everything else: catch problems as high up, as cheaply and as automatically as possible.' : 'Die eine Idee hinter allem: Probleme so weit oben, so billig und so automatisch wie möglich fangen.' },
+  { url: href(lang, 'why-layers/'), title: en ? 'Why one layer is not enough' : 'Warum eine Schicht nicht reicht', why: en ? 'What the research says about green tests and agent-written code.' : 'Was die Forschung über grüne Tests und von Agenten geschriebenen Code sagt.' },
+  p('type-systems', ['The cheapest check there is: it runs on every keystroke.', 'Die billigste Prüfung überhaupt: Sie läuft bei jedem Tastendruck.']),
+  p('lint', ['Turn team rules into machine rules, so nobody (and no agent) has to remember them.', 'Teamregeln zu Maschinenregeln machen, damit niemand (und kein Agent) sie sich merken muss.']),
+  p('unit-tests', ['The strongest single feedback signal for agents. Try the simulator.', 'Das stärkste einzelne Feedbacksignal für Agenten. Den Simulator ausprobieren.']),
+  p('mutation-tests', ['How to know whether your tests, or your agent\'s tests, actually check anything.', 'Wie man erfährt, ob die eigenen Tests, oder die des Agenten, wirklich etwas prüfen.']),
+  p('property-based-tests', ['Find the edge cases nobody wrote an example for.', 'Die Randfälle finden, für die niemand ein Beispiel schrieb.']),
+  p('canarying', ['What to do about the bugs that still get through: release to a few users first.', 'Was man mit den Fehlern macht, die trotzdem durchkommen: erst an wenige Nutzer ausliefern.']),
+];
+---
+<Base lang={lang} path="start/" nav="start" title={en ? 'Start here' : 'Hier starten'} description={en ? 'Eight steps into software verification, in a sensible order.' : 'Acht Schritte in die Softwareverifikation, in sinnvoller Reihenfolge.'}>
+  <div class="wrap narrow">
+    <h1>{en ? 'Start here' : 'Hier starten'}</h1>
+    <p class="lede">{en ? 'New to this? Eight steps, about 15 minutes each. Each page opens with one sentence and a picture; go deeper only when you want to.' : 'Neu im Thema? Acht Schritte, jeweils etwa 15 Minuten. Jede Seite beginnt mit einem Satz und einem Bild; tiefer geht es nur, wenn du willst.'}</p>
+    <ol class="path">
+      {steps.map((s, i) => <li><a href={s.url}><span class="n">{i + 1}</span><span><strong>{s.title}</strong><span class="why">{s.why}</span></span></a></li>)}
+    </ol>
+    <p class="muted">{en ? <>After that: <a href={href(lang, 'practices/formal-verification/')}>formal verification</a> and the <a href={href(lang, 'guides/tla/')}>TLA+ guide</a>.</> : <>Danach: <a href={href(lang, 'practices/formal-verification/')}>formale Verifikation</a> und die <a href={href(lang, 'guides/tla/')}>TLA+-Anleitung</a>.</>}</p>
+  </div>
+</Base>
+<style>
+  .path { list-style: none; padding: 0; margin: 28px 0; display: grid; gap: 0; position: relative; }
+  .path::before { content: ''; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: var(--rule-strong); }
+  .path li { margin: 0; }
+  .path a { display: flex; gap: 16px; padding: 12px 0; text-decoration: none; color: var(--ink); align-items: flex-start; position: relative; }
+  .n { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 2px solid var(--ink); display: grid; place-items: center; font: 700 .95rem var(--font-mono); }
+  .path a:hover .n { background: var(--ink); color: var(--paper); }
+  .path a > span:last-child { display: flex; flex-direction: column; padding-top: 5px; }
+  .why { color: var(--ink-2); font-size: .95rem; }
+</style>

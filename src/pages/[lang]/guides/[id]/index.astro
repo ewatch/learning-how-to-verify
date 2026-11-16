@@ -1,0 +1,62 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import CodeBlock from '../../../../components/CodeBlock.astro';
+import type { Locale } from '../../../../data/types';
+import { GUIDES, type Guide } from '../../../../data/guides';
+import { PRACTICE_BY_ID } from '../../../../data/practices';
+import { href, t } from '../../../../i18n/ui';
+import { inline } from '../../../../lib/inline';
+export function getStaticPaths() {
+  return (['en', 'de'] as Locale[]).flatMap((lang) => GUIDES.map((g) => ({ params: { lang, id: g.id }, props: { lang, g } })));
+}
+const { lang, g } = Astro.props as { lang: Locale; g: Guide };
+const practice = PRACTICE_BY_ID.get(g.practice)!;
+const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
+---
+<Base lang={lang} path={`guides/${g.id}/`} md={`/${lang}/guides/${g.id}/index.md`} nav="guides" title={g.title[lang]} description={g.outcome[lang]}>
+  <article class="wrap narrow guide" style={`--c: var(--l-${practice.layer})`}>
+    <nav class="small muted"><a href={href(lang, 'guides/')}>{t(lang, 'navGuides')}</a> / <a href={href(lang, `practices/${practice.id}/`)}>{practice.name[lang]}</a></nav>
+    <h1>{g.title[lang]}</h1>
+    <div class="card outcome"><p class="eyebrow">{t(lang, 'outcome')}</p><p set:html={inline(g.outcome[lang])} /></div>
+
+    <section><h2>{t(lang, 'install')}</h2>
+      {g.install.map((i, k) => <CodeBlock code={i.cmd} file={i.os} lang={lang} id={`inst-${k}`} />)}
+      <p set:html={inline(g.installNote[lang])} />
+    </section>
+
+    {g.steps.map((s, i) => (
+      <section class="step">
+        <h2><span class="n">{i + 1}</span>{s.title[lang]}</h2>
+        <p set:html={inline(s.text[lang])} />
+        {s.code && <CodeBlock code={s.code.body.trimEnd()} file={s.code.file} lang={lang} id={`code-${i}`} />}
+        {s.output && (
+          <div class="out">
+            <p class="cmd"><span class="muted">$</span> <code>{s.output.cmd}</code></p>
+            <pre tabindex="0" class:list={['terminal', { fail: /Error|violated|could not be proved/.test(s.output.body) }]}>{s.output.body.trimEnd()}</pre>
+          </div>
+        )}
+      </section>
+    ))}
+
+    <section><h2>{t(lang, 'mistakes')}</h2><ul>{g.mistakes.map((m) => <li set:html={inline(m[lang])} />)}</ul></section>
+    <section><h2>{t(lang, 'nextSteps')}</h2><ul>{g.next.map((n) => <li><a href={n.url} rel="noopener">{n.label}</a></li>)}</ul></section>
+    <section class="card agent">
+      <div class="row"><strong>{t(lang, 'copyForAgent')}</strong><button type="button" class="btn" data-copy="guide-agent">{t(lang, 'copyForAgent')}</button></div>
+      <pre id="guide-agent" tabindex="0">{agentText}</pre>
+    </section>
+    <p class="muted small">{t(lang, 'recordedWith')}: {g.versions.trim().replace(/\n/g, '; ')}</p>
+  </article>
+</Base>
+<style>
+  .guide h1 { margin-top: 8px; }
+  .outcome { border-left: 4px solid var(--c); margin-bottom: 24px; }
+  .outcome p:last-child { margin: 0; }
+  section { margin-top: 30px; }
+  .step h2 { display: flex; gap: 12px; align-items: baseline; }
+  .step .n { font: 600 .9rem var(--font-mono); color: var(--paper); background: var(--c); border-radius: 50%; width: 1.7rem; height: 1.7rem; display: inline-grid; place-items: center; flex: none; }
+  .cmd { margin: 8px 0 6px; font-size: .9rem; }
+  .terminal { background: #15130f; color: #e7e1d4; border-color: #2c2822; font-size: .8rem; }
+  .terminal.fail { box-shadow: inset 3px 0 0 #e0705f; }
+  .agent pre { white-space: pre-wrap; font-size: .85rem; margin-top: 10px; }
+  .agent .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+</style>

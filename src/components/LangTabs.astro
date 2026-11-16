@@ -1,0 +1,92 @@
+---
+import type { Locale, Practice } from '../data/types';
+import { LANGS } from '../data/taxonomy';
+import { t } from '../i18n/ui';
+import { agentPrompt, snippetFor, toolsFor, langName } from '../lib/prompts';
+import CodeBlock from './CodeBlock.astro';
+interface Props { p: Practice; lang: Locale }
+const { p, lang } = Astro.props;
+const hasAnyTools = Object.values(p.tools).some((x) => x?.length);
+const firstSnippet = p.snippets?.[0];
+---
+<div class="langtabs" data-langtabs>
+  <div class="tabs" role="tablist" aria-label={t(lang, 'yourLanguage')}>
+    {LANGS.map((lg, i) => (
+      <button role="tab" type="button" id={`tab-${lg.id}`} aria-controls={`panel-${lg.id}`} aria-selected={i === 0 ? 'true' : 'false'} data-lang={lg.id}>{lg.short}</button>
+    ))}
+  </div>
+  {LANGS.map((lg) => {
+    const { own, any } = toolsFor(p, lg.id);
+    const snip = snippetFor(p, lg.id) ?? null;
+    const fallback = !snip && firstSnippet ? firstSnippet : null;
+    const promptId = `prompt-${p.id}-${lg.id}`;
+    return (
+      <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel">
+        <h3 class="visually-hidden">{lg.name}</h3>
+        {!hasAnyTools && <p class="muted">{t(lang, 'noTools')}</p>}
+        {hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
+        {(own.length > 0 || any.length > 0) && (
+          <table class="tools">
+            <thead><tr><th>{t(lang, 'tools')}</th><th>License</th><th>Repo</th></tr></thead>
+            <tbody>
+              {own.map((x) => <tr><td><a href={x.url} rel="noopener">{x.name}</a></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">source</a></td></tr>)}
+              {any.map((x) => <tr class="anyrow"><td><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></td><td><code>{x.license}</code></td><td><a href={x.repo} rel="noopener" class="muted small">source</a></td></tr>)}
+            </tbody>
+          </table>
+        )}
+        {snip && <CodeBlock code={snip.code} file={snip.file} lang={lang} id={`snip-${p.id}-${lg.id}`} />}
+        {fallback && (
+          <>
+            <p class="muted small">{t(lang, 'exampleOtherLang')} {langName(fallback.lang)}:</p>
+            <CodeBlock code={fallback.code} file={fallback.file} lang={lang} id={`snipfb-${p.id}-${lg.id}`} />
+          </>
+        )}
+        <div class="agent card">
+          <div class="agent-head">
+            <div>
+              <strong>{t(lang, 'copyForAgent')}</strong>
+              <p class="muted small">{t(lang, 'copyForAgentHint')}</p>
+            </div>
+            <button type="button" class="btn" data-copy={promptId}>{t(lang, 'copyForAgent')}</button>
+          </div>
+          <details class="preview"><summary class="small">{lang === 'en' ? 'Preview the task' : 'Aufgabe ansehen'}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id)}</pre></details>
+        </div>
+      </section>
+    );
+  })}
+</div>
+<style>
+  .tools { width: 100%; border-collapse: collapse; font-size: .95rem; margin-bottom: 8px; }
+  .tools th { text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+  .tools td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .tools td:first-child { padding-left: 0; }
+  .agent { margin-top: 14px; }
+  .agent-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  .agent-head p { margin: 2px 0 0; max-width: 34rem; }
+  .preview summary { cursor: pointer; margin-top: 8px; color: var(--ink-2); }
+  .preview pre { margin-top: 8px; white-space: pre-wrap; font-size: .82rem; }
+  @media (max-width: 560px) { .tools th:nth-child(3), .tools td:nth-child(3) { display: none; } }
+</style>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-langtabs]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    const select = (id: string, save = true) => {
+      tabs.forEach((b) => { const on = b.dataset.lang === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+      panels.forEach((p) => (p.hidden = p.dataset.panel !== id));
+      if (save) try { localStorage.setItem('progLang', id); } catch {}
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => select(b.dataset.lang!));
+      b.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        const n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); select(n.dataset.lang!);
+      });
+    });
+    const fromUrl = new URLSearchParams(location.search).get('lang');
+    let initial = fromUrl ?? 'js';
+    if (!fromUrl) try { initial = localStorage.getItem('progLang') ?? 'js'; } catch {}
+    select(tabs.some((b) => b.dataset.lang === initial) ? initial : 'js', Boolean(fromUrl));
+  }
+</script>

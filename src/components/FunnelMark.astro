@@ -1,0 +1,12 @@
+---
+const { size = 24 } = Astro.props as { size?: number };
+const layers = ['codebase', 'static', 'verification', 'prose', 'review'];
+---
+<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+  {layers.map((l, i) => {
+    const y = 2 + i * 4;
+    const half = 11 - i * 2.1;
+    const half2 = 11 - (i + 1) * 2.1;
+    return <path d={`M${12 - half} ${y} H${12 + half} L${12 + half2} ${y + 3.4} H${12 - half2} Z`} fill={`var(--l-${l})`} />;
+  })}
+</svg>

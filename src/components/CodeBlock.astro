@@ -1,0 +1,10 @@
+---
+import { t } from '../i18n/ui';
+import type { Locale } from '../data/types';
+interface Props { code: string; file?: string; lang: Locale; id: string }
+const { code, file, lang, id } = Astro.props;
+---
+<div class="codeblock">
+  <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id}>{t(lang, 'copy')}</button></div>
+  <pre id={id} tabindex="0"><code>{code}</code></pre>
+</div>

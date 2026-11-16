@@ -1,0 +1,12 @@
+FeeBroken.dfy(6,0): Error: a postcondition could not be proved on this return path
+  |
+6 | {
+  | ^
+
+FeeBroken.dfy(3,32): Related location: this is the postcondition that could not be proved
+  |
+3 |   ensures ageYears >= 8 ==> fee == base / 2
+  |                                 ^^
+
+
+Dafny program verifier finished with 1 verified, 1 error

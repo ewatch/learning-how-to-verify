@@ -1,0 +1,40 @@
+---
+import type { Locale, Practice } from '../data/types';
+import { LAYERS, PHASES, COST_LABEL, FEEDBACK_LABEL } from '../data/taxonomy';
+import { t, href } from '../i18n/ui';
+interface Props { p: Practice; lang: Locale }
+const { p, lang } = Astro.props;
+const W = 160, BAND = 22;
+const hw = (y: number) => 78 - (78 - 14) * (y / (BAND * 5));
+---
+<div class="where">
+  <a class="mini" href={href(lang, `#layer-${p.layer}`)} aria-label={`${t(lang, 'layer')}: ${LAYERS.find((l) => l.id === p.layer)!.name[lang]}`}>
+    <svg viewBox={`0 0 ${W} ${BAND * 5 + 2}`} width="160" aria-hidden="true">
+      {LAYERS.map((l, i) => {
+        const y0 = i * BAND + 1, y1 = y0 + BAND, a = hw(y0), b = hw(y1), on = l.id === p.layer;
+        return <g><path d={`M${80 - a} ${y0} L${80 + a} ${y0} L${80 + b} ${y1} L${80 - b} ${y1} Z`} fill={on ? `var(--l-${l.id})` : 'var(--card)'} stroke="var(--ink-2)" stroke-width="1" />
+          <text x="80" y={y0 + 15} text-anchor="middle" font-size="10" fill={on ? 'var(--paper)' : 'var(--ink-3)'} font-weight={on ? 700 : 400}>{l.name[lang]}</text></g>;
+      })}
+    </svg>
+  </a>
+  <dl class="facts">
+    <div><dt>{t(lang, 'layer')}</dt><dd><span class="chip" style={`--c: var(--l-${p.layer})`}><span class="dot" />{LAYERS.find((l) => l.id === p.layer)!.name[lang]}</span></dd></div>
+    <div><dt>{t(lang, 'phase')}</dt><dd class="phases">
+      {PHASES.map((ph) => <a href={href(lang, `lifecycle/#phase-${ph.id}`)} class:list={['ph', { on: p.phases.includes(ph.id) }]} style={`--pc: var(--p-${ph.id})`}>{ph.name[lang]}</a>)}
+    </dd></div>
+    <div><dt>{t(lang, 'cost')}</dt><dd><span class="meter" data-n={p.cost}><i /><i /><i /></span> {COST_LABEL[p.cost][lang]}</dd></div>
+    <div><dt>{t(lang, 'feedback')}</dt><dd>{FEEDBACK_LABEL[p.feedback][lang]}</dd></div>
+  </dl>
+</div>
+<style>
+  .where { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; }
+  .mini { flex: none; }
+  .facts { margin: 0; display: grid; gap: 10px; flex: 1; min-width: 240px; }
+  .facts div { display: grid; grid-template-columns: 8.5rem 1fr; gap: 10px; align-items: baseline; }
+  dt { color: var(--ink-3); font-size: .9rem; }
+  dd { margin: 0; }
+  .phases { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ph { font-size: .82rem; padding: 2px 8px; border-radius: 4px; border: 1px dashed var(--rule-strong); color: var(--ink-3); text-decoration: none; }
+  .ph.on { border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 16%, var(--card)); color: var(--ink); font-weight: 700; }
+  @media (max-width: 480px) { .facts div { grid-template-columns: 1fr; gap: 2px; } }
+</style>

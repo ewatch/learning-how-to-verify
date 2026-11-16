@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuzzing – interaktive Demo</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 14px; }
+.flow div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+.flow b { display: block; font-size: 13px; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+.ln .gut { display: flex; gap: 2px; width: 30px; flex: none; align-items: center; padding-left: 4px; }
+.ln .gut i { width: 11px; height: 11px; border-radius: 3px; background: color-mix(in srgb, var(--mut) 12%, transparent); transition: background .3s; }
+.ln .gut i.b.on { background: var(--c2); }
+.ln .gut i.g.on { background: var(--c1); }
+.ln.crash { background: color-mix(in srgb, var(--err) 22%, transparent); border-left-color: var(--err); }
+.ln.flash { animation: flash .8s ease; }
+@keyframes flash { 0% { background: color-mix(in srgb, var(--c1) 45%, transparent); } 100% { background: transparent; } }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--mut); margin-top: 6px; }
+.legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.stat { border: 1px solid var(--bd); border-radius: var(--rad); padding: 9px 11px; background: var(--card-bg); }
+.stat h3 { display: flex; align-items: center; gap: 6px; font-size: 13.5px; }
+.stat h3 i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.stat dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 4px 0 0; font-size: 13px; }
+.stat dt { color: var(--mut); } .stat dd { margin: 0; font-family: var(--mono); font-size: 12.5px; }
+.corpus { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; }
+.corpus li { display: grid; grid-template-columns: 76px 1fr; gap: 8px; font-size: 12.5px; padding: 4px 8px; border: 1px solid var(--bd); border-radius: 6px; background: var(--card-bg); animation: pop .3s ease; }
+.corpus li .x { color: var(--mut); font-family: var(--mono); font-size: 11.5px; }
+.corpus li code { overflow-wrap: anywhere; }
+.corpus li .new { color: var(--c1); font-size: 11.5px; }
+.crashbox { border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; background: var(--card-bg); font-size: 13.5px; }
+.crashbox.hit { border-color: var(--err); background: color-mix(in srgb, var(--err) 9%, var(--card-bg)); animation: pop .35s ease; }
+.crashbox code { overflow-wrap: anywhere; }
+.gains { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gains div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+@media (max-width: 640px) { .gains { grid-template-columns: 1fr; } }
+
+/* ---------- „Wozu ist das gut?“ ---------- */
+.useful { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--bd); }
+.useful h2 { font-size: 17px; margin-bottom: 10px; }
+.useful .ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.useful .ugrid > div { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 14px; }
+.useful h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--acc); }
+.useful ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.useful li { margin: 3px 0; }
+.useful .alltag { margin: 10px 0 0; font-size: 14px; }
+.useful .tools { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Interaktive Demo 4 / 5</div>
+    <h1>Fuzzing</h1>
+    <p class="lead">Ein Fuzzer wirft Millionen <b>veränderter Eingaben</b> auf ein Programm und meldet Abstürze, Hänger und Speicherexplosionen. Moderne Fuzzer wie AFL++, libFuzzer oder Jazzer sind <b>Coverage-geführt</b>: Sie merken sich jede Eingabe, die neuen Code erreicht, und mutieren bevorzugt diese weiter. Hier treten ein blinder und ein Coverage-geführter Fuzzer mit gleichem Budget gegeneinander an.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Ein Kleinkind bekommt die Fernbedienung und drückt <b>wild auf allen Knöpfen</b> herum. Irgendwann hängt der Fernseher. So hat es einen Fehler gefunden, den kein Erwachsener gefunden hätte, weil Erwachsene „vernünftig“ drücken.</p><p>Ein <b>schlaues</b> Kind merkt sich zusätzlich: „Bei dieser Knopffolge kam ein neues Menü!“ und probiert von dort aus weiter. So kommt es viel tiefer in die Menüs hinein.</p></div>
+        <div><h4>Und bei Software?</h4><p>Ein <b>Fuzzer</b> füttert ein Programm automatisch mit Millionen leicht veränderter, oft unsinniger Eingaben und schaut, ob es abstürzt, hängen bleibt oder zu viel Speicher frisst. Ein <b>Coverage-geführter</b> Fuzzer ist das schlaue Kind: Er merkt sich jede Eingabe, die neuen Code erreicht hat, in einer Sammlung (<b>Korpus</b>) und verändert bevorzugt diese weiter.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Klick auf <b>▶ Fuzzing starten</b>. Zwei Fuzzer treten mit gleich vielen Versuchen gegeneinander an: links blind, rechts mit Gedächtnis.</li><li>Beobachte den Korpus: Aus „F“ wird „FU“, dann „FUZ“, dann „FUZZ“. Jede Stufe öffnet eine neue Tür im Programm.</li><li>Im Beispiel <b>RLE-Dekodierer</b> findet der Fuzzer eine kurze Eingabe, die riesig viel Speicher verbraucht.</li><li>Beim <b>Gutscheincode</b> siehst du, wie ein Wörterbuch mit typischen Wörtern hilft.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Eingabe</dt><dd>was das Programm bekommt, hier: Text</dd></div><div><dt>Absturz (Crash)</dt><dd>das Programm bricht mit einem Fehler ab</dd></div><div><dt>Coverage</dt><dd>welche Stellen im Code eine Eingabe erreicht hat</dd></div><div><dt>Korpus</dt><dd>die Sammlung „interessanter“ Eingaben, die neue Stellen erreicht haben</dd></div><div><dt>Mutieren</dt><dd>eine Eingabe leicht verändern: Zeichen tauschen, einfügen, löschen</dd></div><div><dt>Minimierung</dt><dd>die Absturz-Eingabe so kurz wie möglich machen</dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Fuzzing ist geduldiges, schlaues Herumprobieren mit Gedächtnis. Es findet vor allem Abstürze bei unerwarteten Eingaben.</p>
+    </div>
+  </details>
+
+
+  <div class="flow">
+    <div><b>1 · Korpus</b>Sammlung „interessanter“ Eingaben, anfangs nur <code>""</code></div>
+    <div><b>2 · Mutieren</b>Zeichen ersetzen, einfügen, löschen, Blöcke kopieren, „interessante Werte“ und Wörterbuch einstreuen, spleißen</div>
+    <div><b>3 · Ausführen</b>mit Instrumentierung: Welche Zeilen hat die Eingabe erreicht?</div>
+    <div><b>4 · Bewerten</b>neue Coverage → in den Korpus; Absturz → melden und minimieren</div>
+  </div>
+
+  <label class="lbl">Beispiel</label>
+  <div class="chips" id="examples" style="margin-bottom:12px"></div>
+  <div class="explain" id="exExplain"></div>
+
+  <div class="row" style="margin-bottom:12px">
+    <button class="btn primary" id="run">▶ Fuzzing starten</button>
+    <button class="btn" id="pause" disabled>‖ Pause</button>
+    <select id="budget"><option value="50000">Budget: 50 000 Ausführungen</option><option value="200000" selected>Budget: 200 000 Ausführungen</option><option value="1000000">Budget: 1 Mio. Ausführungen</option></select>
+    <select id="speed"><option value="15">Tempo: langsam</option><option value="80" selected>Tempo: normal</option><option value="2000">Tempo: schnell</option></select>
+    <label class="note">Wörterbuch <input type="text" id="dict" placeholder="z. B. RAB-, GET " style="width:150px"></label>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0">Ziel-Code mit Coverage</h3><button class="btn" id="edit" style="padding:3px 9px;font-size:12.5px">✎ bearbeiten</button></div>
+      <div class="code" id="codeView"></div>
+      <textarea id="codeEdit" rows="18" style="display:none" spellcheck="false" wrap="off"></textarea>
+      <div class="legend"><span><i style="background:var(--c2)"></i>erreicht vom blinden Fuzzer</span><span><i style="background:var(--c1)"></i>erreicht vom Coverage-geführten Fuzzer</span><span><i style="background:color-mix(in srgb,var(--err) 50%,transparent)"></i>Absturzstelle</span></div>
+      <p class="note" style="margin-top:6px">Der Harness ruft <code>fuzzZiel(eingabe)</code> mit jeder erzeugten Zeichenkette auf. Als Orakel dienen <b>Exceptions</b>, <b>Hänger</b> (mehr als 100 000 Schleifendurchläufe) und das Speicherlimit in <code>wiederhole(text, n)</code>.</p>
+    </div>
+    <div>
+      <h3>Erreichte Zeilen über die Ausführungen <span class="note">(logarithmische Achse)</span></h3>
+      <div class="graphbox" style="background:var(--codebg);border:1px solid var(--bd);border-radius:var(--rad)"><svg id="chart" viewBox="0 0 460 210" width="100%" height="210"></svg></div>
+      <div class="stats">
+        <div class="stat"><h3><i style="background:var(--c2)"></i>Blind (zufällig)</h3><dl id="statB"></dl></div>
+        <div class="stat"><h3><i style="background:var(--c1)"></i>Coverage-geführt</h3><dl id="statG"></dl></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div>
+      <h3>Korpus des Coverage-geführten Fuzzers <span class="note">(neueste oben)</span></h3>
+      <ul class="corpus" id="corpus"><li style="grid-template-columns:1fr" class="note">Noch leer. Jede Eingabe, die eine neue Zeile erreicht, landet hier.</li></ul>
+    </div>
+    <div>
+      <h3>Gefundene Fehler</h3>
+      <div class="crashbox" id="crashG" style="margin-bottom:8px"><b style="color:var(--c1)">Coverage-geführt:</b> <span class="note">noch nichts gefunden</span></div>
+      <div class="crashbox" id="crashB"><b style="color:var(--c2)">Blind:</b> <span class="note">noch nichts gefunden</span></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:26px">Was Fuzzing zusätzlich zu PBT, Beweis und Mutation Testing bringt</h2>
+  <div class="gains">
+    <div><b>Eingaben ohne menschliche Annahmen</b><br>PBT-Generatoren erzeugen, was ein Mensch sich vorstellt. Der Fuzzer findet <code>FUZZ3!aa</code>, ohne das Format zu kennen.</div>
+    <div><b>Feedback statt Zufall</b><br>Coverage führt durch verschachtelte Prüfungen, an denen zufällige Eingaben scheitern (1 : 81 Mio. im Beispiel 1).</div>
+    <div><b>Orakel ohne Spezifikation</b><br>Abstürze, Hänger, Speicher. In C/C++/Rust kommen Sanitizer (ASan, UBSan) für Speicherfehler dazu. Eigene Assertions im Harness erweitern das Orakel.</div>
+  </div>
+  <p class="note" style="margin-top:10px"><b>Grenzen</b> (siehe Beispiel 3): Prüfsummen, Hashes und Vergleiche ganzer Zeichenketten in einer einzigen Zeile liefern kein schrittweises Feedback. Echte Fuzzer helfen sich mit Wörterbüchern, Vergleichs-Tracing (CmpLog, <code>-use_cmp</code>) oder Grammatiken. Ohne Assertions erkennt ein Fuzzer zudem keine falschen Ergebnisse, nur Abstürze.</p>
+
+  <div class="useful">
+    <h2>Wozu ist Fuzzing gut?</h2>
+    <div class="ugrid">
+      <div><h4>Gut geeignet für</h4><ul><li>Code, der unkontrollierte Eingaben verarbeitet: Parser, Dateiformate, Bilder, PDF, Netzwerkprotokolle</li><li>Speicherfehler und Sicherheitslücken in C/C++</li><li>REST-APIs und Kommandozeilen-Tools</li></ul></div>
+      <div><h4>Möglichkeiten</h4><ul><li>läuft weitgehend automatisch, über Stunden oder kontinuierlich (OSS-Fuzz)</li><li>Coverage-Führung erreicht tiefe Programmpfade</li><li>Sanitizer (ASan, UBSan) machen stille Speicherfehler sichtbar</li><li>Crash-Minimierung, und der Korpus dient als Regressionstest</li><li>mit eigenen Assertions findet es auch Logikfehler</li></ul></div>
+      <div><h4>Grenzen &amp; Aufwand</h4><ul><li>ohne Orakel findet es nur Abstürze und Hänger</li><li>Prüfsummen, Kryptografie und strenge Formate bremsen (Wörterbuch oder Grammatik nötig)</li><li>keine Garantie, auch nach Tagen nicht</li></ul></div>
+    </div>
+    <p class="alltag"><b>Aus dem Alltag:</b> ein Upload-Formular, das Bilder verkleinert; ein CSV-Import im Online-Banking; ein Barcode-Leser an der Kasse.</p>
+    <p class="tools"><b>Werkzeuge:</b> AFL++, libFuzzer, honggfuzz, Jazzer (Java), Atheris (Python), cargo-fuzz, <code>go test -fuzz</code>, OSS-Fuzz, RESTler</p>
+  </div>
+
+  <div class="footer">
+    Weitere Demos: <a href="verifikation.html">① Formale Verifikation</a> · <a href="mutation-testing.html">② Mutation Testing</a> · <a href="property-based-testing.html">③ Property-Based Testing</a> · <a href="differential-testing.html">⑤ Differential Testing</a> · <a href="index.html">Übersicht</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+
+/* ---------------- Mini-Fuzzer (vereinfachtes AFL/libFuzzer-Prinzip) ---------------- */
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const PRINTABLE = Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i));
+const INTERESTING = ["0", "1", "-1", "9", "99", "99999", "!", ":", "/", "\\", "%", "'", "\""];
+class Crash extends Error {}
+class Hang extends Error {}
+
+/* Zeilenbasierte Coverage-Instrumentierung: __cov(n) am Anfang jeder Anweisungszeile */
+function instrument(src) {
+  const lines = src.split("\n"), cov = []; let prevEnd = "{";
+  const out = lines.map((l, i) => {
+    const tr = l.trim();
+    if (!tr || tr.startsWith("//")) return l;
+    const starts = /[;{}]$/.test(prevEnd) && !/^(}|\)|\]|\.|else\b|function\b|catch\b|finally\b)/.test(tr);
+    prevEnd = tr.replace(/\s*\/\/.*$/, "");
+    if (!starts) return l;
+    cov.push(i);
+    const ind = l.length - l.trimStart().length;
+    let body = l.slice(ind);
+    // Schleifenrümpfe zusätzlich gegen Endlosschleifen schützen
+    body = body.replace(/^((?:while|for)\s*\(.*\))\s*\{\s*$/, "$1 { __guard();");
+    return l.slice(0, ind) + `__cov(${i});` + body;
+  });
+  return { code: out.join("\n"), lines: cov };
+}
+
+function compileTarget(src) {
+  const inst = instrument(src);
+  let hits = null, steps = 0;
+  const api = {
+    __cov: n => { hits.add(n); },
+    __guard: () => { if (++steps > 100000) throw new Hang("Hänger: Endlosschleife?"); },
+    wiederhole: (s, n) => { if (s.length * n > 100000) throw new Crash(`Speicherexplosion: ${(s.length * n).toLocaleString("de-DE")} Zeichen angefordert`); return s.repeat(n); },
+  };
+  const names = Object.keys(api);
+  const target = new Function(...names, `"use strict";\n${inst.code}\n;return typeof fuzzZiel === "function" ? fuzzZiel : null;`)(...names.map(n => api[n]));
+  if (!target) throw new Error("Der Code muss eine Funktion fuzzZiel(eingabe) definieren.");
+  return {
+    lines: inst.lines,
+    run(input) {
+      hits = new Set(); steps = 0;
+      try { target(input); return { hits, crash: null }; }
+      catch (e) {
+        const line = [...hits].pop();
+        return { hits, crash: { type: e instanceof Hang ? "Hänger" : e instanceof Crash ? "Speicher" : e.name, msg: e.message, line } };
+      }
+    },
+  };
+}
+
+function makeFuzzer(target, mode, seed, dict = []) {
+  const r = rng(seed);
+  const pick = a => a[Math.floor(r() * a.length)];
+  const tokens = INTERESTING.concat(dict);
+  const F = {
+    mode, execs: 0, covered: new Map(), corpus: [], crash: null, history: [[0, 0]],
+  };
+  const randChar = () => pick(PRINTABLE);
+  function mutate(s) {
+    const n = 1 + Math.floor(r() * 4);
+    for (let k = 0; k < n; k++) {
+      const p = Math.floor(r() * (s.length + 1)), op = Math.floor(r() * 7);
+      if (op === 0 && s.length) s = s.slice(0, p) + randChar() + s.slice(p + 1);          // Zeichen ersetzen
+      else if (op === 1) s = s.slice(0, p) + randChar() + s.slice(p);                     // Zeichen einfügen
+      else if (op === 2 && s.length) s = s.slice(0, p) + s.slice(p + 1);                  // Zeichen löschen
+      else if (op === 3) s = s.slice(0, p) + pick(tokens) + s.slice(p);                   // interessanten Wert/Wörterbuch einfügen
+      else if (op === 4 && s.length > 1) { const q = Math.floor(r() * s.length), l = 1 + Math.floor(r() * 4); s = s.slice(0, p) + s.slice(q, q + l) + s.slice(p); } // Block kopieren
+      else if (op === 5 && F.corpus.length > 1) { const o = pick(F.corpus).input; s = s.slice(0, p) + o.slice(Math.floor(r() * (o.length + 1))); } // Spleißen
+      else s = s + randChar();                                                             // anhängen
+    }
+    return s.slice(0, 64);
+  }
+  function blind() { const len = Math.floor(r() * 17); let s = ""; for (let i = 0; i < len; i++) s += randChar(); return s; }
+  F.step = () => {
+    let input;
+    if (mode === "blind" || !F.corpus.length) input = mode === "blind" ? blind() : "";
+    else {
+      // jüngere Korpus-Einträge (tiefere Pfade) werden bevorzugt
+      const i = r() < 0.5 ? F.corpus.length - 1 - Math.floor(r() * Math.min(3, F.corpus.length)) : Math.floor(r() * F.corpus.length);
+      input = mutate(F.corpus[i].input);
+    }
+    F.execs++;
+    const res = target.run(input);
+    let fresh = [];
+    for (const h of res.hits) { if (!F.covered.has(h)) fresh.push(h); F.covered.set(h, (F.covered.get(h) || 0) + 1); }
+    if (fresh.length) {
+      F.history.push([F.execs, F.covered.size]);
+      if (mode === "guided") F.corpus.push({ input, exec: F.execs, fresh });
+    }
+    if (res.crash && !F.crash) F.crash = { input, exec: F.execs, ...res.crash };
+    return { input, fresh, crash: res.crash };
+  };
+  return F;
+}
+
+/* Crash-Minimierung (wie afl-tmin): Zeichen/Blöcke entfernen, solange derselbe Fehler auftritt */
+function minimizeCrash(target, input, crash) {
+  const same = c => c && c.type === crash.type && c.line === crash.line;
+  let cur = input, changed = true, tries = 0;
+  while (changed && tries < 5000) {
+    changed = false;
+    for (let len = Math.max(1, cur.length >> 1); len >= 1; len >>= 1) {
+      for (let i = 0; i + len <= cur.length; i++) {
+        const cand = cur.slice(0, i) + cur.slice(i + len); tries++;
+        if (same(target.run(cand).crash)) { cur = cand; changed = true; i--; }
+      }
+    }
+    // Zeichen vereinfachen
+    for (let i = 0; i < cur.length; i++) for (const c of ["a", "0"]) {
+      if (cur[i] === c) continue;
+      const cand = cur.slice(0, i) + c + cur.slice(i + 1); tries++;
+      if (same(target.run(cand).crash)) { cur = cand; changed = true; break; }
+    }
+  }
+  return cur;
+}
+
+const FUZZ_EXAMPLES = [
+  {
+    name: "Signatur-Parser: Coverage-Feedback",
+    explain: "Ein Parser für ein Nachrichtenformat: <code>FUZZ</code> + Länge + Inhalt. Rein zufällige Eingaben kommen praktisch nie an der Signatur vorbei, die Wahrscheinlichkeit liegt bei 1 : 81 Millionen. Der Coverage-geführte Fuzzer merkt sich dagegen jede Eingabe, die eine <b>neue Zeile</b> erreicht, und arbeitet sich Zeichen für Zeichen vor: <code>F</code> → <code>FU</code> → <code>FUZ</code> → …",
+    dict: "",
+    code:
+`// Einstiegspunkt (wie LLVMFuzzerTestOneInput): wird für jede Eingabe aufgerufen
+function fuzzZiel(eingabe) {
+  parseNachricht(eingabe);
+}
+
+// Format: "FUZZ" + Länge (1–9) + Inhalt, Teile durch "!" getrennt
+function parseNachricht(d) {
+  if (d.length < 5) return "zu kurz";
+  if (d[0] !== "F") return "falsche Signatur";
+  if (d[1] !== "U") return "falsche Signatur";
+  if (d[2] !== "Z") return "falsche Signatur";
+  if (d[3] !== "Z") return "falsche Signatur";
+  const n = Number(d[4]);
+  if (!(n >= 1 && n <= 9)) return "ungültige Länge";
+  const inhalt = d.slice(5, 5 + n);
+  if (inhalt.length < n) return "abgeschnitten";
+  if (inhalt.includes("!")) {
+    const teile = inhalt.split("!");
+    return teile[n].toUpperCase();   // Bug: es gibt nicht immer n+1 Teile
+  }
+  return "ok: " + inhalt;
+}`,
+  },
+  {
+    name: "RLE-Dekodierer: Speicherexplosion",
+    explain: "Der Dekodierer aus der PBT-Demo. Der Roundtrip-Test hat ihn nur mit Ausgaben von <code>kodieren</code> gefüttert. Der Fuzzer gibt ihm <b>beliebigen</b> Text, so wie ihn ein Angreifer schicken würde. Als Orakel dient ein Speicherlimit, ähnlich wie <code>-rss_limit_mb</code> bei libFuzzer: <code>wiederhole()</code> schlägt Alarm, wenn mehr als 100 000 Zeichen angefordert werden. Mehr Ziffern erzeugen keine neue Coverage. Hier helfen die <b>„interessanten Werte“</b> wie <code>99999</code>, die der Fuzzer gezielt einstreut.",
+    dict: "",
+    code:
+`function fuzzZiel(eingabe) {
+  dekodieren(eingabe);
+}
+
+// "3a1b" → "aaab"
+function dekodieren(k) {
+  let out = "", i = 0;
+  while (i < k.length) {
+    let zahl = "";
+    while (k[i] >= "0" && k[i] <= "9") zahl += k[i++];
+    out += wiederhole(k[i++] || "", Number(zahl));
+  }
+  return out;
+}`,
+  },
+  {
+    name: "Gutscheincode: Wörterbuch & eigene Assertion",
+    explain: "Zwei Lektionen auf einmal. <b>1)</b> <code>startsWith(\"RAB-\")</code> prüft vier Zeichen in <b>einer</b> Zeile. Teilweise richtige Präfixe liefern deshalb keine neue Coverage, und der Fuzzer bleibt hängen. Die Lösung ist ein <b>Wörterbuch</b>: Trage <code>RAB-</code> oben ein. <b>2)</b> Der Bug stürzt nicht ab, er liefert nur einen falschen Wert. Erst die <b>Assertion im Harness</b> (Rabatt höchstens 50 %) macht ihn für den Fuzzer sichtbar.",
+    dict: "",
+    code:
+`function fuzzZiel(eingabe) {
+  const g = gutscheinPruefen(eingabe);
+  // Orakel: eigene Invariante, sonst sieht der Fuzzer nur Abstürze
+  if (g.rabatt > 50) throw new Error("Invariante verletzt: Rabatt " + g.rabatt + " %");
+}
+
+function gutscheinPruefen(code) {
+  if (!code.startsWith("RAB-")) return { gueltig: false, rabatt: 0 };
+  const ziffern = code.slice(4);
+  if (ziffern.length !== 2) return { gueltig: false, rabatt: 0 };
+  const a = Number(ziffern[0]), b = Number(ziffern[1]);
+  if (!(a >= 0 && b >= 0)) return { gueltig: false, rabatt: 0 };
+  if ((a + b) % 3 !== 0) return { gueltig: false, rabatt: 0 };   // Prüfziffer
+  return { gueltig: true, rabatt: a * 10 + b };  // Bug: bis zu 99 % Rabatt
+}`,
+  },
+];
+
+const KWS_JS = new Set(["function", "return", "if", "else", "for", "while", "let", "const", "var", "new", "throw", "true", "false", "null", "undefined", "of", "in"]);
+const S = { ex: 0, code: "", runId: 0, paused: false, running: false, target: null, F: null };
+const fmtN = n => n.toLocaleString("de-DE");
+const showIn = s => JSON.stringify(s);
+
+function initUI() {
+  $("#examples").innerHTML = FUZZ_EXAMPLES.map((e, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${e.name}</button>`).join("");
+  $$("#examples button").forEach(b => b.onclick = () => { $$("#examples button").forEach(x => x.classList.toggle("active", x === b)); loadExample(+b.dataset.i); });
+  $("#run").onclick = run;
+  $("#pause").onclick = () => { S.paused = !S.paused; $("#pause").textContent = S.paused ? "▶ Weiter" : "‖ Pause"; };
+  $("#edit").onclick = () => {
+    const ed = $("#codeEdit"), open = ed.style.display === "none";
+    if (open) { ed.value = S.code; ed.style.display = "block"; $("#codeView").style.display = "none"; }
+    else { S.code = ed.value; ed.style.display = "none"; $("#codeView").style.display = "block"; reset(); }
+  };
+  loadExample(0);
+}
+function loadExample(i) {
+  S.ex = i; const ex = FUZZ_EXAMPLES[i];
+  S.code = ex.code; $("#dict").value = ex.dict; $("#exExplain").innerHTML = `<p>${ex.explain}</p>`;
+  $("#codeEdit").style.display = "none"; $("#codeView").style.display = "block";
+  reset();
+}
+function reset() {
+  S.runId++; S.running = false; S.paused = false; S.F = null;
+  $("#run").disabled = false; $("#pause").disabled = true; $("#pause").textContent = "‖ Pause";
+  try { S.target = compileTarget(S.code); } catch (e) { S.target = null; }
+  renderCode();
+  $("#corpus").innerHTML = `<li style="grid-template-columns:1fr" class="note">Noch leer. Jede Eingabe, die eine neue Zeile erreicht, landet hier.</li>`;
+  $("#crashG").className = "crashbox"; $("#crashG").innerHTML = `<b style="color:var(--c1)">Coverage-geführt:</b> <span class="note">noch nichts gefunden</span>`;
+  $("#crashB").className = "crashbox"; $("#crashB").innerHTML = `<b style="color:var(--c2)">Blind:</b> <span class="note">noch nichts gefunden</span>`;
+  drawChart(null, null); renderStats(null, null);
+}
+function renderCode(B = null, G = null, flash = []) {
+  const crashLines = [B?.crash?.line, G?.crash?.line].filter(x => x !== undefined);
+  const instr = S.target ? new Set(S.target.lines) : new Set();
+  $("#codeView").innerHTML = S.code.split("\n").map((l, i) => {
+    const gb = instr.has(i) ? `<i class="b${B && B.covered.has(i) ? " on" : ""}" title="blind: ${B ? fmtN(B.covered.get(i) || 0) : 0}×"></i><i class="g${G && G.covered.has(i) ? " on" : ""}" title="geführt: ${G ? fmtN(G.covered.get(i) || 0) : 0}×"></i>` : "";
+    return `<div class="ln${crashLines.includes(i) ? " crash" : ""}${flash.includes(i) ? " flash" : ""}"><span class="gut">${gb}</span><span class="no">${i + 1}</span><span class="tx">${highlight(l, KWS_JS)}</span></div>`;
+  }).join("");
+}
+function renderStats(B, G) {
+  const total = S.target ? S.target.lines.length : 0;
+  const row = (F, guided) => !F ? `<dt>Ausführungen</dt><dd>–</dd><dt>Zeilen</dt><dd>–</dd>` :
+    `<dt>Ausführungen</dt><dd>${fmtN(F.execs)}</dd><dt>Zeilen</dt><dd>${F.covered.size} / ${total}</dd>` +
+    (guided ? `<dt>Korpus</dt><dd>${F.corpus.length} Eingaben</dd>` : `<dt>Korpus</dt><dd>– (kein Gedächtnis)</dd>`) +
+    `<dt>Fehler</dt><dd>${F.crash ? `<span class="bad">nach ${fmtN(F.crash.exec)}</span>` : "–"}</dd>`;
+  $("#statB").innerHTML = row(B, false); $("#statG").innerHTML = row(G, true);
+}
+function drawChart(B, G) {
+  const W = 460, H = 210, L = 34, R = 10, T = 10, Bo = 26;
+  const budget = +$("#budget").value, total = S.target ? S.target.lines.length : 1;
+  const x = e => L + (W - L - R) * Math.log10(1 + e) / Math.log10(1 + budget);
+  const y = c => T + (H - T - Bo) * (1 - c / total);
+  let svg = "";
+  for (let p = 1; Math.pow(10, p) <= budget; p++) svg += `<line x1="${x(10 ** p)}" y1="${T}" x2="${x(10 ** p)}" y2="${H - Bo}" stroke="var(--bd)"/><text x="${x(10 ** p)}" y="${H - 8}" font-size="10" fill="var(--mut)" text-anchor="middle">${p >= 6 ? "1 Mio." : fmtN(10 ** p)}</text>`;
+  for (const c of [0, Math.round(total / 2), total]) svg += `<line x1="${L}" y1="${y(c)}" x2="${W - R}" y2="${y(c)}" stroke="var(--bd)" stroke-dasharray="2 3"/><text x="${L - 6}" y="${y(c) + 3}" font-size="10" fill="var(--mut)" text-anchor="end">${c}</text>`;
+  const path = (F, color) => {
+    if (!F) return "";
+    let d = `M ${x(0)} ${y(0)}`, last = 0;
+    for (const [e, c] of F.history) { d += ` H ${x(e)} V ${y(c)}`; last = c; }
+    d += ` H ${x(F.execs)}`;
+    let s = `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    if (F.crash) s += `<g transform="translate(${x(F.crash.exec)},${y(last)})"><circle r="7" fill="var(--err)"/><text y="4" font-size="10" text-anchor="middle" fill="#fff" font-weight="700">✕</text></g>`;
+    return s;
+  };
+  svg += path(B, "var(--c2)") + path(G, "var(--c1)");
+  $("#chart").innerHTML = svg;
+}
+function addCorpus(entry) {
+  const ul = $("#corpus");
+  if (ul.querySelector(".note")) ul.innerHTML = "";
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="x">#${fmtN(entry.exec)}</span><span><code>${esc(showIn(entry.input))}</code> <span class="new">+ Zeile ${entry.fresh.map(n => n + 1).join(", ")}</span></span>`;
+  ul.prepend(li);
+}
+function showCrash(F, box, color, name) {
+  const c = F.crash, min = minimizeCrash(S.target, c.input, c);
+  box.className = "crashbox hit";
+  box.innerHTML = `<b style="color:${color}">${name}:</b> 💥 <b>${esc(c.type)}</b> nach ${fmtN(c.exec)} Ausführungen<br>
+    <span class="note">Meldung:</span> ${esc(c.msg)}<br>
+    <span class="note">Eingabe:</span> <code>${esc(showIn(c.input))}</code><br>
+    <span class="note">Minimiert:</span> <code>${esc(showIn(min))}</code> <span class="note">(${c.input.length} → ${min.length} Zeichen, wie afl-tmin)</span><br>
+    <span class="note">Zeile:</span> ${c.line + 1}`;
+}
+async function run() {
+  reset(); const id = S.runId;
+  if (!S.target) { $("#crashG").className = "crashbox hit"; $("#crashG").textContent = "⚠ Code-Fehler: Der Code muss gültig sein und fuzzZiel(eingabe) definieren."; return; }
+  const seed = Math.floor(Math.random() * 1e9), dict = $("#dict").value.split(",").map(s => s.trim()).filter(Boolean);
+  const B = makeFuzzer(S.target, "blind", seed, dict), G = makeFuzzer(S.target, "guided", seed + 1, dict);
+  S.running = true; $("#run").disabled = true; $("#pause").disabled = false;
+  const budget = +$("#budget").value;
+  let lastDraw = 0;
+  while (true) {
+    if (id !== S.runId) return;
+    if (S.paused) { await sleep(100); continue; }
+    const gDone = !!G.crash || G.execs >= budget, bDone = !!B.crash || B.execs >= budget;
+    if (gDone && bDone) break;
+    let per = +$("#speed").value;
+    if (gDone) per *= 20; // Zeitraffer, sobald der geführte Fuzzer fertig ist
+    const flash = [];
+    for (let k = 0; k < per; k++) {
+      if (!G.crash && G.execs < budget) {
+        const r = G.step();
+        if (r.fresh.length) { addCorpus(G.corpus[G.corpus.length - 1] || { input: r.input, exec: G.execs, fresh: r.fresh }); flash.push(...r.fresh); }
+        if (r.crash && G.crash && G.crash.exec === G.execs) showCrash(G, $("#crashG"), "var(--c1)", "Coverage-geführt");
+      }
+      if (!B.crash && B.execs < budget) { const r = B.step(); if (r.crash && B.crash && B.crash.exec === B.execs) showCrash(B, $("#crashB"), "var(--c2)", "Blind"); }
+    }
+    const now = performance.now();
+    if (flash.length || now - lastDraw > 120) { renderCode(B, G, flash); drawChart(B, G); renderStats(B, G); lastDraw = now; }
+    await frame();
+  }
+  renderCode(B, G); drawChart(B, G); renderStats(B, G);
+  if (!G.crash) $("#crashG").innerHTML = `<b style="color:var(--c1)">Coverage-geführt:</b> kein Fehler in ${fmtN(G.execs)} Ausführungen. ${S.ex === 2 && !$("#dict").value.includes("RAB-") ? "Steckt er an einer Hürde fest? Tipp: <code>RAB-</code> ins Wörterbuch eintragen." : ""}`;
+  if (!B.crash) $("#crashB").innerHTML = `<b style="color:var(--c2)">Blind:</b> kein Fehler in ${fmtN(B.execs)} Ausführungen, nur ${B.covered.size} von ${S.target.lines.length} Zeilen erreicht.`;
+  S.running = false; $("#run").disabled = false; $("#pause").disabled = true;
+}
+initUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import type { Locale } from '../../data/types';
+import { GLOSSARY } from '../../data/glossary';
+import { PRACTICE_BY_ID } from '../../data/practices';
+import { href } from '../../i18n/ui';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+const terms = [...GLOSSARY].sort((a, b) => a.term[lang].localeCompare(b.term[lang], lang));
+---
+<Base lang={lang} path="glossary/" nav="glossary" title={en ? 'Glossary' : 'Glossar'} description={en ? 'Short definitions of the terms used on this site.' : 'Kurze Definitionen der Begriffe auf dieser Seite.'}>
+  <div class="wrap narrow">
+    <h1>{en ? 'Glossary' : 'Glossar'}</h1>
+    <dl>
+      {terms.map((x) => (
+        <div id={x.id} class="term">
+          <dt>{x.term[lang]}</dt>
+          <dd>{x.def[lang]} {x.see && <a href={href(lang, `practices/${x.see}/`)}>→ {PRACTICE_BY_ID.get(x.see)!.name[lang]}</a>}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</Base>
+<style>
+  .term { padding: 12px 0; border-bottom: 1px solid var(--rule); scroll-margin-top: 80px; }
+  .term:target { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+  dt { font-weight: 700; font-family: var(--font-display); font-size: 1.1rem; }
+  dd { margin: 4px 0 0; color: var(--ink-2); }
+</style>

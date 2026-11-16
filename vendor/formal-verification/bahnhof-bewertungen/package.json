@@ -1,0 +1,16 @@
+{
+  "name": "bahnhof-bewertungen",
+  "private": true,
+  "type": "module",
+  "description": "Property-Based Testing, Fuzzing und Mutation Testing nur mit Node.js, ohne Bibliotheken",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "fuzz": "node fuzz/review.fuzz.mjs 20000",
+    "mutate": "node scripts/mutate.mjs test",
+    "mutate:weak": "node scripts/mutate.mjs test-weak",
+    "fuzz:buggy": "node fuzz/review.fuzz.mjs 20000 fuzz/review-buggy.mjs"
+  }
+}

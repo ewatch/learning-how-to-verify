@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mutation Testing – interaktive Demo</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+.ln.minus { background: color-mix(in srgb, var(--err) 18%, transparent); border-left-color: var(--err); }
+.ln.minus .tx { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--err) 70%, transparent); }
+.ln.plus { background: color-mix(in srgb, var(--ok) 18%, transparent); border-left-color: var(--ok); }
+.ln.cov0 .no { color: var(--err); opacity: 1; }
+.ln.cov1 .no { color: var(--ok); opacity: 1; }
+.scorebox { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: center; }
+.donut text { font-family: var(--font-sans, system-ui, sans-serif); }
+.metric { margin-bottom: 8px; }
+.metric .lab { display: flex; justify-content: space-between; font-size: 13px; }
+.metric .bar { height: 8px; }
+.metric.cov .bar > i { background: var(--inf); }
+.metric.mut .bar > i { background: var(--acc); }
+.counts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.testlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.testlist li { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--bd); background: var(--card-bg); transition: background .2s; }
+.testlist li .ic { width: 18px; text-align: center; flex: none; font-weight: 700; }
+.testlist li .msg { color: var(--mut); font-size: 12px; margin-left: auto; text-align: right; }
+.testlist li.run { border-color: var(--acc); }
+.testlist li.pass .ic { color: var(--ok); }
+.testlist li.fail { background: color-mix(in srgb, var(--err) 10%, var(--card-bg)); }
+.testlist li.fail .ic { color: var(--err); }
+.testlist li.skip { opacity: .45; }
+table.mut { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.mut th { text-align: left; font-size: 12px; color: var(--mut); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--bd); }
+table.mut td { padding: 5px 6px; border-bottom: 1px solid color-mix(in srgb, var(--bd) 60%, transparent); vertical-align: top; }
+table.mut tr { cursor: pointer; transition: background .2s; }
+table.mut tr:hover td { background: color-mix(in srgb, var(--acc) 6%, transparent); }
+table.mut tr.cur td { background: color-mix(in srgb, var(--acc) 14%, transparent); }
+table.mut td code { white-space: nowrap; }
+.hint { font-size: 12.5px; color: var(--mut); margin-top: 2px; }
+.eqbtn { font: inherit; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; border: 1px dashed var(--bd); background: none; color: var(--mut); cursor: pointer; margin-top: 3px; }
+.eqbtn.on { border-style: solid; color: var(--fg); border-color: var(--wrn); }
+.panelhd { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 14px; }
+.flow div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+.flow b { display: block; font-size: 13px; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+.summary { margin-top: 12px; }
+
+/* ---------- „Wozu ist das gut?“ ---------- */
+.useful { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--bd); }
+.useful h2 { font-size: 17px; margin-bottom: 10px; }
+.useful .ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.useful .ugrid > div { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 14px; }
+.useful h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--acc); }
+.useful ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.useful li { margin: 3px 0; }
+.useful .alltag { margin: 10px 0 0; font-size: 14px; }
+.useful .tools { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Interaktive Demo 2 / 5</div>
+    <h1>Mutation Testing</h1>
+    <p class="lead">Mutation Testing <b>testet die Tests</b>. Es baut absichtlich kleine Fehler (<b>Mutanten</b>) in den Code ein und prüft, ob die Testsuite sie bemerkt. Ein überlebender Mutant zeigt eine konkrete Stelle, an der ein echter Bug unbemerkt bliebe.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Eine Lehrerin will wissen, ob ihr <b>Korrekturhelfer</b> gut aufpasst. Sie baut absichtlich kleine Fehler in ein Diktat ein: „Hunt“ statt „Hund“. Findet der Helfer den Fehler, ist alles gut. Übersieht er ihn, weiß sie: <b>Hier passt er nicht auf.</b></p></div>
+        <div><h4>Und bei Software?</h4><p>Bei Software sind die <b>Tests</b> der Korrekturhelfer. Mutation Testing baut absichtlich kleine Fehler in das Programm ein, z. B. <code>&gt;</code> statt <code>&gt;=</code> oder <code>-</code> statt <code>+</code>. So ein verändertes Programm heißt <b>Mutant</b>. Schlägt ein Test fehl, ist der Mutant „getötet“, und die Tests haben aufgepasst. Bleiben alle Tests grün, hat der Mutant „überlebt“. Dann wäre ein echter Fehler an dieser Stelle auch unbemerkt geblieben.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Klick auf <b>▶ Mutation Testing starten</b> und schau zu, wie Mutant für Mutant gegen die Tests läuft.</li><li>Vergleiche die zwei Balken: <b>Coverage</b> ist oft fast 100 %, der <b>Mutation Score</b> aber deutlich niedriger.</li><li>Klick in der Tabelle unten auf einen überlebenden Mutanten. Die Änderung wird im Code gezeigt.</li><li>Klick auf <b>💡 Bessere Tests laden</b> und starte erneut. Jetzt werden viel mehr Mutanten getötet.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Mutant</dt><dd>eine Kopie des Programms mit einem absichtlich eingebauten kleinen Fehler</dd></div><div><dt>getötet</dt><dd>ein Test hat den Fehler bemerkt (gut!)</dd></div><div><dt>überlebt</dt><dd>kein Test hat den Fehler bemerkt (Lücke in den Tests)</dd></div><div><dt>Coverage</dt><dd>welcher Teil des Codes beim Testen überhaupt <i>ausgeführt</i> wurde, nicht ob er <i>geprüft</i> wurde</dd></div><div><dt>Mutation Score</dt><dd>Anteil der getöteten Mutanten: je höher, desto besser die Tests</dd></div><div><dt>äquivalenter Mutant</dt><dd>eine Änderung, die gar nichts am Verhalten ändert. Die kann kein Test finden</dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Mutation Testing testet nicht das Programm, sondern <b>die Tests</b>: Merken sie es, wenn etwas kaputtgeht?</p>
+    </div>
+  </details>
+
+
+  <div class="flow">
+    <div><b>1 · Mutieren</b>Operatoren, Konstanten, Bedingungen und Anweisungen gezielt verändern</div>
+    <div><b>2 · Tests laufen lassen</b>die komplette Suite gegen jeden Mutanten</div>
+    <div><b>3 · Bewerten</b><span class="ok">getötet</span>, wenn ein Test fehlschlägt, <span class="bad">überlebt</span>, wenn alle grün bleiben</div>
+    <div><b>4 · Score</b>getötet ÷ (alle − äquivalente)</div>
+  </div>
+
+  <label class="lbl">Beispiel</label>
+  <div class="chips" id="examples" style="margin-bottom:12px"></div>
+  <div class="explain" id="exExplain"></div>
+
+  <div class="row" style="margin-bottom:12px">
+    <button class="btn primary" id="run">▶ Mutation Testing starten</button>
+    <select id="speed"><option value="1">Tempo: langsam</option><option value="3" selected>Tempo: normal</option><option value="12">Tempo: schnell</option><option value="0">sofort</option></select>
+    <button class="btn" id="better">💡 Bessere Tests laden</button>
+    <button class="btn" id="resetTests">↺ Ursprüngliche Tests</button>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="panelhd"><h3>Produktionscode</h3><button class="btn" id="editCode" style="padding:3px 9px;font-size:12.5px">✎ bearbeiten</button></div>
+      <div class="code" id="codeView"></div>
+      <textarea id="codeEdit" rows="12" style="display:none" spellcheck="false" wrap="off"></textarea>
+      <div class="panelhd" style="margin-top:12px"><h3>Testsuite</h3><button class="btn" id="editTests" style="padding:3px 9px;font-size:12.5px">✎ bearbeiten</button></div>
+      <div class="code" id="testView"></div>
+      <textarea id="testEdit" rows="14" style="display:none" spellcheck="false" wrap="off"></textarea>
+      <p class="note" style="margin-top:6px">Verfügbar: <code>test(name, fn)</code>, <code>expect(x).toBe / toEqual / toThrow / toBeDefined / toBeTruthy</code>, <code>fakeRepo()</code>, <code>fakeMailer()</code>. Die grünen bzw. roten Zeilennummern zeigen die Line-Coverage.</p>
+    </div>
+    <div>
+      <div class="card scorebox">
+        <svg class="donut" viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="48" fill="none" stroke="color-mix(in srgb, var(--mut) 20%, transparent)" stroke-width="12"/>
+          <circle id="donutArc" cx="60" cy="60" r="48" fill="none" stroke="var(--acc)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 302" transform="rotate(-90 60 60)" style="transition: stroke-dasharray .4s"/>
+          <text id="donutTxt" x="60" y="62" text-anchor="middle" font-size="24" font-weight="700" fill="var(--fg)">–</text>
+          <text x="60" y="80" text-anchor="middle" font-size="10" fill="var(--mut)">Mutation Score</text>
+        </svg>
+        <div>
+          <div class="metric cov"><div class="lab"><span>Line-Coverage</span><b id="covTxt">–</b></div><div class="bar"><i id="covBar"></i></div></div>
+          <div class="metric mut"><div class="lab"><span>Mutation Score</span><b id="mutTxt">–</b></div><div class="bar"><i id="mutBar"></i></div></div>
+          <div class="counts" id="counts"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="panelhd"><h3 id="curTitle">Aktueller Mutant</h3><span id="curStatus"></span></div>
+        <ul class="testlist" id="testList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="panelhd"><h3>Alle Mutanten</h3><span class="note">Klick auf eine Zeile zeigt die Änderung im Code</span></div>
+    <div style="overflow-x:auto"><table class="mut"><thead><tr><th>#</th><th>Zeile</th><th>Mutation</th><th>Ergebnis</th></tr></thead><tbody id="mutRows"><tr><td colspan="4" class="note">Noch nicht gestartet.</td></tr></tbody></table></div>
+  </div>
+  <div class="verdict summary" id="summary" style="display:none"></div>
+
+  <div class="useful">
+    <h2>Wozu ist Mutation Testing gut?</h2>
+    <div class="ugrid">
+      <div><h4>Gut geeignet für</h4><ul><li>die Qualität einer <b>bestehenden</b> Testsuite ehrlich messen</li><li>vor Refactorings Testlücken finden</li><li>kritische Fachlogik: Preise, Berechtigungen, Fristen</li></ul></div>
+      <div><h4>Möglichkeiten</h4><ul><li>zeigt die exakte Zeile und Änderung, die kein Test bemerkt</li><li>Mutation Score als aussagekräftigere Metrik als Line-Coverage</li><li>findet fehlende Grenzwert-, Fehlerfall- und Seiteneffekt-Tests</li><li>inkrementell in CI: nur geänderter Code wird mutiert</li><li>arbeitet mit den vorhandenen Tests, keine neue Sprache nötig</li></ul></div>
+      <div><h4>Grenzen &amp; Aufwand</h4><ul><li>kostet Rechenzeit: jeder Mutant ist ein eigener Testlauf</li><li>äquivalente Mutanten muss man von Hand aussortieren</li><li>findet keine Bugs im Code, sondern Lücken in den Tests</li></ul></div>
+    </div>
+    <p class="alltag"><b>Aus dem Alltag:</b> Ein Test prüft „Versandkosten ab 50 € frei“ nur mit 30 € und 80 €. Ein Mutant <code>&gt;=</code> → <code>&gt;</code> überlebt, weil niemand genau 50 € getestet hat.</p>
+    <p class="tools"><b>Werkzeuge:</b> PIT (Java), Stryker (JS/TS, C#, Scala), mutmut und cosmic-ray (Python), cargo-mutants (Rust), Mull (C/C++), Infection (PHP)</p>
+  </div>
+
+  <div class="footer">
+    Weitere Demos: <a href="verifikation.html">① Formale Verifikation</a> · <a href="property-based-testing.html">③ Property-Based Testing</a> · <a href="fuzzing.html">④ Fuzzing</a> · <a href="differential-testing.html">⑤ Differential Testing</a> · <a href="index.html">Übersicht</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+
+const KWS_JS = new Set(["function", "return", "if", "else", "for", "while", "let", "const", "var", "new", "throw", "true", "false", "null", "undefined", "of", "in"]);
+
+/* ---------------- Beispiele ---------------- */
+const EXAMPLES = [
+  {
+    name: "Rabatt: Grenzwerte",
+    explain: "<p>Die Tests decken <b>100 % der Zeilen</b> ab und sehen vollständig aus. Starte das Mutation Testing und achte darauf, welche Mutanten überleben.</p>",
+    code:
+`function rabatt(betrag) {
+  if (betrag >= 100) {
+    return betrag * 0.9;
+  }
+  return betrag;
+}`,
+    tests:
+`test("200 € → 10 % Rabatt", () => {
+  expect(rabatt(200)).toBe(180);
+});
+
+test("50 € → kein Rabatt", () => {
+  expect(rabatt(50)).toBe(50);
+});`,
+    better:
+`test("200 € → 10 % Rabatt", () => {
+  expect(rabatt(200)).toBe(180);
+});
+
+test("50 € → kein Rabatt", () => {
+  expect(rabatt(50)).toBe(50);
+});
+
+test("Grenze: genau 100 € → Rabatt", () => {
+  expect(rabatt(100)).toBe(90);
+});
+
+test("Grenze: 99 € → kein Rabatt", () => {
+  expect(rabatt(99)).toBe(99);
+});`,
+  },
+  {
+    name: "Bestellung: Seiteneffekte & schwache Assertions",
+    explain: "<p>Typisch für Business-Code: Die Tests rufen die Funktion zwar auf, prüfen aber kaum etwas. Ob gespeichert, gerechnet oder eine Mail verschickt wird, merkt kein Test. Fehlerfälle werden gar nicht getestet.</p>",
+    code:
+`function bestellungAbschliessen(bestellung, repo, mailer) {
+  if (bestellung.artikel.length === 0) {
+    throw new Error("Leere Bestellung");
+  }
+  bestellung.status = "abgeschlossen";
+  bestellung.summe = bestellung.artikel.reduce((s, a) => s + a.preis, 0);
+  repo.save(bestellung);
+  mailer.send(bestellung.kunde, "Danke für Ihre Bestellung!");
+  return bestellung;
+}`,
+    tests:
+`test("Status wird gesetzt", () => {
+  const b = { kunde: "anna@example.de", artikel: [{ preis: 10 }, { preis: 5 }] };
+  const ergebnis = bestellungAbschliessen(b, fakeRepo(), fakeMailer());
+  expect(ergebnis.status).toBe("abgeschlossen");
+});
+
+test("Liefert ein Ergebnis", () => {
+  const b = { kunde: "ben@example.de", artikel: [{ preis: 3 }] };
+  expect(bestellungAbschliessen(b, fakeRepo(), fakeMailer())).toBeDefined();
+});`,
+    better:
+`test("Abschließen: Status, Summe, Speichern, Mail", () => {
+  const repo = fakeRepo(), mailer = fakeMailer();
+  const b = { kunde: "anna@example.de", artikel: [{ preis: 10 }, { preis: 5 }] };
+  const ergebnis = bestellungAbschliessen(b, repo, mailer);
+  expect(ergebnis.status).toBe("abgeschlossen");
+  expect(ergebnis.summe).toBe(15);
+  expect(repo.gespeichert).toEqual([b]);
+  expect(mailer.gesendet).toEqual([{ an: "anna@example.de", text: "Danke für Ihre Bestellung!" }]);
+});
+
+test("Leere Bestellung wird abgelehnt", () => {
+  const b = { kunde: "ben@example.de", artikel: [] };
+  expect(() => bestellungAbschliessen(b, fakeRepo(), fakeMailer())).toThrow("Leere Bestellung");
+});`,
+  },
+  {
+    name: "Maximum: äquivalente Mutanten",
+    explain: "<p>Hier sind die Tests eigentlich gut. Trotzdem überleben zwei Mutanten, weil sie sich <b>exakt gleich verhalten</b> wie das Original. Solche <b>äquivalenten Mutanten</b> kann kein Test töten. Ein Mensch muss sie erkennen und markieren. Ein <code>i--</code>-Mutant erzeugt außerdem eine <b>Endlosschleife</b>. Die wird per Timeout erkannt und zählt als getötet.</p>",
+    code:
+`function maximum(zahlen) {
+  let max = zahlen[0];
+  for (let i = 1; i < zahlen.length; i++) {
+    if (zahlen[i] > max) {
+      max = zahlen[i];
+    }
+  }
+  return max;
+}`,
+    tests:
+`test("Maximum in der Mitte", () => {
+  expect(maximum([1, 5, 2])).toBe(5);
+});
+
+test("Maximum vorne", () => {
+  expect(maximum([3, 1, 2])).toBe(3);
+});
+
+test("Nur negative Zahlen", () => {
+  expect(maximum([-4, -2])).toBe(-2);
+});`,
+    equivalent: {
+      "3:<→<=": "i == zahlen.length liest zahlen[length] = undefined, und undefined > max ist immer false. Das Verhalten ist identisch.",
+      "4:>→>=": "Bei Gleichstand wird max durch denselben Wert ersetzt. Das Ergebnis ist identisch.",
+    },
+  },
+];
+
+/* ---------------- Tokenizer & Mutationsoperatoren ---------------- */
+function tokenize(src) {
+  const re = /(\s+)|(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\d+(?:\.\d+)?)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)|(===|!==|=>|<=|>=|==|!=|&&|\|\||\+\+|--|\+=|-=|\*=|\/=|[-+*\/%<>=!?:;,.(){}\[\]&|^~])/y;
+  const toks = []; let m, pos = 0;
+  while (pos < src.length) {
+    re.lastIndex = pos; m = re.exec(src);
+    if (!m) throw new SyntaxError("Unbekanntes Zeichen: " + src[pos]);
+    const type = m[1] ? "ws" : m[2] ? "com" : m[3] ? "str" : m[4] ? "num" : m[5] ? "id" : "p";
+    toks.push({ type, v: m[0], s: pos, e: pos + m[0].length });
+    pos += m[0].length;
+  }
+  return toks;
+}
+const lineOf = (src, pos) => src.slice(0, pos).split("\n").length - 1;
+const OPS = {
+  ">=": [[">", "rel-boundary"], ["<", "rel-negate"]], ">": [[">=", "rel-boundary"], ["<=", "rel-negate"]],
+  "<=": [["<", "rel-boundary"], [">", "rel-negate"]], "<": [["<=", "rel-boundary"], [">=", "rel-negate"]],
+  "===": [["!==", "eq"]], "!==": [["===", "eq"]],
+  "+": [["-", "arith"]], "-": [["+", "arith"]], "*": [["/", "arith"]], "/": [["*", "arith"]], "%": [["*", "arith"]],
+  "&&": [["||", "logic"]], "||": [["&&", "logic"]], "++": [["--", "update"]], "--": [["++", "update"]],
+  "+=": [["-=", "arith"]], "-=": [["+=", "arith"]],
+};
+const HINTS = {
+  "rel-boundary": "Grenzwert nicht getestet: Ein Test mit genau dem Wert an der Grenze fehlt.",
+  "rel-negate": "Die Bedingung wird von keinem Test wirksam geprüft.",
+  eq: "Die Bedingung wird von keinem Test wirksam geprüft.",
+  arith: "Kein Test prüft das Ergebnis dieser Berechnung exakt.",
+  logic: "Die Kombination der Teilbedingungen ist ungetestet.",
+  update: "Die Schleifensteuerung wird nicht geprüft.",
+  num: "Der genaue Wert dieser Konstante ist durch keinen Test festgelegt.",
+  str: "Kein Test prüft diesen Text (Statuswert, Fehlermeldung, Mail-Inhalt …).",
+  bool: "Dieser Wahrheitswert wird von keinem Test geprüft.",
+  "if-true": "Der Fall „Bedingung ist falsch“ wird von keinem Test geprüft.",
+  "if-false": "Der Fall „Bedingung ist wahr“ wird von keinem Test mit Assertion geprüft (fehlender Fehlerfall-Test?).",
+  ret: "Der Rückgabewert wird von keinem Test geprüft.",
+  del: "Kein Test merkt, wenn diese Anweisung fehlt. Ihr Seiteneffekt wird nicht geprüft.",
+};
+const KIND_LABEL = { "rel-boundary": "Grenze", "rel-negate": "Bedingung", eq: "Bedingung", arith: "Arithmetik", logic: "Logik", update: "Inkrement", num: "Konstante", str: "String", bool: "Boolean", "if-true": "Bedingung", "if-false": "Bedingung", ret: "Rückgabe", del: "Anweisung gelöscht" };
+
+function matchClose(toks, i) { // i zeigt auf "(" → Index der passenden ")"
+  let d = 0;
+  for (let k = i; k < toks.length; k++) { if (toks[k].v === "(") d++; else if (toks[k].v === ")" && --d === 0) return k; }
+  return -1;
+}
+function generateMutants(src) {
+  const toks = tokenize(src), out = [], seen = new Set();
+  const add = (s, e, rep, kind, desc) => {
+    const code = src.slice(0, s) + rep + src.slice(e);
+    if (seen.has(code) || code === src) return; seen.add(code);
+    out.push({ line: lineOf(src, s), kind, desc, code });
+  };
+  const sig = toks.filter(t => t.type !== "ws" && t.type !== "com");
+  sig.forEach((t, k) => {
+    if (t.type === "p" && OPS[t.v]) {
+      if ((t.v === "-" || t.v === "+") && (k === 0 || ["(", ",", "=", "[", "return", "=>", ":", "?"].includes(sig[k - 1].v) || OPS[sig[k - 1].v])) return; // unäres Vorzeichen
+      for (const [rep, kind] of OPS[t.v]) add(t.s, t.e, rep, kind, `${t.v} → ${rep}`);
+    }
+    if (t.type === "num") {
+      const n = Number(t.v), rep = Number.isInteger(n) && !t.v.includes(".") ? String(n + 1) : (n === 1 ? "0" : "1");
+      add(t.s, t.e, rep, "num", `${t.v} → ${rep}`);
+    }
+    if (t.type === "str" && t.v.length > 2) add(t.s, t.e, '""', "str", `${t.v.length > 22 ? t.v.slice(0, 20) + "…" + t.v.slice(-1) : t.v} → ""`);
+    if (t.type === "id" && (t.v === "true" || t.v === "false")) add(t.s, t.e, t.v === "true" ? "false" : "true", "bool", `${t.v} → ${t.v === "true" ? "false" : "true"}`);
+    if (t.type === "id" && t.v === "if" && sig[k + 1]?.v === "(") {
+      const close = matchClose(sig, k + 1); if (close < 0) return;
+      const s = sig[k + 2].s, e = sig[close].s, cond = src.slice(s, e);
+      add(s, e, "true", "if-true", `if (${cond}) → if (true)`);
+      add(s, e, "false", "if-false", `if (${cond}) → if (false)`);
+    }
+    if (t.type === "id" && t.v === "return" && sig[k + 1] && sig[k + 1].v !== ";") {
+      let j = k + 1, d = 0;
+      while (j < sig.length && !(d === 0 && (sig[j].v === ";" || sig[j].v === "}"))) { if ("([{".includes(sig[j].v)) d++; if (")]}".includes(sig[j].v)) d--; j++; }
+      const s = sig[k + 1].s, e = sig[j - 1].e, ex = src.slice(s, e);
+      if (ex !== "null") add(s, e, "null", "ret", `return ${ex.length > 24 ? ex.slice(0, 22) + "…" : ex} → return null`);
+    }
+  });
+  // Anweisungen löschen: Aufrufe, Zuweisungen, throw
+  let off = 0;
+  for (const line of src.split("\n")) {
+    const tr = line.trim();
+    const isStmt = /^throw\b.*;$/.test(tr) || /^[\w$.\[\]]+\s*\(.*\)\s*;$/.test(tr) ||
+      (/^[\w$.\[\]]+\s*(=|\+=|-=|\*=|\/=)\s*[^=].*;$/.test(tr) && !/^(let|const|var|return)\b/.test(tr));
+    if (isStmt) { const s = off + line.indexOf(tr); add(s, s + tr.length, "/* entfernt */", "del", `${tr.length > 34 ? tr.slice(0, 32) + "…" : tr} → (gelöscht)`); }
+    off += line.length + 1;
+  }
+  out.sort((a, b) => a.line - b.line);
+  out.forEach((m, i) => m.id = i + 1);
+  return out;
+}
+
+/* ---------------- Instrumentierung: Endlosschleifen-Schutz & Coverage ---------------- */
+function guardLoops(src) {
+  const toks = tokenize(src), sig = toks.filter(t => t.type !== "ws" && t.type !== "com");
+  const ins = [];
+  sig.forEach((t, k) => {
+    if (t.type === "id" && (t.v === "for" || t.v === "while") && sig[k + 1]?.v === "(") {
+      const c = matchClose(sig, k + 1);
+      if (c > 0 && sig[c + 1]?.v === "{") ins.push(sig[c + 1].e);
+    }
+  });
+  let out = src;
+  ins.sort((a, b) => b - a).forEach(p => out = out.slice(0, p) + " __guard();" + out.slice(p));
+  return out;
+}
+function instrumentCoverage(src) {
+  const lines = src.split("\n"), cov = []; let prevEnd = "{";
+  const out = lines.map((l, i) => {
+    const tr = l.trim();
+    if (!tr || tr.startsWith("//")) return l;
+    const starts = /[;{}]$/.test(prevEnd) && !/^(}|\)|\]|\.|else\b|function\b|catch\b|finally\b)/.test(tr);
+    prevEnd = tr;
+    if (!starts) return l;
+    cov.push(i);
+    const ind = l.length - l.trimStart().length;
+    return l.slice(0, ind) + `__cov(${i});` + l.slice(ind);
+  });
+  return { code: out.join("\n"), lines: cov };
+}
+
+/* ---------------- Mini-Testframework ---------------- */
+class AssertionError extends Error {}
+class TimeoutError extends Error {}
+const show = v => { try { return typeof v === "string" ? JSON.stringify(v) : (typeof v === "function" ? "Funktion" : JSON.stringify(v) ?? String(v)); } catch { return String(v); } };
+function deepEq(a, b) {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a).filter(k => typeof a[k] !== "function"), kb = Object.keys(b).filter(k => typeof b[k] !== "function");
+  return ka.length === kb.length && ka.every(k => deepEq(a[k], b[k]));
+}
+function expect(actual) {
+  const fail = msg => { throw new AssertionError(msg); };
+  return {
+    toBe: e => Object.is(actual, e) || fail(`erwartet ${show(e)}, erhalten ${show(actual)}`),
+    toEqual: e => deepEq(actual, e) || fail(`erwartet ${show(e)}, erhalten ${show(actual)}`),
+    toBeDefined: () => actual !== undefined || fail("erwartet: definiert, erhalten: undefined"),
+    toBeTruthy: () => !!actual || fail(`erwartet wahr, erhalten ${show(actual)}`),
+    toThrow: msg => {
+      try { actual(); } catch (err) {
+        if (err instanceof TimeoutError) throw err;
+        if (msg !== undefined && !String(err.message).includes(msg)) fail(`Fehlermeldung ${show(err.message)} enthält nicht ${show(msg)}`);
+        return;
+      }
+      fail("erwartet: Exception, aber es wurde keine geworfen");
+    },
+  };
+}
+const fakeRepo = () => ({ gespeichert: [], save(x) { this.gespeichert.push(x); } });
+const fakeMailer = () => ({ gesendet: [], send(an, text) { this.gesendet.push({ an, text }); } });
+
+function loadSuite(code, tests, cov = () => {}) {
+  const reg = [];
+  let steps = 0;
+  const guard = () => { if (++steps > 20000) throw new TimeoutError("Timeout: Endlosschleife?"); };
+  const fn = new Function("test", "expect", "fakeRepo", "fakeMailer", "__guard", "__cov", `"use strict";\n${guardLoops(code)}\n;${tests}`);
+  fn((name, f) => reg.push({ name, f }), expect, fakeRepo, fakeMailer, guard, cov);
+  return reg.map(t => ({ name: t.name, run: () => { steps = 0; try { t.f(); return { ok: true }; } catch (e) { return { ok: false, timeout: e instanceof TimeoutError, msg: e instanceof AssertionError || e instanceof TimeoutError ? e.message : `${e.name}: ${e.message}` }; } } }));
+}
+
+/* ---------------- UI ---------------- */
+const S = { ex: 0, code: "", tests: "", mutants: [], runId: 0, running: false, cov: null, eq: new Set() };
+function initUI() {
+  $("#examples").innerHTML = EXAMPLES.map((e, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${e.name}</button>`).join("");
+  $$("#examples button").forEach(b => b.onclick = () => { $$("#examples button").forEach(x => x.classList.toggle("active", x === b)); loadExample(+b.dataset.i); });
+  $("#run").onclick = runAll;
+  $("#better").onclick = () => { const ex = EXAMPLES[S.ex]; if (ex.better) { S.tests = ex.better; resetRun(); } };
+  $("#resetTests").onclick = () => { S.tests = EXAMPLES[S.ex].tests; resetRun(); };
+  const toggle = (view, edit, key) => () => {
+    const ed = $(edit), open = ed.style.display === "none";
+    if (open) { ed.value = S[key]; ed.style.display = "block"; $(view).style.display = "none"; }
+    else { S[key] = ed.value; ed.style.display = "none"; $(view).style.display = "block"; resetRun(); }
+  };
+  $("#editCode").onclick = toggle("#codeView", "#codeEdit", "code");
+  $("#editTests").onclick = toggle("#testView", "#testEdit", "tests");
+  loadExample(0);
+}
+function loadExample(i) {
+  S.ex = i; const ex = EXAMPLES[i];
+  S.code = ex.code; S.tests = ex.tests;
+  $("#exExplain").innerHTML = ex.explain;
+  $("#better").disabled = !ex.better;
+  $("#better").textContent = ex.better ? "💡 Bessere Tests laden" : "💡 (keine besseren Tests nötig)";
+  resetRun();
+}
+function renderCode(mutant = null) {
+  const lines = S.code.split("\n");
+  let html = "";
+  lines.forEach((l, i) => {
+    const c = S.cov ? (S.cov.lines.includes(i) ? (S.cov.hit.has(i) ? " cov1" : " cov0") : "") : "";
+    if (mutant && mutant.line === i) {
+      const ml = mutant.code.split("\n")[i];
+      html += `<div class="ln minus${c}"><span class="no">−</span><span class="tx">${highlight(l, KWS_JS)}</span></div>`;
+      html += `<div class="ln plus"><span class="no">+</span><span class="tx">${highlight(ml, KWS_JS)}</span></div>`;
+    } else html += `<div class="ln${c}" data-line="${i}"><span class="no">${i + 1}</span><span class="tx">${highlight(l, KWS_JS)}</span></div>`;
+  });
+  $("#codeView").innerHTML = html;
+}
+function renderTests() {
+  $("#testView").innerHTML = S.tests.split("\n").map((l, i) => `<div class="ln"><span class="no">${i + 1}</span><span class="tx">${highlight(l, KWS_JS)}</span></div>`).join("");
+}
+function resetRun() {
+  S.runId++; S.running = false; S.mutants = []; S.cov = null; S.eq = new Set();
+  $("#run").disabled = false;
+  renderCode(); renderTests();
+  $("#mutRows").innerHTML = `<tr><td colspan="4" class="note">Noch nicht gestartet.</td></tr>`;
+  $("#testList").innerHTML = ""; $("#curTitle").textContent = "Aktueller Mutant"; $("#curStatus").innerHTML = "";
+  $("#summary").style.display = "none";
+  setMetrics(null, null); $("#counts").innerHTML = "";
+}
+function setMetrics(cov, score) {
+  $("#covTxt").textContent = cov == null ? "–" : Math.round(cov) + " %"; $("#covBar").style.width = (cov || 0) + "%";
+  $("#mutTxt").textContent = score == null ? "–" : Math.round(score) + " %"; $("#mutBar").style.width = (score || 0) + "%";
+  $("#donutTxt").textContent = score == null ? "–" : Math.round(score) + "%";
+  $("#donutArc").setAttribute("stroke-dasharray", `${3.016 * (score || 0)} 302`);
+}
+function statusPill(m) {
+  if (m.status === "killed") return `<span class="pill ok">✓ getötet</span>`;
+  if (m.status === "timeout") return `<span class="pill ok">⏱ Timeout (getötet)</span>`;
+  if (m.status === "survived") return S.eq.has(m.id) ? `<span class="pill idle">≡ äquivalent</span>` : `<span class="pill bad">✗ überlebt</span>`;
+  if (m.status === "invalid") return `<span class="pill idle">Kompilierfehler</span>`;
+  if (m.status === "running") return `<span class="pill warn">läuft …</span>`;
+  return `<span class="pill idle">ausstehend</span>`;
+}
+function eqKey(m) { return `${m.line + 1}:${m.desc.replace(/\s/g, "")}`; }
+function renderRows(curId) {
+  const eqInfo = EXAMPLES[S.ex].equivalent || {};
+  $("#mutRows").innerHTML = S.mutants.map(m => {
+    let extra = "";
+    if (m.status === "killed" || m.status === "timeout") extra = `<div class="hint">getötet durch „${esc(m.by)}“: ${esc(m.msg)}</div>`;
+    if (m.status === "survived") {
+      const info = eqInfo[eqKey(m)];
+      extra = S.eq.has(m.id) ? `<div class="hint">${esc(info || "Als äquivalent markiert und aus dem Score herausgenommen.")}</div>`
+        : `<div class="hint">${info ? "💡 <b>Gibt es überhaupt eine Eingabe, bei der sich dieser Mutant anders verhält als das Original?</b> Wenn nicht, ist er äquivalent." : "→ " + HINTS[m.kind]}</div>`;
+      extra += `<button class="eqbtn${S.eq.has(m.id) ? " on" : ""}" data-eq="${m.id}">${S.eq.has(m.id) ? "≡ äquivalent (zurücknehmen)" : "als äquivalent markieren"}</button>`;
+    }
+    return `<tr data-id="${m.id}" class="${m.id === curId ? "cur" : ""}"><td>${m.id}</td><td>${m.line + 1}</td><td><code>${esc(m.desc)}</code> <span class="note">${KIND_LABEL[m.kind]}</span>${extra}</td><td>${statusPill(m)}</td></tr>`;
+  }).join("");
+  $$("#mutRows tr").forEach(tr => tr.onclick = ev => {
+    const id = +tr.dataset.id, m = S.mutants.find(x => x.id === id);
+    if (ev.target.dataset.eq) { S.eq.has(id) ? S.eq.delete(id) : S.eq.add(id); updateScore(); renderRows(id); if (!S.running) summarize(); return; }
+    if (!S.running && m) { renderCode(m); showMutantTests(m); renderRows(id); }
+  });
+}
+function showMutantTests(m) {
+  $("#curTitle").innerHTML = `Mutant #${m.id}: <code>${esc(m.desc)}</code>`;
+  $("#curStatus").innerHTML = statusPill(m);
+  $("#testList").innerHTML = (m.results || []).map(r => `<li class="${r.state}"><span class="ic">${r.state === "pass" ? "✓" : r.state === "fail" ? "✗" : "·"}</span><span>${esc(r.name)}</span><span class="msg">${esc(r.msg || "")}</span></li>`).join("");
+}
+function updateScore() {
+  const done = S.mutants.filter(m => ["killed", "timeout", "survived"].includes(m.status));
+  const killed = done.filter(m => m.status !== "survived").length;
+  const eq = done.filter(m => m.status === "survived" && S.eq.has(m.id)).length;
+  const surv = done.length - killed - eq;
+  const denom = done.length - eq;
+  setMetrics(S.cov ? S.cov.pct : null, denom ? 100 * killed / denom : null);
+  $("#counts").innerHTML = `<span class="pill ok">${killed} getötet</span><span class="pill bad">${surv} überlebt</span>${eq ? `<span class="pill idle">${eq} äquivalent</span>` : ""}<span class="pill idle">${S.mutants.length} Mutanten</span>`;
+  return { killed, surv, eq, denom };
+}
+async function runAll() {
+  resetRun(); const id = S.runId; S.running = true; $("#run").disabled = true;
+  const speed = +$("#speed").value, delay = speed ? 380 / speed : 0;
+  // 1) Originalcode: Coverage messen & alle Tests müssen grün sein
+  let suite;
+  try {
+    const inst = instrumentCoverage(S.code), hit = new Set();
+    suite = loadSuite(inst.code, S.tests, i => hit.add(i));
+    const res = suite.map(t => ({ name: t.name, ...t.run() }));
+    S.cov = { lines: inst.lines, hit, pct: inst.lines.length ? 100 * inst.lines.filter(l => hit.has(l)).length / inst.lines.length : 100 };
+    $("#curTitle").textContent = "Originalcode (ohne Mutation)";
+    $("#testList").innerHTML = res.map(r => `<li class="${r.ok ? "pass" : "fail"}"><span class="ic">${r.ok ? "✓" : "✗"}</span><span>${esc(r.name)}</span><span class="msg">${esc(r.msg || "")}</span></li>`).join("");
+    renderCode(); setMetrics(S.cov.pct, null);
+    if (!res.length) throw new Error("Die Testsuite enthält keine Tests.");
+    const bad = res.filter(r => !r.ok);
+    if (bad.length) throw new Error(`Die Tests müssen auf dem Originalcode grün sein. Fehlgeschlagen: „${bad[0].name}“ (${bad[0].msg})`);
+  } catch (e) {
+    $("#summary").style.display = "block"; $("#summary").className = "verdict bad summary pop"; $("#summary").textContent = "⚠ " + e.message;
+    S.running = false; $("#run").disabled = false; return;
+  }
+  $("#curStatus").innerHTML = `<span class="pill ok">alle grün</span>`;
+  if (delay) await sleep(delay * 3);
+  // 2) Mutanten erzeugen
+  try { S.mutants = generateMutants(S.code); } catch (e) { S.mutants = []; }
+  renderRows();
+  // 3) Jeden Mutanten gegen die Suite laufen lassen
+  for (const m of S.mutants) {
+    if (id !== S.runId) return;
+    m.status = "running";
+    let mt;
+    try { mt = loadSuite(m.code, S.tests); } catch (e) { m.status = "invalid"; m.msg = e.message; continue; }
+    m.results = mt.map(t => ({ name: t.name, state: "" }));
+    if (delay) { renderCode(m); renderRows(m.id); showMutantTests(m); await sleep(delay); }
+    for (let k = 0; k < mt.length; k++) {
+      if (id !== S.runId) return;
+      const r = mt[k].run();
+      m.results[k] = { name: mt[k].name, state: r.ok ? "pass" : "fail", msg: r.msg };
+      if (delay) { showMutantTests(m); $$("#testList li")[k]?.classList.add("run"); await sleep(delay); }
+      if (!r.ok) {
+        m.status = r.timeout ? "timeout" : "killed"; m.by = mt[k].name; m.msg = r.msg;
+        for (let j = k + 1; j < mt.length; j++) m.results[j] = { name: mt[j].name, state: "skip", msg: "übersprungen" };
+        break;
+      }
+    }
+    if (m.status === "running") m.status = "survived";
+    updateScore();
+    if (delay) { showMutantTests(m); renderRows(m.id); await sleep(delay * 1.6); }
+  }
+  S.running = false; $("#run").disabled = false;
+  renderCode(); renderRows(); summarize();
+}
+function summarize() {
+  const { surv, denom, killed } = updateScore();
+  const box = $("#summary"); box.style.display = "block";
+  const cov = Math.round(S.cov.pct), score = denom ? Math.round(100 * killed / denom) : 100;
+  const survivors = S.mutants.filter(m => m.status === "survived" && !S.eq.has(m.id));
+  if (!survivors.length) {
+    box.className = "verdict ok summary pop";
+    box.innerHTML = `✓ <b>Mutation Score ${score} %.</b> Jede eingebaute Änderung wird von mindestens einem Test bemerkt. Die Tests prüfen das Verhalten wirklich und laufen nicht nur durch den Code.`;
+  } else {
+    box.className = "verdict bad summary pop";
+    const eqInfo = EXAMPLES[S.ex].equivalent || {};
+    const suspects = survivors.filter(m => eqInfo[eqKey(m)]);
+    const kinds = [...new Set(survivors.filter(m => !eqInfo[eqKey(m)]).map(m => HINTS[m.kind]))];
+    if (suspects.length) kinds.push(`${suspects.length} Mutant${suspects.length === 1 ? " ist" : "en sind"} vermutlich <b>äquivalent</b>. Diese Fälle sind keine Testlücke: Prüfe sie und markiere sie in der Tabelle.`);
+    box.innerHTML = `<b>Line-Coverage ${cov} %, aber Mutation Score nur ${score} %.</b> ${surv} Mutant${surv === 1 ? " überlebt" : "en überleben"}. Jeder davon ist eine Codeänderung, die deine Tests <b>nicht</b> bemerken:<ul style="margin:6px 0 0 18px;padding:0">${kinds.map(k => `<li>${k}</li>`).join("")}</ul>${EXAMPLES[S.ex].better && S.tests !== EXAMPLES[S.ex].better ? `<div style="margin-top:6px">Probiere <b>„💡 Bessere Tests laden“</b> und starte erneut.</div>` : ""}`;
+  }
+}
+initUI();
+</script>
+</body>
+</html>

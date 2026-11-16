@@ -1,0 +1,98 @@
+---
+import type { Locale } from '../data/types';
+import { LAYERS } from '../data/taxonomy';
+import { PRACTICES } from '../data/practices';
+import PracticeCard from './PracticeCard.astro';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+
+// geometry: inverted funnel, cheap/early at the top, expensive at the bottom
+const W = 800, TOP = 8, BAND = 78, MID = W / 2;
+const hw = (y: number) => 384 - (384 - 64) * ((y - TOP) / (BAND * 5));
+const bands = LAYERS.map((layer, i) => {
+  const y0 = TOP + i * BAND, y1 = y0 + BAND;
+  const a = hw(y0), b = hw(y1);
+  return { layer, i, y0, y1, d: `M${MID - a} ${y0} L${MID + a} ${y0} L${MID + b} ${y1} L${MID - b} ${y1} Z`, count: PRACTICES.filter((p) => p.layer === layer.id).length };
+});
+const H = TOP + BAND * 5 + 8;
+const costLabel = lang === 'en' ? 'cost of a missed bug' : 'Kosten eines übersehenen Fehlers';
+---
+<div class="funnel" data-funnel>
+  <div class="figure">
+    <svg viewBox={`-60 0 ${W + 60} ${H}`} role="group" aria-label={lang === 'en' ? 'Verification funnel' : 'Verifikationstrichter'}>
+      <defs>
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)" /></marker>
+      </defs>
+      <line x1="-30" y1={TOP + 6} x2="-30" y2={H - 14} stroke="var(--ink-2)" stroke-width="2" marker-end="url(#arrowhead)" />
+      <text x="-40" y={H / 2} transform={`rotate(-90 -40 ${H / 2})`} text-anchor="middle" class="axis">{costLabel}</text>
+      {bands.map(({ layer, i, y0, d, count }) => (
+        <a href={`#layer-${layer.id}`} data-band={layer.id} aria-label={`${layer.name[lang]}: ${layer.examples[lang]} (${count})`}>
+          <path d={d} class="band" style={`--c: var(--l-${layer.id})`} />
+          <text x={MID} y={y0 + BAND / 2 - (i === 4 ? 2 : 4)} text-anchor="middle" class:list={['name', { small: i >= 3 }]}>{layer.name[lang]}</text>
+          <text x={MID} y={y0 + BAND / 2 + (i >= 3 ? 14 : 20)} text-anchor="middle" class:list={['ex', { small: i >= 3 }]}>{i < 4 ? `(${layer.examples[lang]})` : ''}</text>
+          <text x={MID + hw(y0) - 14} y={y0 + 20} text-anchor="end" class="count">{count}</text>
+        </a>
+      ))}
+    </svg>
+    <p class="credit">{lang === 'en' ? 'After a talk by Lauren Tan (@poteto). A rule of thumb, not a law: see the evidence notes.' : 'Nach einem Vortrag von Lauren Tan (@poteto). Eine Faustregel, kein Gesetz: siehe die Hinweise zur Evidenz.'}</p>
+  </div>
+
+  <div class="panels">
+    {LAYERS.map((layer, i) => (
+      <section class="panel" id={`layer-${layer.id}`} data-panel={layer.id} style={`--c: var(--l-${layer.id})`}>
+        <p class="eyebrow"><span class="n">{i + 1}/5</span> {layer.examples[lang]}</p>
+        <h2>{layer.name[lang]}</h2>
+        <p>{layer.idea[lang]}</p>
+        <div class="grid cols-2 list">
+          {PRACTICES.filter((p) => p.layer === layer.id).map((p) => <PracticeCard p={p} lang={lang} compact />)}
+        </div>
+      </section>
+    ))}
+  </div>
+</div>
+
+<style>
+  .funnel { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+  @media (max-width: 900px) { .funnel { grid-template-columns: 1fr; } }
+  .figure { position: sticky; top: 76px; }
+  @media (max-width: 900px) { .figure { position: static; } }
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .band { fill: color-mix(in srgb, var(--c) 14%, var(--card)); stroke: var(--ink); stroke-width: 1.5; transition: fill .2s; }
+  a:hover .band, a:focus-visible .band { fill: color-mix(in srgb, var(--c) 30%, var(--card)); }
+  a[aria-current='true'] .band { fill: color-mix(in srgb, var(--c) 42%, var(--card)); stroke-width: 2.5; }
+  a:focus-visible { outline: none; }
+  a:focus-visible .band { stroke: var(--focus); stroke-width: 3; }
+  .name { font-family: var(--font-display); font-weight: 650; font-size: 30px; fill: var(--ink); }
+  .name.small { font-size: 22px; }
+  .ex { font-size: 14px; fill: var(--ink-2); }
+  .ex.small { font-size: 12px; }
+  .count { font: 600 13px var(--font-mono); fill: var(--c, var(--ink-3)); }
+  .axis { font-size: 14px; fill: var(--ink-2); letter-spacing: .04em; }
+  .credit { font-size: .85rem; color: var(--ink-3); margin-top: 8px; }
+  .panel { padding: 22px 0 26px; border-top: 3px solid var(--c); }
+  .panel + .panel { margin-top: 8px; }
+  .panel .n { font-family: var(--font-mono); color: var(--c); }
+  .list { margin-top: 14px; }
+  :global(.js) .panel[hidden] { display: none; }
+</style>
+
+<script>
+  document.documentElement.classList.add('js');
+  for (const root of document.querySelectorAll<HTMLElement>('[data-funnel]')) {
+    const bands = [...root.querySelectorAll<SVGAElement>('[data-band]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+    const select = (id: string, focus = false) => {
+      bands.forEach((b) => b.setAttribute('aria-current', String(b.dataset.band === id)));
+      panels.forEach((p) => (p.hidden = p.dataset.panel !== id));
+      if (focus) root.querySelector<HTMLElement>(`[data-panel="${id}"] h2`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
+    bands.forEach((b) => b.addEventListener('click', (e) => {
+      e.preventDefault();
+      select(b.dataset.band!, matchMedia('(max-width: 900px)').matches);
+      history.replaceState(null, '', `#layer-${b.dataset.band}`);
+    }));
+    const fromHash = location.hash.match(/^#layer-(\w+)/)?.[1];
+    select(fromHash && panels.some((p) => p.dataset.panel === fromHash) ? fromHash : 'static');
+  }
+</script>

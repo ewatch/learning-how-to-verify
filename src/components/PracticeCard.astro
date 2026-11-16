@@ -1,0 +1,22 @@
+---
+import type { Locale, Practice } from '../data/types';
+import { href } from '../i18n/ui';
+import { inline } from '../lib/inline';
+import PhaseDots from './PhaseDots.astro';
+interface Props { p: Practice; lang: Locale; compact?: boolean }
+const { p, lang, compact } = Astro.props;
+---
+<a class:list={['pcard', { compact }]} href={href(lang, `practices/${p.id}/`)} style={`--c: var(--l-${p.layer})`}>
+  <span class="pname">{p.name[lang]}{p.sim && <span class="sim" title={lang === 'en' ? 'interactive' : 'interaktiv'}>▶</span>}</span>
+  {!compact && <span class="pline" set:html={inline(p.oneLiner[lang])} />}
+  <PhaseDots phases={p.phases} lang={lang} />
+</a>
+<style>
+  .pcard { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px 12px 16px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; color: var(--ink); position: relative; transition: border-color .15s, transform .15s; }
+  .pcard::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--c); }
+  .pcard:hover { border-color: var(--rule-strong); transform: translateY(-1px); }
+  .pname { font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+  .sim { font-size: .7rem; color: var(--c); border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; align-self: center; }
+  .pline { color: var(--ink-2); font-size: .93rem; line-height: 1.45; }
+  .compact { padding: 8px 12px 8px 14px; }
+</style>

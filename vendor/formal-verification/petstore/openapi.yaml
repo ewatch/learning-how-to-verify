@@ -1,0 +1,129 @@
+# Teilmenge der Swagger-Petstore-API v3 (https://petstore3.swagger.io).
+# Pfade und Feldnamen stammen aus dem Original. Bewusste Abweichungen:
+#  - `priceCents` an Pet und Order (das Original kennt keine Preise)
+#  - POST /store/order antwortet mit 409, wenn das Tier nicht verfügbar ist
+#    (das Original prüft das nicht, siehe verification/tla/Reservation.tla)
+openapi: 3.0.3
+info:
+  title: Pet Store
+  version: 1.0.0
+servers:
+  - url: /api/v3
+paths:
+  /pet/findByStatus:
+    get:
+      operationId: findPetsByStatus
+      parameters:
+        - { name: status, in: query, required: false, schema: { $ref: '#/components/schemas/PetStatus' } }
+      responses:
+        '200':
+          description: Tiere mit diesem Status
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Pet' } }
+        '400': { description: Ungültiger Status }
+  /pet/{petId}:
+    get:
+      operationId: getPetById
+      parameters:
+        - { name: petId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Das Tier
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pet' }
+        '400': { description: Ungültige ID }
+        '404': { description: Tier nicht gefunden }
+  /store/inventory:
+    get:
+      operationId: getInventory
+      responses:
+        '200':
+          description: Anzahl der Tiere je Status
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: { type: integer, format: int32 } }
+  /store/order:
+    post:
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NewOrder' }
+      responses:
+        '200':
+          description: Bestellung angelegt, Tier ist reserviert
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400': { description: Ungültige Bestellung }
+        '404': { description: Tier nicht gefunden }
+        '409': { description: Tier ist nicht verfügbar }
+  /store/order/{orderId}:
+    get:
+      operationId: getOrderById
+      parameters:
+        - { name: orderId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Die Bestellung
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400': { description: Ungültige ID }
+        '404': { description: Bestellung nicht gefunden }
+    delete:
+      operationId: deleteOrder
+      parameters:
+        - { name: orderId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: Storniert, Tier ist wieder verfügbar }
+        '400': { description: Ungültige ID }
+        '404': { description: Bestellung nicht gefunden }
+components:
+  schemas:
+    PetStatus:
+      type: string
+      enum: [available, pending, sold]
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    Tag:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    Pet:
+      type: object
+      required: [id, name, category, photoUrls, tags, status, priceCents]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        category: { $ref: '#/components/schemas/Category' }
+        photoUrls: { type: array, items: { type: string } }
+        tags: { type: array, items: { $ref: '#/components/schemas/Tag' } }
+        status: { $ref: '#/components/schemas/PetStatus' }
+        priceCents: { type: integer, format: int64, minimum: 0 }
+    NewOrder:
+      type: object
+      required: [petId, priceCents]
+      properties:
+        petId: { type: integer, format: int64 }
+        priceCents: { type: integer, format: int64, minimum: 0 }
+    Order:
+      type: object
+      required: [id, petId, quantity, shipDate, status, complete, priceCents]
+      properties:
+        id: { type: integer, format: int64 }
+        petId: { type: integer, format: int64 }
+        quantity: { type: integer, format: int32 }
+        shipDate: { type: string, format: date-time }
+        status: { type: string, enum: [placed, approved, delivered] }
+        complete: { type: boolean }
+        priceCents: { type: integer, format: int64, minimum: 0 }

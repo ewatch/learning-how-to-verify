@@ -1,0 +1,34 @@
+---
+import type { Locale } from '../data/types';
+interface Props { sim: string; lang: Locale }
+const { sim, lang } = Astro.props;
+---
+<div class="sim-mount" data-sim={sim} data-lang={lang}>
+  <noscript><p class="muted">{lang === 'en' ? 'This simulator needs JavaScript.' : 'Dieser Simulator braucht JavaScript.'}</p></noscript>
+</div>
+<style>
+  .sim-mount { min-height: 120px; }
+</style>
+<script>
+  const loaders: Record<string, () => Promise<{ mount: (el: HTMLElement, lang: 'en' | 'de') => void }>> = {
+    unit: () => import('../sim/ui/unit'),
+    mutation: () => import('../sim/ui/mutation'),
+    pbt: () => import('../sim/ui/pbt'),
+    fuzz: () => import('../sim/ui/fuzz'),
+    differential: () => import('../sim/ui/differential'),
+    formal: () => import('../sim/ui/formal'),
+    canary: () => import('../sim/ui/canary'),
+    flags: () => import('../sim/ui/flags'),
+  };
+  for (const el of document.querySelectorAll<HTMLElement>('[data-sim]')) {
+    const load = loaders[el.dataset.sim!];
+    if (!load) continue;
+    const io = new IntersectionObserver(async (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      const mod = await load();
+      mod.mount(el, el.dataset.lang === 'de' ? 'de' : 'en');
+    }, { rootMargin: '300px' });
+    io.observe(el);
+  }
+</script>

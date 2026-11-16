@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property-Based Testing – interaktive Demo</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 14px; }
+.flow div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+.flow b { display: block; font-size: 13px; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+.stream { display: flex; flex-wrap: wrap; gap: 4px; min-height: 40px; max-height: 210px; overflow-y: auto; padding: 8px; background: var(--codebg); border: 1px solid var(--bd); border-radius: var(--rad); }
+.chip { font-family: var(--mono); font-size: 11.5px; padding: 1px 6px; border-radius: 5px; border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent); color: var(--codefg); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: pop .25s ease; }
+.chip.f { border-color: color-mix(in srgb, var(--err) 70%, transparent); background: color-mix(in srgb, var(--err) 18%, transparent); }
+.chip.dot { width: 9px; height: 9px; padding: 0; border-radius: 3px; }
+.ladder { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+.ladder li { font-family: var(--mono); font-size: 12.5px; padding: 5px 9px; border: 1px solid var(--bd); border-radius: 7px; background: var(--card-bg); animation: pop .3s ease; overflow-wrap: anywhere; }
+.ladder li .meta { font-family: var(--font-sans, system-ui, sans-serif); color: var(--mut); font-size: 11.5px; display: block; }
+.ladder li.final { border-color: var(--err); background: color-mix(in srgb, var(--err) 12%, var(--card-bg)); font-weight: 700; }
+.ladder .arrow { text-align: center; color: var(--mut); font-size: 12px; line-height: 1.3; animation: pop .3s ease; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 13.5px; margin-top: 6px; }
+.kv dt { color: var(--mut); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.statrow { display: grid; grid-template-columns: 120px 1fr 92px; gap: 8px; align-items: center; font-size: 12.5px; margin: 4px 0; }
+.statbar { height: 14px; display: flex; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--mut) 14%, transparent); }
+.statbar i { display: block; height: 100%; transition: width .3s; }
+.statbar i.p { background: color-mix(in srgb, var(--ok) 75%, transparent); }
+.statbar i.f { background: color-mix(in srgb, var(--err) 80%, transparent); }
+.hist { display: flex; align-items: flex-end; gap: 3px; height: 90px; padding-top: 6px; }
+.hist div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; font-size: 10px; color: var(--mut); }
+.hist div i { display: block; width: 100%; background: var(--c1); border-radius: 3px 3px 0 0; min-height: 1px; transition: height .3s; }
+.phase { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.phase .num { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--mut) 20%, transparent); }
+.phase.active .num { background: var(--acc); color: #fff; }
+.phase.done .num { background: color-mix(in srgb, var(--ok) 70%, transparent); color: #fff; }
+.insight { margin-top: 10px; border-left: 3px solid var(--wrn); padding: 6px 10px; background: color-mix(in srgb, var(--wrn) 8%, transparent); border-radius: 0 8px 8px 0; font-size: 13.5px; }
+.patterns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.patterns div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+.patterns code { font-size: 12px; }
+@media (max-width: 640px) { .patterns { grid-template-columns: 1fr; } }
+
+/* ---------- „Wozu ist das gut?“ ---------- */
+.useful { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--bd); }
+.useful h2 { font-size: 17px; margin-bottom: 10px; }
+.useful .ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.useful .ugrid > div { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 14px; }
+.useful h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--acc); }
+.useful ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.useful li { margin: 3px 0; }
+.useful .alltag { margin: 10px 0 0; font-size: 14px; }
+.useful .tools { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Interaktive Demo 3 / 5</div>
+    <h1>Property-Based Testing</h1>
+    <p class="lead">Statt einzelner Beispiele beschreibst du <b>Eigenschaften, die für alle Eingaben gelten müssen</b>. Das Framework erzeugt hunderte zufällige, gezielt „fiese“ Eingaben. Findet es einen Fehler, <b>schrumpft</b> es die Eingabe automatisch auf ein <b>minimales Gegenbeispiel</b>. Der Mini-Framework-Code hier arbeitet wie Hypothesis, QuickCheck oder fast-check.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Statt einem Kind zu sagen „2 + 3 = 5“ und „4 + 1 = 5“, bringst du ihm eine <b>Regel</b> bei: „Egal welche zwei Zahlen, <i>a + b</i> ist dasselbe wie <i>b + a</i>.“ Jetzt kann ein Roboter sich <b>hunderte</b> Zahlenpaare ausdenken und jedes Mal prüfen, ob die Regel stimmt. Findet er eins, bei dem es nicht klappt, sucht er das <b>einfachste</b> solche Beispiel, damit du den Fehler leicht verstehst.</p></div>
+        <div><h4>Und bei Software?</h4><p>Normale Tests prüfen ein paar Beispiele, die sich ein Mensch ausgedacht hat. Beim Property-Based Testing beschreibst du eine <b>Eigenschaft</b>, die immer gelten muss. Beim Sortieren zum Beispiel: „Danach ist jedes Element kleiner oder gleich dem nächsten, und es fehlt keins.“ Das Werkzeug erzeugt viele, auch gemeine Eingaben: leere Listen, negative Zahlen, doppelte Werte. Bei einem Fehler wird die Eingabe <b>geschrumpft</b>, bis nur noch das Nötigste übrig ist.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Wähle oben ein Beispiel und klick auf <b>▶ Eigenschaft testen</b>. Jeder Punkt ist eine zufällig erzeugte Eingabe.</li><li>Bei einem Fehler siehst du, wie die Eingabe Schritt für Schritt kleiner wird, z. B. von einer langen Liste zu <code>[0, 0]</code>.</li><li>Probier beim Mittelwert die Stufen 1 bis 5 durch: Du lernst, welche versteckten Annahmen in einer so einfachen Funktion stecken.</li><li>Die Statistik zeigt, ob die erzeugten Eingaben vielfältig genug waren.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Eigenschaft (Property)</dt><dd>eine Regel, die für <i>alle</i> Eingaben gelten muss</dd></div><div><dt>Generator</dt><dd>erzeugt zufällige Eingaben, auch fiese Sonderfälle</dd></div><div><dt>Gegenbeispiel</dt><dd>eine Eingabe, bei der die Regel nicht stimmt</dd></div><div><dt>Shrinking (Schrumpfen)</dt><dd>das Gegenbeispiel so weit verkleinern, dass der Fehler offensichtlich wird</dd></div><div><dt>Seed</dt><dd>die Startzahl des Zufalls. Mit demselben Seed kommt genau derselbe Ablauf wieder</dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Nicht Beispiele aufschreiben, sondern Regeln, und den Computer die Beispiele erfinden lassen.</p>
+    </div>
+  </details>
+
+
+  <div class="flow">
+    <div><b>1 · Eigenschaft</b>„für alle xs gilt …“ als ausführbarer Code</div>
+    <div><b>2 · Generieren</b>zufällige Eingaben mit Sonderfällen (leer, 0, −1, NaN, Duplikate …)</div>
+    <div><b>3 · Prüfen</b>Eigenschaft für jede Eingabe auswerten</div>
+    <div><b>4 · Schrumpfen</b>fehlschlagende Eingabe schrittweise vereinfachen, solange sie noch fehlschlägt</div>
+  </div>
+
+  <label class="lbl">Beispiel</label>
+  <div class="chips" id="examples" style="margin-bottom:8px"></div>
+  <label class="lbl">Variante</label>
+  <div class="chips" id="variants" style="margin-bottom:12px"></div>
+  <div class="explain" id="exExplain"></div>
+
+  <div class="grid2">
+    <div><label class="lbl">Implementierung (editierbar)</label><textarea id="impl" rows="13" spellcheck="false" wrap="off"></textarea></div>
+    <div><label class="lbl">Eigenschaft (editierbar)</label><textarea id="prop" rows="13" spellcheck="false" wrap="off"></textarea>
+      <p class="note" style="margin-top:4px">Generatoren: <code>ganzzahl(min, max)</code>, <code>kommazahl({ nan, gross, unendlich })</code>, <code>liste(gen, { min, max })</code>, <code>text(alphabet, { max })</code>. Prüfen mit <code>assert(bedingung, meldung)</code>, Statistik mit <code>sammle(label)</code>.</p></div>
+  </div>
+
+  <div class="row" style="margin:12px 0">
+    <button class="btn primary" id="run">▶ Eigenschaft testen</button>
+    <select id="count"><option value="100" selected>100 Tests</option><option value="1000">1000 Tests</option></select>
+    <select id="speed"><option value="1">Tempo: langsam</option><option value="3" selected>Tempo: normal</option><option value="0">sofort</option></select>
+    <label class="note">Seed <input type="text" id="seed" placeholder="zufällig" style="width:110px"></label>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="phase" id="ph1"><span class="num">1</span><h3 style="margin:0">Generieren &amp; Prüfen</h3><span class="note" id="streamInfo"></span></div>
+      <div class="bar" style="margin-bottom:6px"><i id="prog"></i></div>
+      <div class="stream" id="stream"></div>
+      <p class="note" style="margin-top:4px">Grün = Eigenschaft erfüllt, Rot = verletzt. Echte Frameworks brechen beim ersten Fehler ab. Diese Demo führt zur Analyse alle Tests aus.</p>
+      <div class="card" style="margin-top:10px">
+        <h3>Statistik der generierten Eingaben</h3>
+        <div class="note">Mit <code>sammle()</code> gebildete Kategorien (<span class="ok">bestanden</span> / <span class="bad">fehlgeschlagen</span>):</div>
+        <div id="labels"><div class="note">–</div></div>
+        <div class="note" style="margin-top:8px">Größe der Eingaben (Anzahl Elemente bzw. Zeichen):</div>
+        <div class="hist" id="hist"></div>
+      </div>
+    </div>
+    <div>
+      <div class="phase" id="ph2"><span class="num">2</span><h3 style="margin:0">Schrumpfen (Shrinking)</h3><span class="note" id="shrinkInfo"></span></div>
+      <ol class="ladder" id="ladder"><li class="note" style="font-family:inherit">Startet, sobald eine Eingabe die Eigenschaft verletzt.</li></ol>
+      <div class="phase" id="ph3" style="margin-top:14px"><span class="num">3</span><h3 style="margin:0">Ergebnis: was du erfährst</h3></div>
+      <div class="verdict" id="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:26px">Typische Muster für Eigenschaften</h2>
+  <div class="patterns">
+    <div><b>Roundtrip</b><br><code>decode(encode(x)) == x</code><br><span class="note">Serialisierung, Parser, Kompression</span></div>
+    <div><b>Invariante</b><br><code>sort(xs).length == xs.length</code><br><span class="note">etwas bleibt bei der Operation erhalten</span></div>
+    <div><b>Idempotenz</b><br><code>f(f(x)) == f(x)</code><br><span class="note">Normalisieren, Deduplizieren, Formatieren</span></div>
+    <div><b>Test-Orakel</b><br><code>schnell(x) == einfach(x)</code><br><span class="note">optimierte gegen naive Referenzimplementierung</span></div>
+    <div><b>Metamorph</b><br><code>suche(q + Filter) ⊆ suche(q)</code><br><span class="note">Beziehung zwischen zwei Aufrufen</span></div>
+    <div><b>Stürzt nie ab</b><br><code>parse(beliebigerText)</code> wirft nur erwartete Fehler<br><span class="note">sehr einfacher Einstieg, Fuzzing-artig</span></div>
+  </div>
+
+  <div class="useful">
+    <h2>Wozu ist Property-Based Testing gut?</h2>
+    <div class="ugrid">
+      <div><h4>Gut geeignet für</h4><ul><li>Funktionen mit allgemeinen Gesetzen: Parsen/Serialisieren (Roundtrip), Sortieren, Geld- und Datumsrechnung</li><li>Datenstrukturen und Bibliotheken</li><li>zustandsbehaftete Systeme (APIs, Warenkörbe) über zufällige Befehlsfolgen</li></ul></div>
+      <div><h4>Möglichkeiten</h4><ul><li>hunderte bis tausende Eingaben pro Test statt einer Handvoll Beispiele</li><li>Shrinking liefert das <b>minimale Gegenbeispiel</b></li><li>Seeds machen jeden Fehler reproduzierbar</li><li>Stateful Testing vergleicht ein System mit einem einfachen Modell</li><li>Properties sind ausführbare Spezifikationen und damit die Brücke zur formalen Verifikation</li></ul></div>
+      <div><h4>Grenzen &amp; Aufwand</h4><ul><li>gute Eigenschaften zu finden braucht Übung</li><li>schlechte Generatoren verfehlen wichtige Fälle (Statistik prüfen!)</li><li>keine Garantie, nur eine (große) Stichprobe</li></ul></div>
+    </div>
+    <p class="alltag"><b>Aus dem Alltag:</b> „Rechnung als JSON speichern und wieder laden ergibt dieselbe Rechnung“, „Summe in Euro = Summe der Einzelpreise, egal in welcher Reihenfolge“.</p>
+    <p class="tools"><b>Werkzeuge:</b> Hypothesis (Python), fast-check (JS/TS), QuickCheck (Haskell), jqwik (Java), proptest (Rust), FsCheck (.NET)</p>
+  </div>
+
+  <div class="footer">
+    Weitere Demos: <a href="verifikation.html">① Formale Verifikation</a> · <a href="mutation-testing.html">② Mutation Testing</a> · <a href="fuzzing.html">④ Fuzzing</a> · <a href="differential-testing.html">⑤ Differential Testing</a> · <a href="index.html">Übersicht</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+
+/* ---------------- Mini-Framework für Property-Based Testing ---------------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
+const uniq = (arr, same = Object.is) => arr.filter((x, i) => arr.findIndex(y => same(x, y)) === i);
+function fmtNum(x) {
+  if (Number.isNaN(x)) return "NaN";
+  if (x === Infinity) return "Infinity"; if (x === -Infinity) return "-Infinity";
+  if (Object.is(x, -0)) return "-0";
+  return String(x);
+}
+function towards(x, t) { // Kandidaten von t (kleinster) Richtung x
+  const out = []; let d = x - t;
+  while (d !== 0 && out.length < 40) { out.push(x - d); d = Math.trunc(d / 2); }
+  return out;
+}
+function ganzzahl(min = -1000, max = 1000) {
+  const t = Math.min(Math.max(0, min), max);
+  return {
+    gen(r, size) {
+      if (r() < 0.12) return pick(r, [0, 1, -1, min, max].filter(x => x >= min && x <= max));
+      const lo = Math.max(min, -Math.max(2, size * 3)), hi = Math.min(max, Math.max(2, size * 3));
+      return lo + Math.floor(r() * (hi - lo + 1));
+    },
+    shrink: x => uniq(towards(x, t).filter(c => c !== x && c >= min && c <= max)),
+    show: fmtNum,
+  };
+}
+function kommazahl(o = {}) {
+  const pool = [0, 1, -1, 0.1, 0.5, 2.5, -0.3, 100];
+  if (o.gross) pool.push(1.7976931348623157e308, -1.7976931348623157e308, 9e307, 1e300);
+  if (o.nan) pool.push(NaN);
+  if (o.unendlich) pool.push(Infinity, -Infinity);
+  return {
+    gen(r, size) {
+      if (r() < 0.3) return pick(r, pool);
+      if (o.gross && r() < 0.12) return (r() < 0.5 ? -1 : 1) * Math.pow(10, Math.floor(r() * 309)) * (1 + Math.floor(r() * 9));
+      const s = Math.max(1, size);
+      const v = (r() * 2 - 1) * s * 10;
+      return r() < 0.5 ? Math.round(v) : Math.round(v * 100) / 100;
+    },
+    shrink(x) {
+      if (Number.isNaN(x)) return [0, 1];
+      if (!Number.isFinite(x)) return [0, x > 0 ? 1.7976931348623157e308 : -1.7976931348623157e308];
+      const c = [0];
+      if (x < 0) c.push(-x);
+      if (Math.trunc(x) !== x) { c.push(Math.trunc(x)); c.push(Math.round(x * 10) / 10); }
+      if (Math.abs(x) > 2) { let h = x / 2; for (let k = 0; k < 6 && Math.abs(h) > 1; k++) { c.push(Number.isInteger(x) ? Math.trunc(h) : h); h /= 2; } c.push(x - Math.sign(x)); }
+      return uniq(c.filter(v => !Object.is(v, x)).sort((a, b) => Math.abs(a) - Math.abs(b)));
+    },
+    show: fmtNum,
+  };
+}
+function liste(elem, o = {}) {
+  if (typeof o === "number") o = { max: o };
+  const min = o.min ?? 0, max = o.max ?? 10;
+  return {
+    gen(r, size) {
+      const hi = Math.min(max, min + 1 + Math.floor(size / 6));
+      const n = min + Math.floor(r() * (hi - min + 1));
+      if (n > 1 && r() < 0.2) { // wie Hypothesis: gezielt Listen mit Wiederholungen erzeugen
+        const pool = [elem.gen(r, size), elem.gen(r, size)];
+        return Array.from({ length: n }, () => pick(r, pool));
+      }
+      return Array.from({ length: n }, () => elem.gen(r, size));
+    },
+    shrink(xs) {
+      const out = [];
+      if (xs.length > min) {
+        if (min === 0) out.push([]);
+        const h = Math.floor(xs.length / 2);
+        if (h >= 1 && xs.length - h >= min) { out.push(xs.slice(h)); out.push(xs.slice(0, xs.length - h)); }
+        if (xs.length - 1 >= min) for (let i = 0; i < xs.length; i++) out.push(xs.slice(0, i).concat(xs.slice(i + 1)));
+      }
+      for (const v of uniq(xs)) if (xs.filter(x => Object.is(x, v)).length > 1) // gleiche Werte gemeinsam verkleinern
+        for (const c of elem.shrink(v).slice(0, 8)) out.push(xs.map(x => (Object.is(x, v) ? c : x)));
+      for (let i = 0; i < xs.length; i++) for (const c of elem.shrink(xs[i]).slice(0, 8)) { const ys = xs.slice(); ys[i] = c; out.push(ys); }
+      return out;
+    },
+    show: xs => "[" + xs.map(elem.show).join(", ") + "]",
+  };
+}
+function text(alphabet = "abc", o = {}) {
+  if (typeof o === "number") o = { max: o };
+  const chars = [...alphabet];
+  const ch = {
+    gen: r => pick(r, chars),
+    shrink: c => chars.slice(0, Math.max(0, chars.indexOf(c))),
+    show: c => c,
+  };
+  const l = liste(ch, o);
+  return { gen: (r, s) => l.gen(r, s).join(""), shrink: s => l.shrink([...s]).map(a => a.join("")), show: s => JSON.stringify(s) };
+}
+function tupel(gens) {
+  return {
+    gen: (r, s) => gens.map(g => g.gen(r, s)),
+    shrink(vs) { const out = []; vs.forEach((v, i) => gens[i].shrink(v).forEach(c => { const n = vs.slice(); n[i] = c; out.push(n); })); return out; },
+    show: vs => vs.map((v, i) => gens[i].show(v)).join(", "),
+  };
+}
+class PropertyFailure extends Error {}
+class TimeoutError extends Error {}
+
+/* Kompiliert Implementierung + Eigenschaft und liefert {gen, run(args)} */
+function compileProperty(impl, prop, guardFn) {
+  let registered = null, labels = null, steps = 0;
+  const api = {
+    forAll: (...args) => { const fn = args.pop(); registered = { gen: tupel(args), fn }; },
+    assert: (cond, msg = "Zusicherung verletzt") => { if (!cond) throw new PropertyFailure(msg); },
+    sammle: label => { if (labels) labels.push(String(label)); },
+    ganzzahl, kommazahl, liste, text,
+    __guard: () => { if (++steps > 2e6) throw new TimeoutError("Timeout: Endlosschleife?"); },
+  };
+  const names = Object.keys(api);
+  const body = `"use strict";\n${guardFn(impl)}\n;\n${guardFn(prop)}`;
+  new Function(...names, body)(...names.map(n => api[n]));
+  if (!registered) throw new Error("Die Eigenschaft muss forAll(generator, (wert) => { … }) aufrufen.");
+  return {
+    gen: registered.gen,
+    run(args) {
+      labels = []; steps = 0;
+      let ok, msg;
+      try { const res = registered.fn(...args); ok = res !== false; if (!ok) msg = "Eigenschaft lieferte false"; }
+      catch (e) { ok = false; msg = e instanceof PropertyFailure || e instanceof TimeoutError ? e.message : `${e.name}: ${e.message}`; }
+      return { ok, msg, labels: labels.slice() };
+    },
+  };
+}
+function* shrinkSearch(prop, start, startMsg, maxAttempts = 3000) {
+  let cur = start, curMsg = startMsg, attempts = 0;
+  outer: while (attempts < maxAttempts) {
+    for (const cand of prop.gen.shrink(cur)) {
+      if (++attempts > maxAttempts) break outer;
+      const r = prop.run(cand);
+      if (!r.ok) { cur = cand; curMsg = r.msg; yield { value: cand, msg: r.msg, attempts }; continue outer; }
+    }
+    break;
+  }
+  return { value: cur, msg: curMsg, attempts };
+}
+
+/* Endlosschleifen-Schutz: fügt __guard() in jeden Schleifenrumpf ein */
+function guardLoops(src) {
+  const re = /(\s+)|(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\/(?![*\/])(?:[^\/\\\n\[]|\\.|\[(?:[^\]\\\n]|\\.)*\])+\/[gimsuy]*)|(\d+(?:\.\d+)?)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)|(===|!==|=>|<=|>=|==|!=|&&|\|\||\+\+|--|\+=|-=|\*=|\/=|[-+*\/%<>=!?:;,.(){}\[\]&|^~])/y;
+  const sig = []; let pos = 0, m;
+  while (pos < src.length) {
+    re.lastIndex = pos; m = re.exec(src);
+    if (!m) return src; // unbekannte Syntax → ohne Schutz ausführen
+    if (!m[1] && !m[2]) sig.push({ v: m[0], s: pos, e: pos + m[0].length, id: !!m[6] });
+    pos += m[0].length;
+  }
+  const close = i => { let d = 0; for (let k = i; k < sig.length; k++) { if (sig[k].v === "(") d++; else if (sig[k].v === ")" && --d === 0) return k; } return -1; };
+  const ins = [];
+  sig.forEach((t, k) => {
+    if (!t.id || (t.v !== "for" && t.v !== "while") || sig[k + 1]?.v !== "(") return;
+    const c = close(k + 1); if (c < 0) return;
+    if (sig[c + 1]?.v === "{") { ins.push([sig[c + 1].e, " __guard();"]); return; }
+    let d = 0, j = c + 1;
+    for (; j < sig.length; j++) { const v = sig[j].v; if ("([{".includes(v)) d++; else if (")]}".includes(v)) d--; else if (v === ";" && d === 0) break; }
+    if (j < sig.length) { ins.push([sig[c].e, " { __guard();"]); ins.push([sig[j].e, " }"]); }
+  });
+  let out = src;
+  ins.sort((a, b) => b[0] - a[0]).forEach(([p, s]) => out = out.slice(0, p) + s + out.slice(p));
+  return out;
+}
+
+const SORT_PROP = `// Eigenschaften, die für JEDE Liste ganzer Zahlen gelten müssen:
+forAll(liste(ganzzahl(-50, 50), { max: 12 }), xs => {
+  const ys = meinSort(xs);
+  sammle(new Set(xs).size < xs.length ? "mit Duplikaten" : "ohne Duplikate");
+  assert(ys.length === xs.length, \`Länge \${ys.length} statt \${xs.length}\`);
+  for (let i = 1; i < ys.length; i++)
+    assert(ys[i - 1] <= ys[i], \`nicht aufsteigend: \${ys[i - 1]} vor \${ys[i]}\`);
+  const zaehle = (a, x) => a.filter(y => y === x).length;
+  assert(xs.every(x => zaehle(xs, x) === zaehle(ys, x)), "andere Elemente als die Eingabe");
+});`;
+const MEAN_IMPL = `function mittelwert(xs) {
+  let summe = 0;
+  for (const x of xs) summe += x;
+  return summe / xs.length;
+}`;
+const meanProp = (listOpts, floatOpts, tol) => `// Eigenschaft: Der Mittelwert liegt zwischen Minimum und Maximum.
+forAll(liste(kommazahl(${floatOpts}), ${listOpts}), xs => {
+  const m = mittelwert(xs), lo = Math.min(...xs), hi = Math.max(...xs);
+  sammle(xs.length === 0 ? "leere Liste" : xs.length < 4 ? "1–3 Elemente" : "4+ Elemente");
+  assert(${tol ? "lo - 1e-9 <= m && m <= hi + 1e-9" : "lo <= m && m <= hi"}, \`Mittelwert \${m} liegt nicht in [\${lo}, \${hi}]\`);
+});`;
+const RLE_IMPL_BUG = `// Lauflängenkodierung: "aaab" → "3a1b"
+function kodieren(s) {
+  let out = "";
+  for (let i = 0; i < s.length; ) {
+    let j = i;
+    while (j < s.length && s[j] === s[i]) j++;
+    out += (j - i) + s[i];
+    i = j;
+  }
+  return out;
+}
+
+function dekodieren(k) {
+  let out = "", i = 0;
+  while (i < k.length) {
+    let zahl = "";
+    while (k[i] >= "0" && k[i] <= "9") zahl += k[i++];
+    out += (k[i++] || "").repeat(Number(zahl));
+  }
+  return out;
+}`;
+const RLE_IMPL_FIX = RLE_IMPL_BUG
+  .replace('// Lauflängenkodierung: "aaab" → "3a1b"', '// Lauflängenkodierung mit Trennzeichen: "aaab" → "3:a1:b"')
+  .replace("out += (j - i) + s[i];", 'out += (j - i) + ":" + s[i];')
+  .replace('    out += (k[i++] || "").repeat(Number(zahl));', '    i++; // ":" überspringen\n    out += (k[i++] || "").repeat(Number(zahl));');
+const RLE_PROP = `// Roundtrip-Eigenschaft: dekodieren macht kodieren rückgängig
+forAll(text("ab01", { max: 8 }), s => {
+  sammle(/[0-9]/.test(s) ? "enthält Ziffern" : "nur Buchstaben");
+  const k = kodieren(s);
+  const zurueck = dekodieren(k);
+  assert(zurueck === s, \`kodieren → \${JSON.stringify(k)} → dekodieren → \${JSON.stringify(zurueck)}\`);
+});`;
+const EXAMPLES = [
+  { name: "Sortieren", explain: "Statt <code>meinSort([3,1,2])</code> mit einer festen Erwartung zu vergleichen, beschreiben drei Eigenschaften, was Sortieren <b>bedeutet</b>: Die Länge bleibt gleich, das Ergebnis ist aufsteigend, und es enthält genau dieselben Elemente. Das Framework erzeugt hunderte Listen und sucht eine, die eine der Eigenschaften verletzt.",
+    variants: [
+      { name: "Bug A: Set entfernt Duplikate", insight: { fail: "Die Funktion verliert Duplikate. Das Framework schrumpft auf die kleinstmögliche Liste <code>[0, 0]</code>, und der Fehler ist ohne Debugging sofort verständlich. Die Statistik zeigt: Nur Listen <b>mit Duplikaten</b> schlagen fehl." }, impl: `function meinSort(xs) {\n  return [...new Set(xs)].sort((a, b) => a - b);\n}`, prop: SORT_PROP },
+      { name: "Bug B: sort() ohne Vergleich", insight: { fail: "<code>sort()</code> ohne Vergleichsfunktion sortiert in JavaScript als <b>Text</b>: <code>\"-1\" &lt; \"-2\"</code> und <code>\"10\" &lt; \"2\"</code>. Ein typischer Beispieltest wie <code>[3, 1, 2]</code> hätte das nie gefunden." }, impl: `function meinSort(xs) {\n  // JavaScript sortiert ohne Vergleichsfunktion als TEXT!\n  return [...xs].sort();\n}`, prop: SORT_PROP },
+      { name: "✓ Korrekt", insight: { pass: "Alle drei Eigenschaften gelten für jede erzeugte Liste. Die Statistik ist dabei wichtig: Sie zeigt, dass genügend Listen <b>mit Duplikaten</b> geprüft wurden. Sonst wäre ein grüner Lauf wenig aussagekräftig." }, impl: `function meinSort(xs) {\n  return [...xs].sort((a, b) => a - b);\n}`, prop: SORT_PROP },
+    ] },
+  { name: "Mittelwert: versteckte Annahmen", explain: "Eine naheliegende Eigenschaft: <i>min ≤ Mittelwert ≤ max</i>. Geh die Schritte nacheinander durch. Jeder Lauf deckt einen Sonderfall auf, an den beim Schreiben von Beispieltests kaum jemand denkt. Property-Based Testing zwingt dich, die <b>Spezifikation zu präzisieren</b>.",
+    variants: [
+      { name: "1 · naiv", insight: { fail: "<b>Leere Liste:</b> <code>0 / 0 = NaN</code>. Ist <code>mittelwert([])</code> überhaupt definiert? Das ist eine Frage an die <b>Spezifikation</b> und kein Tippfehler. Entscheidung: nur nichtleere Listen erlauben, weiter mit Schritt 2." }, impl: MEAN_IMPL, prop: meanProp("{ max: 8 }", "{ nan: true, gross: true }") },
+      { name: "2 · leere Liste verbieten", insight: { fail: "Meist taucht <b>NaN</b> auf: NaN ist mit nichts vergleichbar, also ist jede Ordnungs-Eigenschaft falsch. Soll die Funktion NaN überhaupt akzeptieren? Weiter mit Schritt 3." }, impl: MEAN_IMPL, prop: meanProp("{ min: 1, max: 8 }", "{ nan: true, gross: true }") },
+      { name: "3 · NaN verbieten", insight: { fail: "<b>Überlauf:</b> Die Summe zweier riesiger Zahlen wird <code>Infinity</code>, obwohl der Mittelwert darstellbar wäre. Entweder die Implementierung robuster machen (z. B. <code>x / n</code> aufsummieren) oder den Wertebereich festlegen. Weiter mit Schritt 4." }, impl: MEAN_IMPL, prop: meanProp("{ min: 1, max: 8 }", "{ nan: false, gross: true }") },
+      { name: "4 · riesige Zahlen verbieten", insight: { fail: "<b>Rundungsfehler:</b> Bei vielen gleichen Kommazahlen liegt der berechnete Mittelwert eine Winzigkeit <b>über</b> dem Maximum. Die Eigenschaft war für Gleitkommazahlen zu streng. Weiter mit Schritt 5 (Toleranz).", pass: "Grün, aber <b>kein Beweis</b>! Stelle auf <b>1000 Tests</b> und starte mehrmals. In etwa jedem zweiten Lauf findet das Framework einen Rundungsfehler, bei dem der Mittelwert über dem Maximum liegt." }, impl: MEAN_IMPL, prop: meanProp("{ min: 1, max: 8 }", "{ nan: false, gross: false }") },
+      { name: "5 · Rundungstoleranz", insight: { pass: "Jetzt ist die Spezifikation präzise: nichtleere Listen, endliche Zahlen in einem vernünftigen Bereich, Ergebnis bis auf Rundung zwischen min und max. <b>Diese Präzisierung ist der eigentliche Gewinn</b>, den Beispieltests nie erzwungen hätten." }, impl: MEAN_IMPL, prop: meanProp("{ min: 1, max: 8 }", "{ nan: false, gross: false }", true) },
+    ] },
+  { name: "Roundtrip: Kodieren/Dekodieren", explain: "Eines der nützlichsten Muster ist der <b>Roundtrip</b>: <code>dekodieren(kodieren(s)) === s</code>. Damit lassen sich Serialisierung, Parser, Kompression und Verschlüsselung testen, ohne ein einziges erwartetes Ergebnis von Hand auszurechnen. Hier sieht die Lauflängenkodierung korrekt aus, bis der Text Ziffern enthält.",
+    variants: [
+      { name: "Bug: Ziffern im Text", insight: { fail: "Minimales Gegenbeispiel <code>\"0\"</code>: <code>kodieren(\"0\") = \"10\"</code>, und der Dekodierer liest <code>\"10\"</code> als Anzahl. Sobald der Text Ziffern enthält, ist die Kodierung <b>mehrdeutig</b>. Die Statistik zeigt: Nur Eingaben, die Ziffern enthalten, schlagen fehl." }, impl: RLE_IMPL_BUG, prop: RLE_PROP },
+      { name: "✓ mit Trennzeichen", insight: { pass: "Mit Trennzeichen ist die Kodierung eindeutig. Die Statistik bestätigt, dass viele Eingaben Ziffern enthielten. Der Roundtrip ist also genau für den kritischen Fall geprüft." }, impl: RLE_IMPL_FIX, prop: RLE_PROP },
+    ] },
+];
+
+/* ---------------- UI ---------------- */
+const S = { ex: 0, v: 0, runId: 0 };
+function initUI() {
+  $("#examples").innerHTML = EXAMPLES.map((e, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${e.name}</button>`).join("");
+  $$("#examples button").forEach(b => b.onclick = () => { $$("#examples button").forEach(x => x.classList.toggle("active", x === b)); loadExample(+b.dataset.i); });
+  $("#run").onclick = () => runProperty();
+  loadExample(0);
+}
+function loadExample(i) {
+  S.ex = i; const ex = EXAMPLES[i];
+  $("#exExplain").innerHTML = `<p>${ex.explain}</p>`;
+  $("#variants").innerHTML = ex.variants.map((v, k) => `<button data-k="${k}" class="${k ? "" : "active"}">${v.name}</button>`).join("");
+  $$("#variants button").forEach(b => b.onclick = () => { $$("#variants button").forEach(x => x.classList.toggle("active", x === b)); loadVariant(+b.dataset.k); });
+  loadVariant(0);
+}
+function loadVariant(k) {
+  S.v = k; const v = EXAMPLES[S.ex].variants[k];
+  $("#impl").value = v.impl; $("#prop").value = v.prop; resetView();
+}
+function resetView() {
+  S.runId++;
+  $("#stream").innerHTML = ""; $("#prog").style.width = "0"; $("#streamInfo").textContent = "";
+  $("#ladder").innerHTML = `<li class="note" style="font-family:inherit">Startet, sobald eine Eingabe die Eigenschaft verletzt.</li>`;
+  $("#shrinkInfo").textContent = ""; $("#result").style.display = "none";
+  $("#labels").innerHTML = `<div class="note">–</div>`; $("#hist").innerHTML = "";
+  ["#ph1", "#ph2", "#ph3"].forEach(p => $(p).className = "phase");
+}
+const sizeOf = v => (Array.isArray(v) || typeof v === "string") ? v.length : null;
+function renderStats(labels, sizes) {
+  const entries = Object.entries(labels).sort((a, b) => (b[1].p + b[1].f) - (a[1].p + a[1].f));
+  const total = entries.reduce((s, [, c]) => s + c.p + c.f, 0) || 1;
+  $("#labels").innerHTML = entries.length ? entries.map(([l, c]) => `<div class="statrow"><span>${esc(l)}</span>
+    <span class="statbar"><i class="p" style="width:${100 * c.p / total}%"></i><i class="f" style="width:${100 * c.f / total}%"></i></span>
+    <span class="note">${Math.round(100 * (c.p + c.f) / total)} %${c.f ? ` · <span class="bad">${c.f}✗</span>` : ""}</span></div>`).join("")
+    : `<div class="note">Keine Kategorien. Rufe in der Eigenschaft <code>sammle(…)</code> auf.</div>`;
+  const keys = Object.keys(sizes).map(Number);
+  if (!keys.length) { $("#hist").innerHTML = ""; return; }
+  const maxK = Math.max(...keys), maxV = Math.max(...Object.values(sizes));
+  $("#hist").innerHTML = Array.from({ length: maxK + 1 }, (_, k) => `<div title="Größe ${k}: ${sizes[k] || 0}×"><i style="height:${70 * (sizes[k] || 0) / maxV}%"></i>${k}</div>`).join("");
+}
+async function runProperty() {
+  resetView(); const id = S.runId;
+  const N = +$("#count").value, speed = +$("#speed").value;
+  const seedTxt = $("#seed").value.trim();
+  const seed = seedTxt ? (parseInt(seedTxt, 10) || [...seedTxt].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)) : Math.floor(Math.random() * 1e9);
+  let prop;
+  const res = $("#result");
+  try { prop = compileProperty($("#impl").value, $("#prop").value, guardLoops); }
+  catch (e) { res.style.display = "block"; res.className = "verdict bad pop"; res.innerHTML = `⚠ Code-Fehler: ${esc(e.message)}`; return; }
+  $("#ph1").className = "phase active";
+  const r = mulberry32(seed), labels = {}, sizes = {};
+  let firstFail = null, fails = 0;
+  const dots = N > 150, stream = $("#stream");
+  const batch = speed === 0 ? N : (dots ? 25 : (speed === 1 ? 1 : 2));
+  const delay = speed === 0 ? 0 : (speed === 1 ? 90 : 25);
+  for (let i = 0; i < N; i++) {
+    const args = prop.gen.gen(r, Math.min(i, 99));
+    const o = prop.run(args);
+    const shown = prop.gen.show(args);
+    if (!o.ok) { fails++; if (!firstFail) firstFail = { args, msg: o.msg, i }; }
+    (o.labels.length ? o.labels : []).forEach(l => { labels[l] ||= { p: 0, f: 0 }; labels[l][o.ok ? "p" : "f"]++; });
+    const sz = args.length === 1 ? sizeOf(args[0]) : null; if (sz !== null) sizes[sz] = (sizes[sz] || 0) + 1;
+    const c = document.createElement("span");
+    c.className = "chip" + (o.ok ? "" : " f") + (dots ? " dot" : "");
+    c.title = `#${i + 1}: ${shown}${o.ok ? "" : "\n✗ " + o.msg}`;
+    if (!dots) c.textContent = shown;
+    stream.appendChild(c);
+    if ((i + 1) % batch === 0 || i === N - 1) {
+      $("#prog").style.width = (100 * (i + 1) / N) + "%";
+      $("#streamInfo").innerHTML = `Test ${i + 1}/${N}${fails ? ` · <span class="bad">${fails} ✗</span>` : ""}`;
+      stream.scrollTop = stream.scrollHeight;
+      if (i % 5 === 0 || i === N - 1) renderStats(labels, sizes);
+      if (delay) await sleep(delay); else if (i % 200 === 199) await frame();
+      if (id !== S.runId) return;
+    }
+  }
+  renderStats(labels, sizes);
+  $("#ph1").className = "phase done";
+  const insight = EXAMPLES[S.ex].variants[S.v].insight || {};
+  const seedRow = `<dt>Seed</dt><dd><code>${seed}</code> <button class="btn" id="repro" style="padding:1px 8px;font-size:12px">🔁 reproduzieren</button></dd>`;
+  if (!firstFail) {
+    $("#ladder").innerHTML = `<li class="note" style="font-family:inherit">Nichts zu schrumpfen, alle Tests bestanden.</li>`;
+    res.style.display = "block"; res.className = "verdict ok pop";
+    res.innerHTML = `✓ <b>${N} Tests bestanden.</b><dl class="kv"><dt>Bedeutung</dt><dd>Kein Gegenbeispiel gefunden. Das ist <b>kein Beweis</b>, aber eine Stichprobe mit gezielt gewählten Sonderfällen.</dd>${seedRow}</dl>${insight.pass ? `<div class="insight">💡 ${insight.pass}</div>` : ""}`;
+    $("#ph3").className = "phase done"; bindRepro(seed); return;
+  }
+  // ---- Shrinking ----
+  $("#ph2").className = "phase active";
+  const ladder = $("#ladder"); ladder.innerHTML = "";
+  const addRung = (val, meta, cls = "") => {
+    if (ladder.children.length) { const a = document.createElement("div"); a.className = "arrow"; a.textContent = "↓ einfacher, schlägt immer noch fehl"; ladder.appendChild(a); }
+    const li = document.createElement("li"); li.className = cls; li.innerHTML = `${esc(val)}<span class="meta">${meta}</span>`; ladder.appendChild(li);
+    return li;
+  };
+  addRung(prop.gen.show(firstFail.args), `erstes Gegenbeispiel (Test #${firstFail.i + 1}) · ${esc(firstFail.msg)}`);
+  const it = shrinkSearch(prop, firstFail.args, firstFail.msg);
+  let st, steps = 0, last = null;
+  const sDelay = speed === 0 ? 0 : (speed === 1 ? 700 : 380);
+  while (!(st = it.next()).done) {
+    steps++; last = st.value;
+    $("#shrinkInfo").textContent = `${steps} Schritte · ${st.value.attempts} Versuche`;
+    if (sDelay) { addRung(prop.gen.show(st.value.value), `Schritt ${steps} · nach ${st.value.attempts} Versuchen`); await sleep(sDelay); if (id !== S.runId) return; }
+  }
+  const fin = st.value;
+  if (!sDelay && steps) addRung(prop.gen.show(fin.value), `Schritt ${steps}`);
+  const rungs = $$("#ladder li"); rungs[rungs.length - 1].classList.add("final");
+  rungs[rungs.length - 1].querySelector(".meta").innerHTML += ` · <b>minimal</b>: kein einfacherer Kandidat schlägt fehl (${fin.attempts} Versuche insgesamt)`;
+  $("#shrinkInfo").textContent = `${steps} Schritte · ${fin.attempts} Versuche`;
+  $("#ph2").className = "phase done";
+  res.style.display = "block"; res.className = "verdict bad pop";
+  res.innerHTML = `✗ <b>Eigenschaft widerlegt</b><dl class="kv">
+    <dt>Minimales Gegenbeispiel</dt><dd><code>${esc(prop.gen.show(fin.value))}</code></dd>
+    <dt>Fehlermeldung</dt><dd>${esc(fin.msg)}</dd>
+    <dt>Erstes Gegenbeispiel</dt><dd><code>${esc(prop.gen.show(firstFail.args))}</code> (Test #${firstFail.i + 1})</dd>
+    <dt>Fehlerrate</dt><dd>${fails} von ${N} Eingaben verletzen die Eigenschaft</dd>
+    <dt>Shrinking</dt><dd>${steps} Vereinfachungen, ${fin.attempts} geprüfte Kandidaten</dd>${seedRow}</dl>${insight.fail ? `<div class="insight">💡 ${insight.fail}</div>` : ""}`;
+  $("#ph3").className = "phase done"; bindRepro(seed);
+}
+function bindRepro(seed) { const b = $("#repro"); if (b) b.onclick = () => { $("#seed").value = seed; runProperty(); }; }
+initUI();
+</script>
+</body>
+</html>

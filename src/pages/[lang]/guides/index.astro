@@ -1,0 +1,28 @@
+---
+import Base from '../../../layouts/Base.astro';
+import type { Locale } from '../../../data/types';
+import { GUIDES } from '../../../data/guides';
+import { href } from '../../../i18n/ui';
+import { langPaths } from '../../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+const planned = ['Lean 4', 'Z3', 'fast-check / Hypothesis', 'Stryker / mutmut', 'Jazzer.js / Atheris', 'typescript-eslint / Ruff', 'Semgrep'];
+---
+<Base lang={lang} path="guides/" nav="guides" title={en ? 'Getting-started guides' : 'Einstiegsanleitungen'} description={en ? 'Step-by-step guides for verification tools, with real recorded output.' : 'Schritt-für-Schritt-Anleitungen für Verifikationswerkzeuge, mit echter aufgezeichneter Ausgabe.'}>
+  <div class="wrap narrow">
+    <h1>{en ? 'Getting started' : 'Einstieg'}</h1>
+    <p class="lede">{en ? 'For tools where the first hour is the hard part. Every guide uses the same pet-reservation example, shows the real output of the tool, and makes you break things on purpose.' : 'Für Werkzeuge, bei denen die erste Stunde die schwerste ist. Jede Anleitung nutzt dasselbe Beispiel der Tier-Reservierung, zeigt die echte Ausgabe des Werkzeugs und lässt dich absichtlich Dinge kaputt machen.'}</p>
+    <div class="grid">
+      {GUIDES.map((g) => <a class="card g" href={href(lang, `guides/${g.id}/`)}><strong>{g.title[lang]}</strong><span>{g.outcome[lang]}</span></a>)}
+    </div>
+    <h2 class="later">{en ? 'Coming next' : 'Als Nächstes'}</h2>
+    <p class="muted">{planned.join(' · ')}</p>
+  </div>
+</Base>
+<style>
+  .g { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink); }
+  .g span { color: var(--ink-2); font-size: .95rem; }
+  .g:hover { border-color: var(--rule-strong); }
+  .later { margin-top: 36px; font-size: 1.2rem; }
+</style>

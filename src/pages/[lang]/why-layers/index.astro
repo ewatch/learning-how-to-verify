@@ -1,0 +1,39 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PracticeCard from '../../../components/PracticeCard.astro';
+import type { Locale } from '../../../data/types';
+import { WHY } from '../../../data/why';
+import { SOURCE_BY_ID } from '../../../data/sources';
+import { PRACTICE_BY_ID } from '../../../data/practices';
+import { t } from '../../../i18n/ui';
+import { langPaths } from '../../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+---
+<Base lang={lang} path="why-layers/" md={`/${lang}/why-layers/index.md`} nav="start" title={WHY.title[lang]} description={WHY.intro[lang]}>
+  <div class="wrap narrow">
+    <p class="eyebrow">{lang === 'en' ? 'Start here · step 2' : 'Hier starten · Schritt 2'}</p>
+    <h1>{WHY.title[lang]}</h1>
+    <p class="lede">{WHY.intro[lang]}</p>
+    {WHY.findings.map((f, i) => {
+      const s = SOURCE_BY_ID.get(f.src)!;
+      return (
+        <section class="finding">
+          <p class="eyebrow">{String(i + 1).padStart(2, '0')}</p>
+          <h2>{f.claim[lang]}</h2>
+          <p>{f.text[lang]} <a class="src small" href={s.url} rel="noopener">{s.authors.split(',')[0]}, {s.venue} {s.year}</a>{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</p>
+          <p class="fix"><strong>{lang === 'en' ? 'Which layer catches it: ' : 'Welche Schicht es fängt: '}</strong>{f.fix[lang]}</p>
+          <div class="grid cols-3">{f.practices.map((id) => <PracticeCard p={PRACTICE_BY_ID.get(id)!} lang={lang} compact />)}</div>
+        </section>
+      );
+    })}
+    <p class="outro">{WHY.outro[lang]}</p>
+  </div>
+</Base>
+<style>
+  .finding { padding: 26px 0; border-top: 1px solid var(--rule); }
+  .fix { background: var(--card); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+  .src { color: var(--ink-3); }
+  .badge { margin-left: 4px; }
+  .outro { font-size: 1.15rem; margin-top: 28px; font-family: var(--font-display); }
+</style>

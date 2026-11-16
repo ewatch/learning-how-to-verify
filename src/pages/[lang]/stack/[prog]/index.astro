@@ -1,0 +1,51 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import type { LangId, Locale } from '../../../../data/types';
+import { LANGS, LAYERS } from '../../../../data/taxonomy';
+import { PRACTICES } from '../../../../data/practices';
+import { href } from '../../../../i18n/ui';
+import { toolsFor } from '../../../../lib/prompts';
+export function getStaticPaths() {
+  return (['en', 'de'] as Locale[]).flatMap((lang) => LANGS.map((lg) => ({ params: { lang, prog: lg.id }, props: { lang, prog: lg.id } })));
+}
+const { lang, prog } = Astro.props as { lang: Locale; prog: LangId };
+const en = lang === 'en';
+const lg = LANGS.find((x) => x.id === prog)!;
+---
+<Base lang={lang} path={`stack/${prog}/`} md={`/${lang}/stack/${prog}/index.md`} nav="stack" title={lg.name} description={en ? `Verification practices and open-source tools for ${lg.name}.` : `Verifikationspraktiken und Open-Source-Werkzeuge für ${lg.name}.`}>
+  <div class="wrap">
+    <nav class="small muted"><a href={href(lang, 'stack/')}>{en ? 'My stack' : 'Mein Stack'}</a> / {lg.name}</nav>
+    <h1>{lg.name}</h1>
+    <p class="lede">{en ? 'Every practice, top of the funnel first. Tools in bold are specific to this language; the others work with any language.' : 'Jede Praktik, von oben im Trichter nach unten. Fett gedruckte Werkzeuge sind sprachspezifisch; die anderen funktionieren mit jeder Sprache.'}</p>
+    {LAYERS.map((layer) => (
+      <section class="layer" style={`--c: var(--l-${layer.id})`}>
+        <h2>{layer.name[lang]}</h2>
+        <table>
+          <tbody>
+            {PRACTICES.filter((p) => p.layer === layer.id).map((p) => {
+              const { own, any } = toolsFor(p, prog);
+              return (
+                <tr>
+                  <th scope="row"><a href={`${href(lang, `practices/${p.id}/`)}?lang=${prog}`}>{p.name[lang]}</a></th>
+                  <td>
+                    {own.map((x, i) => <><a href={x.url} rel="noopener"><strong>{x.name}</strong></a>{i < own.length - 1 || any.length ? ', ' : ''}</>)}
+                    {any.map((x, i) => <><a href={x.url} rel="noopener">{x.name}</a>{i < any.length - 1 ? ', ' : ''}</>)}
+                    {own.length + any.length === 0 && <span class="muted">{en ? 'method, no tool needed' : 'Methode, kein Werkzeug nötig'}</span>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+    ))}
+  </div>
+</Base>
+<style>
+  .layer { margin-top: 28px; border-top: 3px solid var(--c); padding-top: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; font-weight: 400; }
+  th { width: 34%; }
+  th a { font-weight: 700; color: var(--ink); }
+  @media (max-width: 600px) { tr { display: block; padding: 8px 0; border-bottom: 1px solid var(--rule); } th, td { display: block; width: auto; border: 0; padding: 2px 0; } }
+</style>

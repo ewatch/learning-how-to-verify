@@ -1,0 +1,67 @@
+---
+import Base from '../../layouts/Base.astro';
+import type { Locale } from '../../data/types';
+import { PHASES } from '../../data/taxonomy';
+import { PRACTICES } from '../../data/practices';
+import { href } from '../../i18n/ui';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+---
+<Base lang={lang} path="lifecycle/" nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
+  description={en ? 'All verification practices by when they happen: pre-production, deploy, release, post-release.' : 'Alle Verifikationspraktiken danach, wann sie stattfinden: vor der Produktion, Deploy, Release, nach dem Release.'}>
+  <div class="wrap">
+    <header class="narrow">
+      <p class="eyebrow">{en ? 'Second view' : 'Zweite Ansicht'}</p>
+      <h1>{en ? 'When does each check happen?' : 'Wann findet welche Prüfung statt?'}</h1>
+      <p class="lede">{en
+        ? 'Verification does not stop at the merge button. Some bugs only show up with real traffic, real data and real users, so the right-hand columns test in production, carefully and with a small blast radius.'
+        : 'Verifikation endet nicht beim Merge-Knopf. Manche Fehler zeigen sich erst mit echtem Verkehr, echten Daten und echten Nutzern; die rechten Spalten testen deshalb in Produktion, vorsichtig und mit kleinem Wirkungsradius.'}</p>
+      <p class="muted small">{en
+        ? 'After the overview by Cindy Sridharan (@copyconstruct), as shown by Lauren Tan (@poteto). Practices marked + were added on this site. Colour bars on the left show the funnel layer.'
+        : 'Nach der Übersicht von Cindy Sridharan (@copyconstruct), wie von Lauren Tan (@poteto) gezeigt. Mit + markierte Praktiken wurden auf dieser Seite ergänzt. Farbbalken links zeigen die Trichterschicht.'}</p>
+    </header>
+
+    <div class="groups" aria-hidden="true">
+      <span class="g pre">{PHASES[0].group[lang]}</span>
+      <span class="g prod">{PHASES[1].group[lang]}</span>
+    </div>
+    <div class="board">
+      {PHASES.map((ph) => {
+        const list = PRACTICES.filter((p) => p.phases.includes(ph.id));
+        return (
+          <section class="col" id={`phase-${ph.id}`} style={`--pc: var(--p-${ph.id})`}>
+            <h2>{ph.name[lang]} <span class="count">{list.length}</span></h2>
+            <ul>
+              {list.map((p) => (
+                <li style={`--c: var(--l-${p.layer})`}>
+                  <a href={href(lang, `practices/${p.id}/`)}>{p.name[lang]}</a>{!p.fromOverview && <span class="added" title={en ? 'added on this site' : 'auf dieser Seite ergänzt'}>+</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+</Base>
+<style>
+  .groups { display: grid; grid-template-columns: 1.15fr 3fr; gap: 10px; margin: 34px 0 6px; font: 600 .78rem var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+  .g { border-bottom: 2px solid; padding-bottom: 6px; }
+  .g.pre { color: var(--p-pre); }
+  .g.prod { color: var(--ok); }
+  .board { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 980px) { .board { grid-template-columns: 1fr 1fr; } .groups { display: none; } }
+  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
+  .col { background: color-mix(in srgb, var(--pc) 9%, var(--card)); border: 1.5px solid var(--pc); border-radius: var(--radius); padding: 14px 14px 10px; }
+  .col h2 { font-size: 1.15rem; display: flex; justify-content: space-between; align-items: baseline; color: var(--ink); }
+  .count { font: 600 .8rem var(--font-mono); color: var(--pc); }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { position: relative; padding: 5px 0 5px 12px; margin: 0; border-bottom: 1px dashed color-mix(in srgb, var(--pc) 30%, transparent); }
+  li:last-child { border-bottom: 0; }
+  li::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--c); }
+  li a { color: var(--ink); text-decoration: none; }
+  li a:hover { text-decoration: underline; }
+  .added { color: var(--ink-3); font-family: var(--font-mono); margin-left: 4px; font-size: .85rem; }
+</style>

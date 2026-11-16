@@ -1,0 +1,33 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with 1 worker …
+Parsing file Adopt.tla
+Semantic processing of module Adopt
+Starting... (…)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated.
+Error: Invariant OnlyOneOwner is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ reservedBy = {}
+/\ pc = [anna |-> "idle", ben |-> "idle"]
+
+State 2: <Check line 13, col 13 to line 15, col 35 of module Adopt>
+/\ reservedBy = {}
+/\ pc = [anna |-> "sawFree", ben |-> "idle"]
+
+State 3: <Check line 13, col 13 to line 15, col 35 of module Adopt>
+/\ reservedBy = {}
+/\ pc = [anna |-> "sawFree", ben |-> "sawFree"]
+
+State 4: <Reserve line 18, col 15 to line 20, col 48 of module Adopt>
+/\ reservedBy = {"anna"}
+/\ pc = [anna |-> "done", ben |-> "sawFree"]
+
+State 5: <Reserve line 18, col 15 to line 20, col 48 of module Adopt>
+/\ reservedBy = {"anna", "ben"}
+/\ pc = [anna |-> "done", ben |-> "done"]
+
+13 states generated, 11 distinct states found, 2 states left on queue.
+The depth of the complete state graph search is 5.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+Finished in … at (…)

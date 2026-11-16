@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+import type { Locale } from '../data/types';
+import { t, other, href } from '../i18n/ui';
+import FunnelMark from '../components/FunnelMark.astro';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /** path after /{lang}/, e.g. "practices/unit-tests/" */
+  path: string;
+  /** optional Markdown twin for LLMs */
+  md?: string;
+  nav?: 'funnel' | 'lifecycle' | 'stack' | 'start' | 'guides' | 'glossary' | 'about';
+}
+const { lang, title, description, path, md, nav } = Astro.props;
+const alt = other(lang);
+const site = Astro.site!;
+const canonical = new URL(href(lang, path), site).href;
+const items = [
+  ['funnel', '', t(lang, 'navFunnel')],
+  ['lifecycle', 'lifecycle/', t(lang, 'navLifecycle')],
+  ['stack', 'stack/', t(lang, 'navStack')],
+  ['start', 'start/', t(lang, 'navStart')],
+  ['guides', 'guides/', t(lang, 'navGuides')],
+  ['glossary', 'glossary/', t(lang, 'navGlossary')],
+] as const;
+const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` : `${title} · ${t(lang, 'siteName')}`;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={alt} href={new URL(href(alt, path), site).href} />
+    {md && <link rel="alternate" type="text/markdown" href={md} title="Markdown" />}
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>
+      try { const th = localStorage.getItem('theme'); if (th) document.documentElement.dataset.theme = th; } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">{t(lang, 'skip')}</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href={href(lang)}><FunnelMark size={26} />{t(lang, 'siteName')}</a>
+        <nav class="nav" aria-label="Main">
+          {items.map(([id, p, label]) => <a href={href(lang, p)} aria-current={nav === id ? 'page' : undefined}>{label}</a>)}
+          <a class="lang" href={href(alt, path)} hreflang={alt} lang={alt} data-lang-switch>{t(lang, 'switchLang')}</a>
+          <button type="button" id="theme-toggle" aria-label={t(lang, 'theme')} title={t(lang, 'theme')}>◐</button>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>{t(lang, 'footerNote')}</p>
+        <p>
+          <a href={href(lang, 'about/')}>{t(lang, 'navAbout')}</a> ·
+          <a href="/llms.txt">llms.txt</a> ·
+          {md && <><a href={md}>{t(lang, 'markdown')}</a> · </>}
+          <a href={href(lang, 'about/#self-verification')}>{lang === 'en' ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</a>
+        </p>
+      </div>
+    </footer>
+    <script>
+      const btn = document.getElementById('theme-toggle');
+      btn?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = isDark ? 'light' : 'dark';
+        try { localStorage.setItem('theme', root.dataset.theme); } catch {}
+      });
+      // copy buttons: <button data-copy="id"> copies the text of #id
+      const LANG_NAMES: Record<string, string> = { js: 'JavaScript / TypeScript', python: 'Python', java: 'Java / Kotlin', dotnet: 'C# / .NET', go: 'Go', rust: 'Rust', cpp: 'C / C++' };
+      document.addEventListener('click', async (e) => {
+        const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-copy]');
+        if (!btn) return;
+        const src = document.getElementById(btn.dataset.copy!);
+        if (!src) return;
+        let text = src.textContent ?? '';
+        if (btn.hasAttribute('data-proglang')) {
+          let id = 'js';
+          try { id = localStorage.getItem('progLang') ?? 'js'; } catch {}
+          text = text.replaceAll('__PROGLANG__', LANG_NAMES[id] ?? LANG_NAMES.js);
+        }
+        const label = btn.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = document.documentElement.lang === 'de' ? 'Kopiert ✓' : 'Copied ✓';
+        } catch {
+          btn.textContent = document.documentElement.lang === 'de' ? 'Kopieren fehlgeschlagen' : 'Copy failed';
+        }
+        setTimeout(() => (btn.textContent = label), 1800);
+      });
+      // keep the hash (e.g. selected section) when switching language
+      document.querySelectorAll<HTMLAnchorElement>('[data-lang-switch]').forEach((a) =>
+        a.addEventListener('click', () => { if (location.hash) a.href += location.hash; }),
+      );
+    </script>
+  </body>
+</html>

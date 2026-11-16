@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Differential Testing – interaktive Demo</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 14px; }
+.flow div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+.flow b { display: block; font-size: 13px; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+.pipe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; }
+.pipe .in { grid-column: 1 / -1; text-align: center; }
+.box { border: 1px solid var(--bd); border-radius: var(--rad); padding: 9px 12px; background: var(--card-bg); min-height: 62px; transition: border-color .25s, background .25s; }
+.box .t { font-size: 12px; color: var(--mut); font-weight: 600; }
+.box .v { font-family: var(--mono); font-size: 13.5px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.box.pulse { animation: pulse .35s ease; }
+@keyframes pulse { 0% { transform: scale(.97); border-color: var(--acc); } 100% { transform: none; } }
+.arrows { grid-column: 1 / -1; display: flex; justify-content: space-around; color: var(--mut); font-size: 18px; line-height: 1; }
+.verdictbadge { grid-column: 1 / -1; text-align: center; font-weight: 700; padding: 6px; border-radius: 8px; font-size: 14px; }
+.verdictbadge.eq { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--ok); }
+.verdictbadge.kritisch { background: color-mix(in srgb, var(--err) 16%, transparent); color: var(--err); }
+.verdictbadge.mittel { background: color-mix(in srgb, var(--wrn) 16%, transparent); color: var(--wrn); }
+.verdictbadge.gering { background: color-mix(in srgb, var(--inf) 14%, transparent); color: var(--inf); }
+.stream { display: flex; flex-wrap: wrap; gap: 3px; padding: 8px; background: var(--codebg); border: 1px solid var(--bd); border-radius: var(--rad); min-height: 34px; max-height: 120px; overflow-y: auto; }
+.dot { width: 9px; height: 9px; border-radius: 3px; background: color-mix(in srgb, var(--ok) 60%, transparent); animation: pop .25s ease; }
+.dot.kritisch { background: var(--err); } .dot.mittel { background: var(--wrn); } .dot.gering { background: var(--inf); }
+.counters { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.pill.inf { background: color-mix(in srgb, var(--inf) 16%, transparent); color: var(--inf); }
+table.buckets { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.buckets th { text-align: left; font-size: 12px; color: var(--mut); font-weight: 600; padding: 5px 6px; border-bottom: 1px solid var(--bd); }
+table.buckets td { padding: 6px; border-bottom: 1px solid color-mix(in srgb, var(--bd) 60%, transparent); vertical-align: top; }
+table.buckets tr { animation: pop .3s ease; }
+table.buckets tr.accepted td { opacity: .45; }
+table.buckets code { overflow-wrap: anywhere; }
+.accbtn { font: inherit; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; border: 1px dashed var(--bd); background: none; color: var(--mut); cursor: pointer; white-space: nowrap; }
+.accbtn.on { border-style: solid; border-color: var(--ok); color: var(--fg); }
+.gains { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gains div { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: var(--card-bg); }
+@media (max-width: 640px) { .gains { grid-template-columns: 1fr; } }
+
+/* ---------- „Wozu ist das gut?“ ---------- */
+.useful { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--bd); }
+.useful h2 { font-size: 17px; margin-bottom: 10px; }
+.useful .ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.useful .ugrid > div { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 14px; }
+.useful h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--acc); }
+.useful ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.useful li { margin: 3px 0; }
+.useful .alltag { margin: 10px 0 0; font-size: 14px; }
+.useful .tools { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Interaktive Demo 5 / 5</div>
+    <h1>Differential Testing</h1>
+    <p class="lead">Woher weiß ein Test, was richtig ist? Beim Differential Testing gar nicht. Zwei Implementierungen, die dasselbe tun sollen, bekommen <b>dieselben Eingaben</b>, und <b>jede Abweichung</b> ist verdächtig. Das funktioniert auch ohne Spezifikation und findet Fehler, die erst <b>zwischen</b> zwei Komponenten entstehen.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Du hast <b>zwei Taschenrechner</b> und weißt nicht, ob sie richtig rechnen. Du tippst in beide dieselbe Aufgabe. Zeigen sie <b>verschiedene</b> Ergebnisse, ist mindestens einer kaputt, und dafür musstest du nicht einmal selbst wissen, was richtig ist. Das machst du mit tausenden Aufgaben.</p></div>
+        <div><h4>Und bei Software?</h4><p>Oft gibt es zwei Programme, die dasselbe tun sollen: die alte und die neue Version, oder dein eigener Code und ein bewährter Standard. Beim Differential Testing bekommen beide <b>dieselben Eingaben</b>, und jede <b>Abweichung</b> ist verdächtig. Das ist praktisch, wenn es keine genaue Beschreibung gibt, was „richtig“ ist.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Wähle „URL-Prüfung vs. URL-Parser“ und klick auf <b>▶ Vergleich starten</b>. Jede Zeile ist eine Webadresse, die beide Seiten bewerten.</li><li>Rote Zeilen sind Abweichungen: Deine Prüfung sagt „harmlos“, der echte Browser-Parser landet aber woanders. Genau so entstehen Sicherheitslücken.</li><li>Bei „alte vs. neue Preisberechnung“ siehst du, wie man ein Umbauen des Codes absichert.</li><li>Unten werden die Abweichungen <b>verkleinert</b> und <b>gruppiert</b>, damit aus 1000 Meldungen eine Handvoll Ursachen wird.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Implementierung</dt><dd>ein konkretes Programm, das eine Aufgabe löst</dd></div><div><dt>Abweichung</dt><dd>beide Programme liefern bei derselben Eingabe Verschiedenes</dd></div><div><dt>Orakel</dt><dd>etwas, das sagt, was richtig ist. Hier ist das andere Programm das Orakel</dd></div><div><dt>Refactoring</dt><dd>Code umbauen, ohne dass sich das Verhalten ändern soll</dd></div><div><dt>URL</dt><dd>eine Webadresse wie <code>https://example.com/seite</code></dd></div><div><dt>SSRF</dt><dd>eine Sicherheitslücke: Ein Server wird dazu gebracht, eine interne Adresse aufzurufen</dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Man muss nicht wissen, was richtig ist, wenn man zwei Programme vergleichen kann. Jeder Unterschied ist ein Hinweis.</p>
+    </div>
+  </details>
+
+
+  <div class="flow">
+    <div><b>1 · Generieren</b>viele Eingaben (zufällig, grammatikbasiert oder per Fuzzer)</div>
+    <div><b>2 · Doppelt ausführen</b>A und B bekommen exakt dieselbe Eingabe</div>
+    <div><b>3 · Vergleichen</b>gleich, oder Abweichung nach Schwere einstufen</div>
+    <div><b>4 · Reduzieren &amp; gruppieren</b>auf das Wesentliche verkleinern, gleiche Ursachen zusammenfassen</div>
+  </div>
+
+  <label class="lbl">Beispiel</label>
+  <div class="chips" id="examples" style="margin-bottom:12px"></div>
+  <div class="explain" id="exExplain"></div>
+
+  <div class="grid2">
+    <div><label class="lbl" id="labA">A</label><textarea id="codeA" rows="9" spellcheck="false" wrap="off"></textarea></div>
+    <div><label class="lbl" id="labB">B</label><textarea id="codeB" rows="9" spellcheck="false" wrap="off"></textarea></div>
+  </div>
+
+  <div class="row" style="margin:12px 0">
+    <button class="btn primary" id="run">▶ Vergleich starten</button>
+    <select id="count"><option value="300" selected>300 Eingaben</option><option value="2000">2000 Eingaben</option></select>
+    <select id="speed"><option value="1">Tempo: langsam</option><option value="3" selected>Tempo: normal</option><option value="0">sofort</option></select>
+    <span class="note" id="seedInfo"></span>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <h3>Aktueller Vergleich</h3>
+      <div class="pipe">
+        <div class="box in" id="pIn"><div class="t">Eingabe</div><div class="v">–</div></div>
+        <div class="arrows"><span>↙</span><span>↘</span></div>
+        <div class="box" id="pA"><div class="t" id="pAt">A</div><div class="v">–</div></div>
+        <div class="box" id="pB"><div class="t" id="pBt">B</div><div class="v">–</div></div>
+        <div class="verdictbadge" id="pV" style="visibility:hidden">–</div>
+      </div>
+    </div>
+    <div>
+      <h3>Alle Vergleiche</h3>
+      <div class="bar" style="margin-bottom:6px"><i id="prog"></i></div>
+      <div class="stream" id="stream"></div>
+      <div class="counters" id="counters"></div>
+      <div class="legend note" style="display:flex;gap:12px;flex-wrap:wrap"><span><span class="dot" style="display:inline-block"></span> gleich</span><span><span class="dot kritisch" style="display:inline-block"></span> kritisch</span><span><span class="dot mittel" style="display:inline-block"></span> mittel</span><span><span class="dot gering" style="display:inline-block"></span> gering</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="row" style="justify-content:space-between"><h3 style="margin:0">Abweichungsklassen <span class="note">(reduziert und nach Ursache gruppiert)</span></h3><span class="note">Klassen, die gewollt sind, kannst du als „gewollt“ markieren.</span></div>
+    <div style="overflow-x:auto;margin-top:8px"><table class="buckets"><thead><tr><th>Schwere</th><th>Ursache</th><th>Anzahl</th><th>Kleinstes Beispiel</th><th id="thA">A</th><th id="thB">B</th><th></th></tr></thead><tbody id="buckets"><tr><td colspan="7" class="note">Noch keine Abweichungen.</td></tr></tbody></table></div>
+  </div>
+  <div class="verdict" id="summary" style="display:none"></div>
+
+  <h2 style="margin-top:26px">Was Differential Testing zusätzlich bringt</h2>
+  <div class="gains">
+    <div><b>Kein Orakel nötig</b><br>Wer das richtige Ergebnis nicht kennt (Compiler, SQL-Engine, Legacy-Code), vergleicht mit einer zweiten Implementierung. So haben Csmith und SQLancer hunderte Bugs in GCC, LLVM, SQLite und PostgreSQL gefunden.</div>
+    <div><b>Fehler zwischen Komponenten</b><br>Validator und Client, Proxy und Backend, Frontend- und Backend-Validierung: Jede ist für sich „korrekt“, die Lücke entsteht im Unterschied. Beispiele sind SSRF, HTTP Request Smuggling und Parser-Differenzen.</div>
+    <div><b>Refactoring absichern</b><br>„Verhält sich das Neue wie das Alte?“ lässt sich ohne Spezifikation beantworten. Jede Abweichung ist entweder ein Bug oder eine bewusste Änderung, und das entscheidet ein Mensch.</div>
+  </div>
+  <p class="note" style="margin-top:10px"><b>Grenzen:</b> Machen beide Implementierungen <b>denselben</b> Fehler, bleibt er unsichtbar. Außerdem sagt eine Abweichung nicht, <b>wer</b> recht hat. Bei <code>preis(2.675, 3)</code> liegen sogar beide falsch, denn exakt wären 8,03 €.</p>
+
+  <div class="useful">
+    <h2>Wozu ist Differential Testing gut?</h2>
+    <div class="ugrid">
+      <div><h4>Gut geeignet für</h4><ul><li>Refactorings und Migrationen: alte gegen neue Implementierung</li><li>Compiler, Datenbanken, Parser gegen einen Standard oder eine Referenz</li><li>Schattenbetrieb: neuer Service bekommt eine Kopie des echten Verkehrs</li></ul></div>
+      <div><h4>Möglichkeiten</h4><ul><li>keine Spezifikation nötig: Die andere Implementierung ist das Orakel</li><li>kombinierbar mit Fuzzing oder PBT als Eingabequelle</li><li>findet semantische Abweichungen, etwa SSRF durch unterschiedliche URL-Interpretation</li><li>Reduktion und Gruppierung machen tausende Abweichungen handhabbar</li></ul></div>
+      <div><h4>Grenzen &amp; Aufwand</h4><ul><li>gemeinsame Fehler beider Implementierungen bleiben unsichtbar</li><li>bei einer Abweichung bleibt offen, wer recht hat</li><li>erlaubte Unterschiede (Zeitstempel, Reihenfolge, IDs) müssen herausgefiltert werden</li></ul></div>
+    </div>
+    <p class="alltag"><b>Aus dem Alltag:</b> die neue Preisberechnung läuft eine Woche parallel zur alten mit, Abweichungen werden protokolliert statt ausgeliefert.</p>
+    <p class="tools"><b>Werkzeuge:</b> Csmith, SQLancer, GitHub Scientist, Diffy, Traffic-Mirroring (Envoy, Istio)</p>
+  </div>
+
+  <div class="footer">
+    Weitere Demos: <a href="verifikation.html">① Formale Verifikation</a> · <a href="mutation-testing.html">② Mutation Testing</a> · <a href="property-based-testing.html">③ Property-Based Testing</a> · <a href="fuzzing.html">④ Fuzzing</a> · <a href="index.html">Übersicht</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+
+/* ---------------- Mini-Framework für Differential Testing ---------------- */
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function compileImpl(src, name) {
+  const f = new Function(`"use strict";\n${src}\n;return typeof ${name} === "function" ? ${name} : null;`)();
+  if (!f) throw new Error(`Der Code muss eine Funktion ${name}(…) definieren.`);
+  return (...args) => { try { return { v: f(...args) }; } catch (e) { return { err: `${e.name}: ${e.message}` }; } };
+}
+const showOut = o => ("err" in o ? `⚠ ${o.err}` : (o.v === null ? "null" : typeof o.v === "string" ? JSON.stringify(o.v) : String(o.v)));
+
+/* Delta-Debugging light: Eingabe verkleinern, solange dieselbe Abweichungsklasse bleibt */
+function minimizeString(s, stillFails) {
+  let cur = s, changed = true;
+  while (changed) {
+    changed = false;
+    for (let len = Math.max(1, cur.length >> 1); len >= 1; len >>= 1)
+      for (let i = 0; i + len <= cur.length; i++) {
+        const c = cur.slice(0, i) + cur.slice(i + len);
+        if (stillFails(c)) { cur = c; changed = true; i--; }
+      }
+  }
+  return cur;
+}
+
+/* ---------------- Beispiel 1: URL-Validator vs. echter URL-Parser ---------------- */
+const URL_A = `// A: eigene Sicherheitsprüfung, eine typische Regex-Lösung
+//    Liefert den Host, den der Validator zu sehen glaubt.
+function hostA(url) {
+  const m = url.match(/^https?:\\/\\/([^\\/?#]+)/i);
+  if (!m) return null;
+  return m[1].split(":")[0].toLowerCase();   // Port abschneiden
+}`;
+const URL_B = `// B: was der HTTP-Client tatsächlich aufruft
+//    (WHATWG URL Standard, in jeden Browser und Node.js eingebaut)
+function hostB(url) {
+  return new URL(url).hostname;
+}`;
+const ERLAUBT = "api.example.de";
+/* Grammatik-basierter Generator: URL aus Bausteinen, damit sich Abweichungen später auf Bausteine zurückführen lassen */
+const URL_PARTS = {
+  ws: ["", "", "", "", "", "", " "],
+  scheme: ["https", "https", "http", "HTTPS"],
+  sep: ["://", "://", "://", "://", "://", ":\\\\", ":/\\", ":///"],
+  user: ["", "", "", "", "", "user@", "admin:admin@", "api.example.de@", "api.example.de:443@", "evil.com@"],
+  host: ["api.example.de", "api.example.de", "api.example.de", "API.Example.DE", "evil.com", "%61pi.example.de", "127.0.0.1", "2130706433", "0x7f.1", "[::1]", "api.example.de.evil.com"],
+  port: ["", "", "", ":443", ":8080", ":"],
+  path: ["", "/", "/v1/bild.png", "\\@evil.com", "@evil.com", "#@evil.com", "?u=@evil.com", "\\\\evil.com"],
+};
+const NEUTRAL = { ws: "", scheme: "https", sep: "://", user: "", host: "api.example.de", port: "", path: "" };
+const ORDER = ["ws", "scheme", "sep", "user", "host", "port", "path"];
+function buildUrl(p) {
+  let u = ORDER.map(k => p[k]).join("");
+  if (p.ctl) u = u.slice(0, p.ctl.pos) + p.ctl.ch + u.slice(p.ctl.pos);
+  return u;
+}
+function genUrl(r) {
+  const p = {};
+  for (const k of ORDER) p[k] = URL_PARTS[k][Math.floor(r() * URL_PARTS[k].length)];
+  if (r() < 0.1) { const len = buildUrl(p).length; p.ctl = { pos: 1 + Math.floor(r() * (len - 1)), ch: r() < 0.5 ? "\t" : "\n" }; }
+  const url = buildUrl(p);
+  return Object.assign([url], { parts: p });
+}
+/* Minimierung auf Grammatik-Ebene: Bausteine auf neutrale Werte setzen, solange dieselbe Abweichungsklasse bleibt */
+function minimizeUrl(inp, sameClass) {
+  let p = { ...inp.parts };
+  for (const k of ["ctl", ...ORDER]) {
+    const cand = { ...p };
+    if (k === "ctl") delete cand.ctl; else cand[k] = NEUTRAL[k];
+    if (cand.ctl && cand.ctl.pos >= buildUrl({ ...cand, ctl: null }).length) delete cand.ctl;
+    const u = buildUrl(cand);
+    if (sameClass([u])) p = cand;
+  }
+  return Object.assign([buildUrl(p)], { parts: p });
+}
+function classifyUrl([url], a, b) {
+  const ha = "err" in a ? null : a.v, hb = "err" in b ? undefined : b.v;
+  if (ha === hb) return null;
+  if (ha === null && hb !== ERLAUBT) return null;                 // beide lehnen ab bzw. Aufruf unmöglich
+  if (ha === ERLAUBT && hb === undefined) return { sev: "gering", label: "Validator erlaubt eine URL, die der Client gar nicht aufrufen kann" };
+  if (ha === ERLAUBT) return { sev: "kritisch", label: "SSRF: Validator erlaubt, Client ruft einen anderen Host auf" };
+  if (hb === ERLAUBT) return { sev: "mittel", label: "Fehlalarm: Validator blockiert einen legitimen Aufruf" };
+  return { sev: "gering", label: "Hosts weichen ab (für Blocklisten relevant)" };
+}
+function urlFeatures([url]) {
+  const f = [];
+  if (/[\t\n]/.test(url)) f.push("Tab/Zeilenumbruch wird vom URL-Parser entfernt");
+  if (/^\s/.test(url)) f.push("führendes Leerzeichen wird entfernt, die Regex scheitert daran");
+  if (/\\/.test(url)) f.push("Backslash zählt bei http(s) als „/“");
+  if (/:\/\/[^\/?#\\]*:[^\/?#\\@]*@/.test(url)) f.push("„name:…@“ ist Benutzerinfo (sieht aus wie host:port): die Regex schneidet am ersten „:“ ab");
+  else if (/@/.test(url.split(/[\/\\?#]/).slice(0, 3).join("/"))) f.push("„…@“: alles davor ist Benutzerinfo, der echte Host steht danach");
+  if (/%[0-9a-f]{2}/i.test(url)) f.push("Prozent-Kodierung im Host wird dekodiert");
+  if (/\/\/(?:[^\/@]*@)?(?:\d{6,}|0x)/i.test(url)) f.push("Zahl/Hex als Host wird zu IPv4 (2130706433 = 127.0.0.1)");
+  if (/\[::1\]/.test(url)) f.push("IPv6-Literal mit Klammern");
+  if (/^\s*https?:(?!\/\/)|:\/\/\//i.test(url)) f.push("ungewöhnliche Schrägstriche nach dem Schema");
+  return f.length ? f : ["sonstige Abweichung"];
+}
+
+/* ---------------- Beispiel 2: Refactoring alt vs. neu ---------------- */
+const PREIS_A = `// A: Altsystem (seit Jahren in Produktion), rechnet in Euro als Gleitkommazahl
+function preis(betrag, menge) {
+  let summe = betrag * menge;
+  if (summe >= 100) summe = summe * 0.9;      // 10 % Rabatt ab 100 €
+  return Math.round(summe * 100) / 100;
+}`;
+const PREIS_B = `// B: Refactoring, rechnet jetzt exakt in Cent (Ganzzahlen)
+function preis(betrag, menge) {
+  const cent = Math.round(betrag * 100) * menge;
+  const rabattiert = cent > 10000 ? Math.round(cent * 9 / 10) : cent;
+  return rabattiert / 100;
+}`;
+function genPreis(r) {
+  const pick = a => a[Math.floor(r() * a.length)];
+  const betrag = r() < 0.35
+    ? pick([100, 50, 25, 33.33, 99.99, 100.01, 0.05, 0.15, 1.15, 10.05, 20.05, 0.45, 2.675, 1.005])
+    : Math.round(r() * (r() < 0.5 ? 2000 : 150)) / 100;
+  const menge = r() < 0.6 ? 1 : 1 + Math.floor(r() * 4);
+  return [betrag, menge];
+}
+function classifyPreis([betrag, menge], a, b) {
+  if ("err" in a || "err" in b) return showOut(a) === showOut(b) ? null : { sev: "kritisch", label: "nur eine Version wirft eine Exception" };
+  if (a.v === b.v) return null;
+  const d = Math.abs(a.v - b.v);
+  if (Math.abs(Math.round(betrag * 100) * menge - 10000) < 1e-9) return { sev: "kritisch", label: "Grenzfall genau 100,00 €: Rabatt fällt weg" };
+  if (d <= 0.011) return { sev: "gering", label: "Abweichung um 1 Cent (Rundung)" };
+  return { sev: "mittel", label: `Abweichung > 1 Cent` };
+}
+function preisFeatures([betrag, menge], a, b) {
+  const cent = Math.round(betrag * 100) * menge;
+  if (Math.abs(cent - 10000) < 1e-9) return ["Altsystem: ≥ 100 €, neu: > 100 €. Grenzfall geändert"];
+  if ((String(betrag).split(".")[1] || "").length > 2) return ["mehr als 2 Nachkommastellen: B rundet den Einzelpreis, A erst die Summe. Darf es solche Eingaben überhaupt geben?"];
+  return ["Gleitkomma im Altsystem: summe · 0.9 · 100 landet knapp unter …,5 und wird abgerundet"];
+}
+const DIFF_EXAMPLES = [
+  {
+    name: "URL-Prüfung vs. URL-Parser (Sicherheit)",
+    explain: "Eine Webanwendung lädt Bilder von URLs, die Nutzer angeben. Damit niemand interne Dienste abfragt (<b>SSRF</b>), erlaubt ein Validator nur den Host <code>api.example.de</code>. Der Validator (A) ist für sich „plausibel“, und der HTTP-Client (B) hält sich exakt an den Standard. Der Fehler entsteht erst <b>zwischen</b> beiden, weil sie dieselbe URL unterschiedlich verstehen. Genau solche Fehler findet nur der Vergleich.",
+    a: URL_A, b: URL_B, fnA: "hostA", fnB: "hostB", gen: genUrl, classify: classifyUrl, features: urlFeatures, minimize: minimizeUrl,
+    showIn: ([u]) => JSON.stringify(u),
+    labelA: "A · eigener Validator", labelB: "B · WHATWG-URL-Parser",
+  },
+  {
+    name: "Refactoring: alte vs. neue Preisberechnung",
+    explain: "Die Preisberechnung wurde von Euro-Gleitkommazahlen auf Cent-Ganzzahlen umgestellt. Eine Spezifikation gibt es nicht, nur das Verhalten des Altsystems. Differential Testing beantwortet die Frage <b>„Verhält sich die neue Version wie die alte?“</b>. Jede Abweichung muss ein Mensch bewerten: Ist sie ein <b>Bug</b> oder eine <b>gewollte Korrektur</b>?",
+    a: PREIS_A, b: PREIS_B, fnA: "preis", fnB: "preis", gen: genPreis, classify: classifyPreis, features: preisFeatures, minimize: null,
+    showIn: ([b, m]) => `preis(${b}, ${m})`,
+    labelA: "A · Altsystem", labelB: "B · Refactoring",
+  },
+];
+
+const SEV_ORDER = { kritisch: 0, mittel: 1, gering: 2 };
+const S = { ex: 0, runId: 0, buckets: new Map(), accepted: new Set() };
+function initUI() {
+  $("#examples").innerHTML = DIFF_EXAMPLES.map((e, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${e.name}</button>`).join("");
+  $$("#examples button").forEach(b => b.onclick = () => { $$("#examples button").forEach(x => x.classList.toggle("active", x === b)); loadExample(+b.dataset.i); });
+  $("#run").onclick = run;
+  loadExample(0);
+}
+function loadExample(i) {
+  S.ex = i; const ex = DIFF_EXAMPLES[i];
+  $("#exExplain").innerHTML = `<p>${ex.explain}</p>`;
+  $("#codeA").value = ex.a; $("#codeB").value = ex.b;
+  $("#labA").textContent = ex.labelA + " (editierbar)"; $("#labB").textContent = ex.labelB + " (editierbar)";
+  $("#pAt").textContent = ex.labelA; $("#pBt").textContent = ex.labelB;
+  $("#thA").textContent = "A"; $("#thB").textContent = "B";
+  reset();
+}
+function reset() {
+  S.runId++; S.buckets = new Map(); S.accepted = new Set();
+  $("#stream").innerHTML = ""; $("#prog").style.width = "0"; $("#counters").innerHTML = "";
+  $("#buckets").innerHTML = `<tr><td colspan="7" class="note">Noch keine Abweichungen.</td></tr>`;
+  $("#summary").style.display = "none"; $("#pV").style.visibility = "hidden";
+  for (const id of ["#pIn", "#pA", "#pB"]) $(id + " .v").textContent = "–";
+}
+const sevPill = s => `<span class="pill ${s === "kritisch" ? "bad" : s === "mittel" ? "warn" : "inf"}">${s}</span>`;
+function renderBuckets() {
+  const ex = DIFF_EXAMPLES[S.ex];
+  const rows = [...S.buckets.entries()].sort((a, b) => SEV_ORDER[a[1].sev] - SEV_ORDER[b[1].sev] || b[1].n - a[1].n);
+  if (!rows.length) return;
+  $("#buckets").innerHTML = rows.map(([key, b]) => `<tr class="${S.accepted.has(key) ? "accepted" : ""}">
+    <td>${sevPill(b.sev)}</td><td>${esc(b.label)}<div class="note">${b.features.map(esc).join("<br>")}</div></td><td>${b.n}</td>
+    <td><code>${esc(ex.showIn(b.ex))}</code></td><td><code>${esc(b.a)}</code></td><td><code>${esc(b.b)}</code></td>
+    <td><button class="accbtn${S.accepted.has(key) ? " on" : ""}" data-k="${esc(key)}">${S.accepted.has(key) ? "✓ gewollt" : "gewollt?"}</button></td></tr>`).join("");
+  $$("#buckets .accbtn").forEach(btn => btn.onclick = () => { const k = btn.dataset.k; S.accepted.has(k) ? S.accepted.delete(k) : S.accepted.add(k); renderBuckets(); summarize(); });
+}
+function summarize() {
+  const open = [...S.buckets.entries()].filter(([k]) => !S.accepted.has(k));
+  const box = $("#summary"); box.style.display = "block";
+  if (!S.buckets.size) { box.className = "verdict ok pop"; box.innerHTML = "✓ <b>Keine Abweichung.</b> A und B verhalten sich bei allen Eingaben gleich. Das heißt aber nicht, dass beide richtig sind: Sie könnten denselben Fehler haben."; return; }
+  const crit = open.filter(([, b]) => b.sev === "kritisch");
+  box.className = "verdict " + (open.length ? "bad" : "ok") + " pop";
+  box.innerHTML = open.length
+    ? `<b>${S.buckets.size} Abweichungsklassen</b> aus ${S.total} Abweichungen, davon <b>${crit.length} kritisch</b>. ${S.ex === 0 ? "Jede kritische Klasse ist eine ausnutzbare SSRF-Lücke: Der Validator sagt „api.example.de“, der Client verbindet sich woandershin. <b>Lösung:</b> Nie selbst parsen, sondern im Validator <b>denselben Parser</b> wie im Client verwenden, also <code>new URL(url).hostname</code>." : "Ein Mensch muss entscheiden: Ist der Grenzfall 100,00 € ein Bug im Refactoring (sehr wahrscheinlich)? Sind die Cent-Abweichungen eine gewollte Korrektur des Altsystems? Markiere gewollte Klassen, bis keine offenen mehr übrig sind."}`
+    : `✓ Alle ${S.buckets.size} Abweichungsklassen sind als gewollt markiert. Genau so funktionieren Approval- und Regressionstests bei Migrationen.`;
+}
+function setBox(sel, text) { const b = $(sel); b.querySelector(".v").textContent = text; b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); }
+async function run() {
+  reset(); const id = S.runId; const ex = DIFF_EXAMPLES[S.ex];
+  let A, B;
+  try { A = compileImpl($("#codeA").value, ex.fnA); B = compileImpl($("#codeB").value, ex.fnB); }
+  catch (e) { const box = $("#summary"); box.style.display = "block"; box.className = "verdict bad"; box.textContent = "⚠ Code-Fehler: " + e.message; return; }
+  const N = +$("#count").value, speed = +$("#speed").value, seed = Math.floor(Math.random() * 1e9), r = rng(seed);
+  $("#seedInfo").textContent = `Seed ${seed}`;
+  let eq = 0, total = 0; const sev = { kritisch: 0, mittel: 0, gering: 0 };
+  const stream = $("#stream");
+  for (let i = 0; i < N; i++) {
+    if (id !== S.runId) return;
+    const inp = ex.gen(r), a = A(...inp), b = B(...inp), c = ex.classify(inp, a, b);
+    const animate = speed && (i < 40 || c);
+    if (animate) {
+      setBox("#pIn", ex.showIn(inp)); $("#pV").style.visibility = "hidden";
+      await sleep(speed === 1 ? 260 : 70);
+      if (id !== S.runId) return;
+      setBox("#pA", showOut(a)); setBox("#pB", showOut(b));
+      await sleep(speed === 1 ? 260 : 70);
+      if (id !== S.runId) return;
+      const v = $("#pV"); v.style.visibility = "visible";
+      v.className = "verdictbadge " + (c ? c.sev : "eq");
+      v.textContent = c ? `≠ ${c.label}` : "= gleich";
+      await sleep(c ? (speed === 1 ? 900 : 380) : (speed === 1 ? 260 : 60));
+      if (id !== S.runId) return;
+    }
+    const d = document.createElement("span"); d.className = "dot" + (c ? " " + c.sev : ""); d.title = `${ex.showIn(inp)}\nA: ${showOut(a)}\nB: ${showOut(b)}`;
+    stream.appendChild(d);
+    if (!c) eq++;
+    else {
+      total++; sev[c.sev]++;
+      // auf das Wesentliche reduzieren und nach Ursache gruppieren
+      const small = ex.minimize ? ex.minimize(inp, x => { const cc = ex.classify(x, A(...x), B(...x)); return cc && cc.label === c.label; }) : inp;
+      const a2 = A(...small), b2 = B(...small), feats = ex.features(small, a2, b2);
+      const key = c.sev + "|" + c.label + "|" + feats.join("+");
+      const bk = S.buckets.get(key) || { n: 0, sev: c.sev, label: c.label, features: feats, ex: null };
+      bk.n++;
+      if (!bk.ex || ex.showIn(small).length < ex.showIn(bk.ex).length) { bk.ex = small; bk.a = showOut(a2); bk.b = showOut(b2); }
+      S.buckets.set(key, bk);
+      renderBuckets();
+    }
+    if (!speed && i % 100 !== 99 && i !== N - 1) continue;
+    $("#prog").style.width = (100 * (i + 1) / N) + "%";
+    $("#counters").innerHTML = `<span class="pill idle">${i + 1} Eingaben</span><span class="pill ok">${eq} gleich</span><span class="pill bad">${sev.kritisch} kritisch</span><span class="pill warn">${sev.mittel} mittel</span><span class="pill inf">${sev.gering} gering</span>`;
+    stream.scrollTop = stream.scrollHeight;
+    if (!speed) await frame(); else if (!animate) await sleep(4);
+  }
+  S.total = total;
+  renderBuckets(); summarize();
+}
+initUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formale Verifikation – interaktive Demo</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+/* ---------- seiten-spezifisch ---------- */
+.anno { display: flex; white-space: pre-wrap; font-family: var(--font-sans, system-ui, sans-serif); font-size: 13.5px; color: var(--acc); max-height: 0; overflow: hidden; opacity: 0; transition: max-height .45s ease, opacity .45s ease, padding .45s; }
+.anno .no { width: 34px; flex: none; }
+.anno.show { max-height: 120px; opacity: 1; padding: 3px 0; }
+.anno .f { background: color-mix(in srgb, var(--acc) 10%, transparent); border: 1px dashed color-mix(in srgb, var(--acc) 50%, transparent); border-radius: 6px; padding: 1px 8px; }
+.anno mark, .formula mark { background: color-mix(in srgb, var(--wrn) 32%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.anno.old mark { background: none; padding: 0; }
+.ln.spec .tx { color: var(--ok); font-weight: 600; }
+.formula { font-size: 15px; }
+.formula i { font-family: Georgia, "Times New Roman", serif; font-size: 1.05em; }
+.steps { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; max-height: 430px; overflow-y: auto; }
+.steps li { border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; background: var(--card-bg); animation: pop .35s ease; }
+.steps li .t { font-weight: 700; font-size: 13.5px; }
+.steps li .d { font-size: 13px; color: var(--mut); }
+.steps li.cur { border-color: var(--acc); }
+.solver { margin-top: 12px; }
+.ticker { font-family: var(--mono); font-size: 13px; color: var(--mut); }
+.obls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .obls { grid-template-columns: 1fr; } }
+.obl { border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; background: var(--card-bg); transition: border-color .3s, box-shadow .3s; }
+.obl.run { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
+.obl.pass { border-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+.obl.fail { border-color: color-mix(in srgb, var(--err) 70%, transparent); }
+.obl .hd { display: flex; justify-content: space-between; gap: 4px 8px; align-items: baseline; flex-wrap: wrap; }
+.obl .what { font-size: 12.5px; color: var(--mut); margin: 2px 0 8px; }
+.obl .st { font-family: var(--mono); font-size: 12px; color: var(--mut); margin-top: 6px; min-height: 18px; }
+.obl .cex { font-size: 12.5px; margin-top: 6px; }
+.threads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.threads .code { padding: 6px 0; }
+.thead { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.vars { font-family: var(--mono); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.vars span b { color: var(--acc); }
+svg text { font-family: var(--mono); }
+.graphbox { background: var(--codebg); border: 1px solid var(--bd); border-radius: var(--rad); overflow-x: auto; }
+.tok-op { color: #3f8fe8; }
+.panelhd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.story p { margin: 0 0 6px; } .story p:last-child { margin: 0; }
+.tlaview { padding: 10px 12px; border: 1px solid var(--bd); border-radius: var(--rad); background: var(--card-bg); font-size: 14px; min-height: 64px; }
+.tlaview .note { margin-bottom: 4px; }
+.term.tall { max-height: 360px; overflow-y: auto; }
+.term mark { background: color-mix(in srgb, var(--wrn) 32%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.floors { display: flex; gap: 6px; margin-top: 6px; }
+.floors span { border: 1px solid var(--bd); border-radius: 6px; padding: 2px 8px; font-family: var(--mono); font-size: 13px; }
+.floors span.here { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, transparent); }
+.ln.step { cursor: pointer; }
+.ln.step .no { color: var(--acc); opacity: 1; }
+.ln.err .tx { text-decoration: underline wavy var(--err); text-underline-offset: 4px; }
+.infoview { background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); font-family: var(--mono); font-size: 13px; }
+.infoview .ivhd { padding: 6px 12px; border-bottom: 1px solid var(--bd); font-size: 12px; color: var(--mut); font-weight: 700; }
+.infoview .ivbody { padding: 10px 12px; min-height: 170px; }
+.goal { margin-bottom: 12px; animation: pop .3s ease; }
+.goal .case { color: var(--mut); }
+.goal .hyp b { color: var(--c1); font-weight: 600; }
+.goal .tgt { color: var(--acc); font-weight: 700; }
+.ivmsg { white-space: pre-wrap; border-radius: 6px; padding: 6px 9px; margin-top: 4px; }
+.ivmsg.info { background: color-mix(in srgb, var(--inf) 14%, transparent); }
+.ivmsg.err { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.verdict:not(.ok):not(.bad) { border: 1px solid var(--bd); background: var(--card-bg); }
+.ivmsg.done { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+
+/* ---------- „Wozu ist das gut?“ ---------- */
+.useful { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--bd); }
+.useful h2 { font-size: 17px; margin-bottom: 10px; }
+.useful .ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.useful .ugrid > div { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 14px; }
+.useful h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--acc); }
+.useful ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.useful li { margin: 3px 0; }
+.useful .alltag { margin: 10px 0 0; font-size: 14px; }
+.useful .tools { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Interaktive Demo 1 / 5</div>
+    <h1>Formale Verifikation</h1>
+    <p class="lead">Ein Test probiert <b>einige</b> Eingaben aus. Formale Verifikation <b>beweist</b> mathematisch, dass ein Programm für <b>alle</b> Eingaben seine Spezifikation erfüllt. Die Reiter zeigen die wichtigsten Techniken und zwei verbreitete Werkzeuge (TLA+ und Lean 4). Jede Demo läuft wirklich im Browser, und am Ende jedes Reiters steht, <b>wofür</b> die Technik gut ist.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Ob eine Brücke hält, kann man auf zwei Arten herausfinden. <b>Testen:</b> Zehn Lastwagen fahren darüber, und sie hält. Aber hält sie auch den elften, der schwerer ist? <b>Beweisen:</b> Ein Statiker rechnet aus, dass sie <i>jedes</i> Gewicht bis 40 Tonnen trägt. Dann muss man keinen einzigen Lastwagen mehr ausprobieren.</p></div>
+        <div><h4>Und bei Software?</h4><p>Formale Verifikation ist der Statiker für Programme. Man schreibt genau auf, was ein Programm tun soll, und ein Werkzeug <b>rechnet nach</b>, dass es das für <b>alle</b> Eingaben tut, auch für die Milliarden, die nie jemand ausprobiert. Findet es einen Fehler, nennt es ein konkretes Beispiel, bei dem es schiefgeht.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Die fünf Reiter oben sind fünf Spielarten derselben Idee. Fang mit <b>①</b> an und geh der Reihe nach.</li><li>Jeder Reiter hat seinen eigenen „Einfach erklärt“-Kasten.</li><li>Ganz unten in jedem Reiter steht, wofür die Technik im echten Leben gut ist.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Verifikation</dt><dd>„Wahr machen“: beweisen, dass etwas stimmt</dd></div><div><dt>formal</dt><dd>streng nach Regeln, so genau, dass ein Computer es prüfen kann</dd></div><div><dt>Beweis</dt><dd>eine lückenlose Begründung, warum etwas <i>immer</i> stimmt</dd></div><div><dt>Gegenbeispiel</dt><dd>eine konkrete Eingabe, bei der die Behauptung nicht stimmt</dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Testen zeigt: „Es hat bei diesen Fällen geklappt.“ Beweisen zeigt: „Es klappt immer.“</p>
+    </div>
+  </details>
+
+
+  <nav class="tabs">
+    <button data-tab="wp" class="active">① Hoare-Logik &amp; wp</button>
+    <button data-tab="inv">② Schleifeninvarianten</button>
+    <button data-tab="mc">③ Model Checking</button>
+    <button data-tab="tla">④ TLA+ im Alltag</button>
+    <button data-tab="lean">⑤ Lean 4</button>
+  </nav>
+
+  <!-- ===================== TAB 1: wp ===================== -->
+  <section class="tab active" id="tab-wp">
+    <details class="eli5" open>
+      <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+      <div class="eli5-body">
+        <div class="eli5-row">
+          <div><h4>Stell dir vor …</h4><p>Du willst einen Kuchen, der am Ende <b>süß</b> ist. Du gehst das Rezept <b>von hinten</b> durch: „Damit er am Ende süß ist, muss vor dem Backen Zucker im Teig sein. Damit Zucker im Teig ist, muss ich vorher Zucker hineingeben.“ So findest du heraus, was <b>am Anfang</b> gelten muss, damit es <b>am Ende</b> klappt.</p></div>
+          <div><h4>Und bei Software?</h4><p>Genauso rechnet ein Verifizierer: Er startet beim gewünschten Ergebnis (der <b>Nachbedingung</b>) und geht das Programm Zeile für Zeile <b>rückwärts</b> durch. Am Anfang kommt eine Bedingung heraus, die vorher gelten muss. Dann prüft ein Rechenprogramm (der <b>Solver</b>), ob die Voraussetzung, die wir zugesagt haben, dafür ausreicht. Wenn nicht, zeigt er ein Gegenbeispiel.</p></div>
+        </div>
+        <div class="eli5-row">
+          <div><h4>So probierst du die Demo aus</h4><ol><li>Klick auf <b>▶ Beweis animieren</b>. Die gestrichelten Kästen erscheinen von <b>unten nach oben</b>.</li><li>Gelbe Markierung = das Stück, das gerade eingesetzt wurde.</li><li>Unten rechts sucht der Solver ein Gegenbeispiel. Grün heißt bewiesen.</li><li>Befolge den <b>Tipp</b> neben den Knöpfen und baue absichtlich einen Fehler ein. Jetzt wird es rot, mit einer Eingabe, bei der es schiefgeht.</li></ol></div>
+          <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Vorbedingung (requires)</dt><dd>was <i>vorher</i> gelten muss, z. B. „der Betrag ist nicht negativ“</dd></div><div><dt>Nachbedingung (ensures)</dt><dd>was <i>hinterher</i> garantiert gelten soll</dd></div><div><dt>wp</dt><dd>„schwächste Vorbedingung“: das Mindeste, was vorher gelten muss, damit es hinterher klappt</dd></div><div><dt>Zuweisung <code>x := …</code></dt><dd>„x bekommt den Wert …“</dd></div><div><dt>Solver</dt><dd>ein Programm, das Rechenaufgaben mit Unbekannten löst</dd></div></dl></div>
+        </div>
+        <p class="merke">💡 <b>Merksatz:</b> Man rechnet vom gewünschten Ende rückwärts zum Anfang und prüft, ob die Startbedingung reicht.</p>
+      </div>
+    </details>
+    <div class="explain">
+      <p><b>Hoare-Tripel</b> <code>{P} C {Q}</code>: Gilt P vor dem Programm C, dann gilt Q danach.
+      Der Verifizierer rechnet <b>rückwärts</b> die <i>schwächste Vorbedingung</i> <code>wp(C, Q)</code> aus. Bei einer Zuweisung <code>v := E</code> heißt das: Ersetze in Q jedes <code>v</code> durch <code>E</code>.
+      Zum Schluss prüft ein Solver die <b>Verifikationsbedingung</b> <code>P ⇒ wp(C, Q)</code>.</p>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div><label class="lbl">Beispiel</label><select id="wpPreset"></select></div>
+      <div style="flex:1;min-width:160px"><label class="lbl">Vorbedingung P (requires)</label><input type="text" id="wpPre" style="width:100%"></div>
+      <div style="flex:1;min-width:160px"><label class="lbl">Nachbedingung Q (ensures)</label><input type="text" id="wpPost" style="width:100%"></div>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn primary" id="wpPlay">▶ Beweis animieren</button>
+      <button class="btn" id="wpStep">→ Ein Schritt</button>
+      <button class="btn" id="wpReset">↺ Zurücksetzen</button>
+      <button class="btn" id="wpEdit">✎ Programm bearbeiten</button>
+      <span class="note" id="wpHint"></span>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="code" id="wpCode"></div>
+        <div id="wpEditBox" style="display:none">
+          <textarea id="wpSrc" rows="8"></textarea>
+          <div class="row" style="margin-top:6px"><button class="btn primary" id="wpApply">Übernehmen</button><span class="note">Syntax: <code>v := ausdruck;</code> und <code>if bedingung { … } else { … }</code>. Operatoren: + − * / % == != &lt; &lt;= &gt; &gt;= &amp;&amp; || ! ==&gt;</span></div>
+        </div>
+        <p class="note" style="margin-top:8px">Die <span style="color:var(--acc)">gestrichelten Kästen</span> sind die berechneten Zusicherungen an jeder Programmstelle. <mark style="background:color-mix(in srgb,var(--wrn) 32%,transparent);color:inherit">Markiert</mark> ist jeweils der zuletzt eingesetzte Ausdruck.</p>
+      </div>
+      <div>
+        <h3>Beweisprotokoll</h3>
+        <ol class="steps" id="wpSteps"></ol>
+        <div class="solver" id="wpSolver"></div>
+      </div>
+    </div>
+    <div class="useful">
+      <h2>Wozu ist Hoare-Logik / wp gut?</h2>
+      <div class="ugrid">
+        <div><h4>Gut geeignet für</h4><ul><li>kleine, kritische Funktionen mit klarer Ein- und Ausgabe: Preise, Gebühren, Zinsen, Grenzprüfungen</li><li>Code, bei dem ein Fehler teuer ist: Steuerungen, Medizintechnik, Luftfahrt, Krypto-Bibliotheken</li><li>als Grundlage: Fast alle Programm-Verifizierer arbeiten intern genau so</li></ul></div>
+        <div><h4>Möglichkeiten</h4><ul><li><code>requires</code>/<code>ensures</code> als Vertrag, der für <b>alle</b> Eingaben bewiesen wird</li><li>der Solver liefert bei einem Fehler ein <b>konkretes Gegenbeispiel</b></li><li>Überlauf, Division durch 0 und Array-Grenzen werden automatisch zu Beweiszielen</li><li>modular: Aufrufer verlassen sich nur auf den Vertrag, nicht auf die Implementierung</li></ul></div>
+        <div><h4>Grenzen &amp; Aufwand</h4><ul><li>bewiesen wird nur, was in der Spezifikation steht. Eine falsche Spezifikation bleibt falsch</li><li>nichtlineare Arithmetik und Gleitkommazahlen sind für Solver schwer</li><li>Heap, Zeiger und Seiteneffekte brauchen zusätzliche Annotationen (<code>modifies</code>, Frames)</li></ul></div>
+      </div>
+      <p class="alltag"><b>Aus dem Alltag:</b> „Der Endpreis ist nie negativ und nie höher als der Listenpreis“, „eine Gebühr liegt immer zwischen 0 € und 5 €“.</p>
+      <p class="tools"><b>Werkzeuge:</b> Dafny, Frama-C (WP), SPARK/Ada, Why3, Verus und Prusti (Rust), KeY (Java)</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 2: Invarianten ===================== -->
+  <section class="tab" id="tab-inv">
+    <details class="eli5" open>
+      <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+      <div class="eli5-body">
+        <div class="eli5-row">
+          <div><h4>Stell dir vor …</h4><p>Du suchst den <b>größten Apfel</b> in einer Kiste. Du nimmst einen nach dem anderen in die Hand. Dabei gilt immer: <i>„In meiner linken Hand liegt der größte Apfel von denen, die ich schon angeschaut habe.“</i> Das stimmt am Anfang, und es stimmt nach jedem weiteren Apfel. Wenn du alle angeschaut hast, liegt also der größte Apfel der ganzen Kiste in deiner Hand.</p></div>
+          <div><h4>Und bei Software?</h4><p>Programme machen so etwas mit <b>Schleifen</b>: denselben Schritt immer wieder. Weil man nicht jede Kistengröße ausprobieren kann, schreibt man so einen „gilt immer“-Satz dazu. Das ist die <b>Invariante</b>. Der Verifizierer prüft vier Dinge: Stimmt der Satz am Anfang? Bleibt er nach jeder Runde wahr? Folgt am Ende das Ergebnis daraus? Hört die Schleife irgendwann auf?</p></div>
+        </div>
+        <div class="eli5-row">
+          <div><h4>So probierst du die Demo aus</h4><ol><li>Klick auf <b>▶ Verifizieren</b> bei der Variante „✓ Korrekt“. Alle vier Kästen werden grün.</li><li>Wähle dann eine Variante mit Fehler, z. B. „Falscher Vergleich“. Die geänderte Zeile ist wellig unterstrichen.</li><li>Schau, <b>welcher</b> der vier Kästen rot wird. Er verrät, an welcher Stelle der Gedankengang kaputt ist.</li><li>Spannend: „Invariante zu schwach“. Da ist der Code richtig, aber die Begründung fehlt, also gibt es keinen Beweis.</li></ol></div>
+          <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Schleife</dt><dd>ein Programmteil, der sich wiederholt, z. B. „für jeden Apfel …“</dd></div><div><dt>Invariante</dt><dd>ein Satz, der vor und nach jeder Runde wahr ist</dd></div><div><dt>Beweisverpflichtung</dt><dd>eine einzelne Sache, die bewiesen werden muss</dd></div><div><dt>Terminierung</dt><dd>die Schleife hört garantiert irgendwann auf</dd></div><div><dt>Array</dt><dd>eine nummerierte Liste von Werten, wie die Äpfel in der Kiste</dd></div></dl></div>
+        </div>
+        <p class="merke">💡 <b>Merksatz:</b> Wenn etwas am Anfang stimmt und jeder Schritt es wahr hält, dann stimmt es auch am Ende. Das ist wie bei Dominosteinen.</p>
+      </div>
+    </details>
+    <div class="explain">
+      <p>Eine Schleife lässt sich nicht für „alle Durchläufe“ ausführen. Deshalb verlangt ein Verifizierer wie <b>Dafny</b> eine <b>Schleifeninvariante</b>, also eine Aussage, die vor und nach jedem Durchlauf gilt. Daraus entstehen vier <b>Beweisverpflichtungen</b>. Wichtig: Für die Zeit nach der Schleife kennt der Verifizierer <b>nur die Invariante</b> und nicht den tatsächlichen Ablauf.</p>
+    </div>
+    <label class="lbl">Variante wählen (geänderte Zeilen sind <span class="warn">wellig unterstrichen</span>)</label>
+    <div class="chips" id="invVariants" style="margin-bottom:12px"></div>
+    <div class="grid2">
+      <div>
+        <div class="code" id="invCode"></div>
+        <p class="note" id="invDesc" style="margin-top:8px"></p>
+      </div>
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn primary" id="invRun">▶ Verifizieren</button>
+          <span class="note">prüft jede Verpflichtung für <b id="invCount">…</b> Zustände</span>
+        </div>
+        <div class="obls" id="invObls"></div>
+      </div>
+    </div>
+    <h3 style="margin-top:14px">Ausgabe (im Stil von Dafny)</h3>
+    <div class="term" id="invTerm">$ dafny verify max.dfy</div>
+    <p class="note" style="margin-top:8px">Ehrlicher Hinweis: Diese Demo prüft die Verpflichtungen <b>erschöpfend</b> für alle Arrays der Länge 1 bis 4 mit Werten −2 bis 2 und alle passenden Werte von <code>i</code> und <code>m</code>. Dafny übergibt dieselben Formeln an den SMT-Solver Z3. Der beweist sie <b>symbolisch für alle Arrays beliebiger Länge</b> und probiert dabei nichts aus.</p>
+    <div class="useful">
+      <h2>Wozu ist eine Schleifeninvariante gut?</h2>
+      <div class="ugrid">
+        <div><h4>Gut geeignet für</h4><ul><li>Schleifen und Rekursion: Suchen, Sortieren, Summieren, Puffer und Warteschlangen</li><li>Bibliotheksalgorithmen, die tausendfach wiederverwendet werden</li><li>Datenstrukturen mit Klasseninvarianten: „Liste bleibt sortiert“, „Kontostand ≥ 0“</li></ul></div>
+        <div><h4>Möglichkeiten</h4><ul><li>Korrektheit für <b>beliebig viele</b> Durchläufe, nicht nur für getestete Längen</li><li>Terminierung ist beweisbar (<code>decreases</code>): keine Endlosschleife</li><li>die fehlgeschlagene Verpflichtung zeigt genau, <b>wo</b> der Fehler liegt (Init, Erhaltung, Abschluss)</li><li>Invarianten dokumentieren das <i>Warum</i> des Codes besser als Kommentare</li></ul></div>
+        <div><h4>Grenzen &amp; Aufwand</h4><ul><li>Invarianten zu finden ist Handarbeit und braucht Übung (KI-Assistenten helfen zunehmend)</li><li>eine zu schwache Invariante lässt den Beweis scheitern, obwohl der Code korrekt ist</li><li>lohnt sich bei Kerncode, kaum bei UI- oder Glue-Code</li></ul></div>
+      </div>
+      <p class="alltag"><b>Aus dem Alltag:</b> „Nach jeder Buchung stimmt die Summe aller Konten“, „der Warenkorb enthält keinen Artikel doppelt“.</p>
+      <p class="tools"><b>Werkzeuge:</b> Dafny, Verus, SPARK, Frama-C, Why3, Viper, VeriFast</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 3: Model Checking ===================== -->
+  <section class="tab" id="tab-mc">
+    <details class="eli5" open>
+      <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+      <div class="eli5-body">
+        <div class="eli5-row">
+          <div><h4>Stell dir vor …</h4><p>Zwei Mitbewohner führen eine Strichliste, wie oft der Müll rausgebracht wurde. Darauf steht 5. Beide bringen gleichzeitig Müll raus. Jeder <b>liest</b> „5“, rechnet im Kopf 5 + 1 und <b>schreibt</b> „6“ hin. Richtig wäre 7! Ein Strich ist verloren gegangen, weil sich die beiden zeitlich überschnitten haben.</p></div>
+          <div><h4>Und bei Software?</h4><p>In Programmen laufen oft mehrere Dinge gleichzeitig (<b>Threads</b>). Ob es schiefgeht, hängt von der zufälligen Reihenfolge ab, und genau deshalb finden Tests den Fehler selten. Ein <b>Model Checker</b> geht wie ein Schachcomputer vor: Er probiert <b>jede mögliche Reihenfolge</b> durch und zeigt dir genau die, bei der es schiefgeht.</p></div>
+        </div>
+        <div class="eli5-row">
+          <div><h4>So probierst du die Demo aus</h4><ol><li>Wähle „ohne Lock“ und klick auf <b>▶ Zustandsraum erkunden</b>. Jeder Kreis ist ein möglicher Zwischenstand, blaue und orange Linien sind Schritte von Thread A bzw. B.</li><li>Rote Kreise ganz unten sind Endstände mit falschem Ergebnis.</li><li>Klick auf <b>▶ Fehlerpfad abspielen</b> und verfolge, wie der Strich verloren geht.</li><li>Probier dann „mit Lock“: Ein Lock ist wie ein Stift, den nur einer gleichzeitig halten darf. Jetzt ist alles grün.</li></ol></div>
+          <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Thread</dt><dd>ein Programmteil, der gleichzeitig mit anderen läuft, wie zwei Mitbewohner</dd></div><div><dt>Zustand</dt><dd>eine Momentaufnahme: welche Werte gerade wo stehen</dd></div><div><dt>Race Condition</dt><dd>ein Fehler, der nur bei einer bestimmten zeitlichen Überschneidung auftritt</dd></div><div><dt>Lock</dt><dd>eine Sperre: Solange einer dran ist, muss der andere warten</dd></div><div><dt>atomar</dt><dd>passiert in einem Rutsch, ohne dass jemand dazwischenfunken kann</dd></div></dl></div>
+        </div>
+        <p class="merke">💡 <b>Merksatz:</b> Bei gleichzeitigen Abläufen gibt es unglaublich viele Reihenfolgen. Ein Model Checker probiert sie alle durch, ein Test nur eine.</p>
+      </div>
+    </details>
+    <div class="explain">
+      <p>Ein <b>Model Checker</b> (z. B. TLA+, SPIN) erkundet <b>jeden erreichbaren Zustand</b> eines Systems. Bei nebenläufigem Code sind das alle Reihenfolgen, in denen die Threads ihre Schritte verzahnen können. Ein Test erwischt meist nur <b>eine</b> davon. (Reiter ④ zeigt TLA+ an Alltagsbeispielen.) Beispiel: Zwei Threads erhöhen einen gemeinsamen Zähler. Am Ende muss <code>counter == 2</code> gelten.</p>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="chips" id="mcModes"></div>
+      <button class="btn primary" id="mcRun">▶ Zustandsraum erkunden</button>
+      <button class="btn" id="mcTrace" disabled>▶ Fehlerpfad abspielen</button>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="threads" id="mcThreads"></div>
+        <div class="vars" id="mcVars"></div>
+        <div class="verdict" id="mcVerdict" style="display:none"></div>
+      </div>
+      <div>
+        <div class="graphbox"><svg id="mcGraph" width="100%" height="380"></svg></div>
+        <div class="row note" style="margin-top:6px;gap:14px">
+          <span><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="var(--c1)" stroke-width="2.5"/></svg> Schritt von Thread A</span>
+          <span><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="var(--c2)" stroke-width="2.5"/></svg> Schritt von Thread B</span>
+          <span id="mcStats"></span>
+        </div>
+      </div>
+    </div>
+    <div class="useful">
+      <h2>Wozu ist Model Checking gut?</h2>
+      <div class="ugrid">
+        <div><h4>Gut geeignet für</h4><ul><li>Nebenläufigkeit: Threads, Locks, Queues, parallele Jobs</li><li>Protokolle und Steuerungen: Netzwerkprotokolle, Embedded-Systeme, Hardware-Schaltungen</li><li>Abläufe mit vielen möglichen Reihenfolgen, die sich kaum testen lassen</li></ul></div>
+        <div><h4>Möglichkeiten</h4><ul><li>erkundet <b>alle</b> Verzahnungen automatisch, ganz ohne Beweisskript</li><li>liefert den <b>kürzesten Fehlerpfad</b> als Schritt-für-Schritt-Ablauf</li><li>prüft Sicherheit („nie passiert etwas Schlechtes“), Lebendigkeit („irgendwann passiert das Gute“) und Deadlocks</li><li>Bounded Model Checking (z. B. CBMC) prüft echten C-Code bis zu einer Tiefe</li></ul></div>
+        <div><h4>Grenzen &amp; Aufwand</h4><ul><li>Zustandsexplosion: Modelle müssen klein bleiben (2–3 Threads, wenige Werte)</li><li>die Garantie gilt nur für die geprüfte Größe. Erfahrungsgemäß zeigen sich die meisten Fehler aber schon dort</li><li>geprüft wird meist ein Modell, nicht der echte Code</li></ul></div>
+      </div>
+      <p class="alltag"><b>Aus dem Alltag:</b> zwei Kassen buchen gleichzeitig, ein Cronjob läuft doppelt, zwei Nutzer bearbeiten dasselbe Dokument.</p>
+      <p class="tools"><b>Werkzeuge:</b> TLC (TLA+), SPIN, NuSMV/nuXmv, CBMC, Java PathFinder, UPPAAL (Echtzeit)</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 4: TLA+ ===================== -->
+  <section class="tab" id="tab-tla">
+    <details class="eli5" open>
+      <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+      <div class="eli5-body">
+        <div class="eli5-row">
+          <div><h4>Stell dir vor …</h4><p>Bevor man ein Haus baut, prüft man den <b>Bauplan</b>: Passt die Treppe? Kommt man aus jedem Zimmer zum Notausgang? Das ist viel billiger, als das Haus zu bauen und dann eine Wand wieder abzureißen.</p><p>TLA+ ist so ein Bauplan für <b>Abläufe</b>: Wer darf wann was tun? Ein Computer spielt dann <b>jede denkbare Reihenfolge</b> durch, wie ein Brettspiel, bei dem er jeden möglichen Spielverlauf ausprobiert.</p></div>
+          <div><h4>Und bei Software?</h4><p>Man beschreibt nur zwei Dinge: Wie sieht die Welt <b>am Anfang</b> aus (z. B. „100 € auf dem Konto“), und welche <b>Schritte</b> sind möglich (z. B. „Alice prüft den Kontostand“). Dazu schreibt man eine Regel, die <b>nie</b> verletzt werden darf („das Konto wird nie negativ“). Das Werkzeug <b>TLC</b> sucht dann eine Reihenfolge, die die Regel bricht, und erzählt sie dir Schritt für Schritt.</p></div>
+        </div>
+        <div class="eli5-row">
+          <div><h4>So probierst du die Demo aus</h4><ol><li>Wähle ein Alltagsbeispiel, z. B. 💶 <b>Gemeinsames Konto</b>, und lies den Kasten darunter.</li><li>Lass „🐞 mit Fehler“ ausgewählt und klick auf <b>▶ TLC starten</b>.</li><li>Rechts siehst du den Fehlerpfad als kleine Geschichte. Gelb markiert ist, was sich im jeweiligen Schritt geändert hat. Links leuchtet der Schritt im Bauplan auf.</li><li>Wechsle auf „✓ korrigiert“ und starte erneut. Jetzt findet TLC keinen Fehler mehr, in <i>keiner</i> Reihenfolge.</li></ol></div>
+          <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Spezifikation</dt><dd>der Bauplan: was das System tun darf</dd></div><div><dt>Aktion</dt><dd>ein möglicher Schritt, z. B. „abbuchen“ oder „Tür geht auf“</dd></div><div><dt><code>kontostand'</code> (mit Strich)</dt><dd>der Wert <i>nach</i> dem Schritt; ohne Strich: davor</dd></div><div><dt><code>/\</code> und <code>\/</code></dt><dd>„und“ bzw. „oder“</dd></div><div><dt>Invariante</dt><dd>eine Regel, die in jedem Moment gelten muss</dd></div><div><dt>Deadlock</dt><dd>alle warten aufeinander, und nichts geht mehr</dd></div></dl></div>
+        </div>
+        <p class="merke">💡 <b>Merksatz:</b> Erst den Bauplan prüfen, dann bauen. Fehler im Ablauf findet man so, bevor es überhaupt Code gibt.</p>
+      </div>
+    </details>
+    <div class="explain">
+      <p><b>TLA+</b> beschreibt ein System als <b>Zustand</b> (Variablen) und <b>Aktionen</b> (erlaubte Übergänge). Eine gestrichene Variable wie <code>kontostand'</code> ist der Wert <i>nach</i> dem Schritt. Der Model Checker <b>TLC</b> probiert alle Reihenfolgen der Aktionen durch und meldet den <b>kürzesten Ablauf</b>, der eine Invariante verletzt oder hängen bleibt. So prüft man ein <b>Design</b>, bevor eine Zeile Code existiert. Die Beispiele stammen aus dem Alltag: Geld abheben, überweisen, Aufzug fahren, gemeinsam essen.</p>
+    </div>
+    <label class="lbl">Alltagsbeispiel</label>
+    <div class="chips" id="tlaModels" style="margin-bottom:10px"></div>
+    <div class="card story" id="tlaStory"></div>
+    <div class="row" style="margin:12px 0">
+      <div class="chips" id="tlaVariants"></div>
+      <button class="btn primary" id="tlaRun">▶ TLC starten</button>
+      <span class="note" id="tlaStats"></span>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="panelhd"><h3 id="tlaFile"></h3><span class="note">Unterschiede zur anderen Variante sind <span class="warn">wellig unterstrichen</span></span></div>
+        <div class="code" id="tlaCode"></div>
+        <p class="note" id="tlaDesc" style="margin-top:8px"></p>
+      </div>
+      <div>
+        <div class="bar" style="margin-bottom:8px"><i id="tlaBar"></i></div>
+        <div class="tlaview" id="tlaView"></div>
+        <div class="term tall" id="tlaTerm" style="margin-top:10px"></div>
+        <div class="verdict" id="tlaVerdict" style="display:none"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:10px">Ehrlicher Hinweis: Die Spezifikationen sind gültiges TLA+ und lassen sich mit dem echten TLC prüfen (in der <code>.cfg</code>: <code>INIT Init</code>, <code>NEXT Next</code>, <code>INVARIANT …</code>). Der Checker auf dieser Seite ist eine kleine Nachbildung in JavaScript: dieselbe Breitensuche über alle erreichbaren Zustände, die Ausgabe im Stil von TLC.</p>
+    <div class="useful">
+      <h2>Wozu ist TLA+ gut?</h2>
+      <div class="ugrid">
+        <div><h4>Gut geeignet für</h4><ul><li>das <b>Design</b> verteilter Systeme, bevor Code entsteht: Bezahlung, Buchung, Replikation, Caches</li><li>Workflows mit Abstürzen, Wiederholungen, Timeouts und Nachrichten, die verloren gehen</li><li>Klärung im Team: Die Spezifikation ist eine präzise, prüfbare Beschreibung des Ablaufs</li></ul></div>
+        <div><h4>Möglichkeiten</h4><ul><li>Spezifikation in einfacher Mathematik (Mengen, Funktionen, Logik) statt in Code</li><li>TLC prüft Invarianten, Deadlocks und Lebendigkeit (<code>&lt;&gt;</code>, <code>~&gt;</code> mit Fairness)</li><li><b>Verfeinerung</b>: zeigen, dass ein detailliertes Design eine abstrakte Spezifikation erfüllt</li><li>PlusCal als pseudocode-artige Schreibweise; Apalache prüft symbolisch, TLAPS führt echte Beweise</li></ul></div>
+        <div><h4>Grenzen &amp; Aufwand</h4><ul><li>prüft das Design, nicht den Code. Die Implementierung kann davon abweichen</li><li>Konstanten müssen klein gewählt werden (z. B. 2–3 Personen), sonst wird der Zustandsraum zu groß</li><li>Umdenken nötig: Zustände und Aktionen statt Funktionen und Aufrufe</li></ul></div>
+      </div>
+      <p class="alltag"><b>Alltagsbeispiele:</b> Kinoplatz doppelt verkauft, Überweisung halb ausgeführt, Paket doppelt verschickt, Aufzug fährt mit offener Tür, zwei Prozesse warten ewig aufeinander.</p>
+      <p class="tools"><b>Werkzeuge:</b> TLA+ Toolbox, VS-Code-Erweiterung, TLC, Apalache, TLAPS, PlusCal. Eingesetzt u. a. bei AWS (S3, DynamoDB), Azure Cosmos DB und MongoDB</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 5: Lean 4 ===================== -->
+  <section class="tab" id="tab-lean">
+    <details class="eli5" open>
+      <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+      <div class="eli5-body">
+        <div class="eli5-row">
+          <div><h4>Stell dir vor …</h4><p>Stell dir eine Mathe-Hausaufgabe mit einem <b>sehr strengen Lehrer</b> vor. Du darfst nichts überspringen. Nach jedem Schritt sagt er dir: <i>„Gut. Das hast du jetzt, und das musst du noch zeigen.“</i> Erst wenn nichts mehr offen ist, gibt es einen Haken. Bei einer falschen Behauptung bekommst du nie einen Haken, egal wie geschickt du argumentierst.</p></div>
+          <div><h4>Und bei Software?</h4><p>Lean ist dieser strenge Lehrer, nur als Programm. Du schreibst eine Behauptung auf, z. B. „Rabatt macht nie teurer“. Dann gibst du Schritt für Schritt Befehle (<b>Taktiken</b>), etwa „Setz die Definition ein“ oder „Unterscheide zwei Fälle“. Rechts zeigt Lean nach jedem Schritt, was noch zu beweisen ist. Am Ende steht „No goals“, also „nichts mehr offen“.</p></div>
+        </div>
+        <div class="eli5-row">
+          <div><h4>So probierst du die Demo aus</h4><ol><li>Wähle 🏷️ <b>Rabatt macht nie teurer</b> und klick mehrmals auf <b>Weiter ▶</b>.</li><li>Rechts unter dem Strich <code>⊢</code> steht, was noch zu zeigen ist. Darüber steht, was du schon weißt.</li><li>Bei <code>split</code> werden aus einer Aufgabe <b>zwei</b>: einmal „Preis ab 100 €“, einmal „darunter“.</li><li>Schau dir danach ❌ <b>Falsche Behauptung</b> an: Lean lässt sich nicht austricksen und zeigt sogar, bei welchen Preisen es nicht stimmt.</li></ol></div>
+          <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>theorem</dt><dd>eine Behauptung, die bewiesen werden soll</dd></div><div><dt>Taktik</dt><dd>ein Beweisschritt, ein Befehl an Lean (<code>unfold</code>, <code>split</code>, <code>omega</code> …)</dd></div><div><dt>Ziel <code>⊢</code></dt><dd>was noch zu zeigen ist</dd></div><div><dt>Annahme</dt><dd>was man schon weiß (steht über dem Ziel)</dd></div><div><dt><code>omega</code></dt><dd>ein eingebauter Rechenhelfer für Plus, Minus, Kleiner-als</dd></div><div><dt>Induktion</dt><dd>Dominoprinzip: Stimmt es für den leeren Korb und bleibt es mit jedem Artikel mehr wahr, stimmt es für alle Körbe</dd></div></dl></div>
+        </div>
+        <p class="merke">💡 <b>Merksatz:</b> Lean prüft jeden einzelnen Schritt. Was Lean akzeptiert, ist wirklich bewiesen.</p>
+      </div>
+    </details>
+    <div class="explain">
+      <p><b>Lean 4</b> ist Programmiersprache und <b>Beweisassistent</b> zugleich. Man schreibt eine Funktion, formuliert eine Behauptung als <code>theorem</code> und beweist sie Schritt für Schritt mit <b>Taktiken</b>. Im <b>Infoview</b> zeigt Lean nach jedem Schritt, was noch zu zeigen ist: Oberhalb von <code>⊢</code> stehen die Annahmen, dahinter das Ziel. Ist kein Ziel mehr offen, prüft ein kleiner, vertrauenswürdiger <b>Kernel</b> den gesamten Beweis. Anders als Dafny sucht Lean den Beweis nicht selbst, kann dafür aber fast alles ausdrücken, was sich mathematisch formulieren lässt.</p>
+    </div>
+    <label class="lbl">Beispiel</label>
+    <div class="chips" id="leanEx" style="margin-bottom:10px"></div>
+    <div class="card story" id="leanDesc"></div>
+    <div class="row" style="margin:12px 0">
+      <button class="btn" id="leanPrev">◀ Zurück</button>
+      <button class="btn" id="leanNext">Weiter ▶</button>
+      <button class="btn primary" id="leanPlay">▶ Beweis abspielen</button>
+      <button class="btn" id="leanReset">↺ Zurücksetzen</button>
+      <span class="note">oder auf eine Zeile mit <span style="color:var(--acc)">farbiger Nummer</span> klicken</span>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="panelhd"><h3 id="leanFile"></h3></div>
+        <div class="code" id="leanCode"></div>
+      </div>
+      <div>
+        <div class="infoview"><div class="ivhd" id="leanPos">Lean Infoview</div><div class="ivbody" id="leanGoals"></div></div>
+        <div class="verdict" id="leanNote" style="display:none"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:10px">Ehrlicher Hinweis: Lean selbst läuft hier nicht im Browser. Der Code ist echtes Lean 4, die Zielzustände rechts entsprechen dem, was Lean im Infoview anzeigt (Fehlermeldungen leicht gekürzt). Ausprobieren lässt sich alles unter <a href="https://live.lean-lang.org" target="_blank" rel="noopener">live.lean-lang.org</a>.</p>
+    <div class="useful">
+      <h2>Wozu ist Lean 4 gut?</h2>
+      <div class="ugrid">
+        <div><h4>Gut geeignet für</h4><ul><li>Beweise, bei denen die Automatik nicht reicht: Algorithmen, Datenstrukturen, Mathematik</li><li>besonders kritische Kerne: Compiler, Kryptografie, Protokolle, Smart Contracts</li><li>Programme, deren Korrektheitsbeweis gleich mitgeliefert wird</li></ul></div>
+        <div><h4>Möglichkeiten</h4><ul><li>Programmiersprache und Beweisassistent in einem: Der bewiesene Code lässt sich ausführen (<code>#eval</code>)</li><li>sehr ausdrucksstarke Logik (abhängige Typen): Induktion über Listen und Bäume, beliebige mathematische Aussagen</li><li>Taktiken wie <code>simp</code>, <code>omega</code> und <code>decide</code> automatisieren Routinearbeit</li><li>nur ein kleiner Kernel muss vertrauenswürdig sein. Auch KI-generierte Beweise sind so maschinell überprüfbar</li><li>riesige Bibliothek <b>Mathlib</b> mit über 200 000 bewiesenen Sätzen</li></ul></div>
+        <div><h4>Grenzen &amp; Aufwand</h4><ul><li>deutlich mehr Handarbeit als bei Dafny: Man führt den Beweis selbst</li><li>Lernkurve: Typtheorie, Taktiken, Bibliotheken kennen</li><li>Beweise über bestehenden Produktionscode (Java, Python) sind aufwendig. Verifiziert wird meist ein Modell oder Code, der in Lean geschrieben ist</li></ul></div>
+      </div>
+      <p class="alltag"><b>Alltagsbeispiele:</b> „Rabatt macht nie teurer“, „Warenkörbe zusammenlegen ändert die Summe nicht“, „eine Sortierfunktion liefert eine sortierte Permutation“.</p>
+      <p class="tools"><b>Werkzeuge:</b> Lean 4 mit VS Code (Infoview), Lake, Mathlib. Verwandt: Rocq (Coq), Isabelle/HOL, Agda, F*</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    Weitere Demos: <a href="mutation-testing.html">② Mutation Testing</a> · <a href="property-based-testing.html">③ Property-Based Testing</a> · <a href="fuzzing.html">④ Fuzzing</a> · <a href="differential-testing.html">⑤ Differential Testing</a> · <a href="index.html">Übersicht</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+
+/* =====================================================================
+   TAB 1 – Ausdrucks-Parser, wp-Kalkül und Mini-Solver
+   ===================================================================== */
+const KWS_WP = new Set(["if", "else", "true", "false"]);
+function lex(src) {
+  const toks = []; let i = 0, line = 0;
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === "\n") { line++; i++; continue; }
+    if (/\s/.test(ch)) { i++; continue; }
+    if (src.startsWith("//", i)) { while (i < src.length && src[i] !== "\n") i++; continue; }
+    const rest = src.slice(i); let m;
+    if ((m = /^\d+/.exec(rest))) toks.push({ k: "num", v: +m[0], line });
+    else if ((m = /^[A-Za-z_]\w*/.exec(rest))) toks.push({ k: KWS_WP.has(m[0]) ? m[0] : "id", v: m[0], line });
+    else if ((m = /^(==>|:=|&&|\|\||==|!=|<=|>=|[-+*\/%<>!(){};])/.exec(rest))) toks.push({ k: m[0], v: m[0], line });
+    else throw new SyntaxError(`Unerwartetes Zeichen „${ch}“ in Zeile ${line + 1}`);
+    i += m[0].length;
+  }
+  toks.push({ k: "eof", line });
+  return toks;
+}
+class Parser {
+  constructor(src) { this.t = lex(src); this.p = 0; }
+  peek() { return this.t[this.p]; }
+  next() { return this.t[this.p++]; }
+  eat(k) {
+    const t = this.next();
+    if (t.k !== k) throw new SyntaxError(`Erwartet „${k}“, gefunden „${t.v ?? "Ende"}“ (Zeile ${t.line + 1})`);
+    return t;
+  }
+  expr() { return this.imp(); }
+  imp() { const l = this.or(); if (this.peek().k === "==>") { this.next(); return { t: "bin", op: "==>", l, r: this.imp() }; } return l; }
+  or() { let l = this.and(); while (this.peek().k === "||") { this.next(); l = { t: "bin", op: "||", l, r: this.and() }; } return l; }
+  and() { let l = this.cmp(); while (this.peek().k === "&&") { this.next(); l = { t: "bin", op: "&&", l, r: this.cmp() }; } return l; }
+  cmp() { const l = this.add(); const k = this.peek().k; if (["==", "!=", "<", "<=", ">", ">="].includes(k)) { this.next(); return { t: "bin", op: k, l, r: this.add() }; } return l; }
+  add() { let l = this.mul(); while (["+", "-"].includes(this.peek().k)) { const op = this.next().k; l = { t: "bin", op, l, r: this.mul() }; } return l; }
+  mul() { let l = this.un(); while (["*", "/", "%"].includes(this.peek().k)) { const op = this.next().k; l = { t: "bin", op, l, r: this.un() }; } return l; }
+  un() { const k = this.peek().k; if (k === "-" || k === "!") { this.next(); return { t: "un", op: k, e: this.un() }; } return this.prim(); }
+  prim() {
+    const t = this.next();
+    if (t.k === "num") return { t: "num", v: t.v };
+    if (t.k === "id") return { t: "var", n: t.v };
+    if (t.k === "true" || t.k === "false") return { t: "bool", v: t.k === "true" };
+    if (t.k === "(") { const e = this.expr(); this.eat(")"); return e; }
+    throw new SyntaxError(`Unerwartet: „${t.v ?? "Ende"}“ (Zeile ${t.line + 1})`);
+  }
+  stmts() { const out = []; while (!["}", "eof"].includes(this.peek().k)) out.push(this.stmt()); return out; }
+  stmt() {
+    const t = this.peek();
+    if (t.k === "if") {
+      this.next(); const c = this.expr(); this.eat("{"); const th = this.stmts(); const close = this.eat("}");
+      const s = { t: "if", c, th, el: null, line: t.line, endLine: close.line };
+      if (this.peek().k === "else") { this.next(); this.eat("{"); s.elseLine = close.line; s.el = this.stmts(); s.endLine = this.eat("}").line; }
+      return s;
+    }
+    const v = this.eat("id"); this.eat(":="); const e = this.expr(); this.eat(";");
+    return { t: "asg", v: v.v, e, line: v.line };
+  }
+}
+const parseExpr = src => { const p = new Parser(src); const e = p.expr(); p.eat("eof"); return e; };
+const parseProg = src => { const p = new Parser(src); const s = p.stmts(); p.eat("eof"); return s; };
+
+const PREC = { "==>": 1, "||": 2, "&&": 3, "==": 4, "!=": 4, "<": 4, "<=": 4, ">": 4, ">=": 4, "+": 5, "-": 5, "*": 6, "/": 6, "%": 6 };
+const SYM = { "==>": "⇒", "||": "∨", "&&": "∧", "==": "=", "!=": "≠", "<=": "≤", ">=": "≥", "<": "&lt;", ">": "&gt;", "*": "·", "/": "/", "%": "mod", "+": "+", "-": "−" };
+function show(e, min = 0) {
+  let s, p;
+  if (e.t === "num") { s = String(e.v); p = 9; }
+  else if (e.t === "var") { s = `<i>${e.n}</i>`; p = 9; }
+  else if (e.t === "bool") { s = e.v ? "true" : "false"; p = 9; }
+  else if (e.t === "un") { s = (e.op === "-" ? "−" : "¬") + show(e.e, 7); p = 7; }
+  else {
+    p = PREC[e.op];
+    // Operanden von ⇒ werden zur besseren Lesbarkeit geklammert, sobald sie ∧/∨/⇒ enthalten
+    const lmin = e.op === "==>" ? 4 : (p === 4 ? p + 1 : p);
+    const rmin = e.op === "==>" ? 4 : p + 1;
+    s = `${show(e.l, lmin)} ${SYM[e.op]} ${show(e.r, rmin)}`;
+  }
+  if (p < min) s = `(${s})`;
+  if (e.hl) s = `<mark>${s}</mark>`;
+  return s;
+}
+const clean = e => { const c = { ...e }; delete c.hl; if (c.l) c.l = clean(c.l); if (c.r) c.r = clean(c.r); if (c.e) c.e = clean(c.e); return c; };
+function subst(e, v, r) {
+  if (e.t === "var") return e.n === v ? { ...clean(r), hl: true } : e;
+  if (e.t === "un") return { ...e, e: subst(e.e, v, r) };
+  if (e.t === "bin") return { ...e, l: subst(e.l, v, r), r: subst(e.r, v, r) };
+  return e;
+}
+function freeVars(e, s = new Set()) {
+  if (e.t === "var") s.add(e.n);
+  if (e.l) freeVars(e.l, s); if (e.r) freeVars(e.r, s); if (e.e) freeVars(e.e, s);
+  return s;
+}
+function ev(e, env) {
+  switch (e.t) {
+    case "num": return e.v;
+    case "bool": return e.v;
+    case "var": if (!(e.n in env)) throw new Error(`Variable ${e.n} hat keinen Wert`); return env[e.n];
+    case "un": return e.op === "-" ? -ev(e.e, env) : !ev(e.e, env);
+  }
+  const a = ev(e.l, env);
+  if (e.op === "&&") return a && ev(e.r, env);
+  if (e.op === "||") return a || ev(e.r, env);
+  if (e.op === "==>") return !a || ev(e.r, env);
+  const b = ev(e.r, env);
+  switch (e.op) {
+    case "+": return a + b; case "-": return a - b; case "*": return a * b;
+    case "/": if (b === 0) throw new Error("Division durch 0"); return Math.trunc(a / b);
+    case "%": if (b === 0) throw new Error("Division durch 0"); return a % b;
+    case "==": return a === b; case "!=": return a !== b;
+    case "<": return a < b; case "<=": return a <= b; case ">": return a > b; case ">=": return a >= b;
+  }
+}
+function exec(stmts, env, trace) {
+  for (const s of stmts) {
+    if (s.t === "asg") { env[s.v] = ev(s.e, env); trace.push(`${s.v} = ${env[s.v]}`); }
+    else exec(ev(s.c, env) ? s.th : (s.el || []), env, trace);
+  }
+  return env;
+}
+const NOT = e => ({ t: "un", op: "!", e });
+function wpSeq(stmts, Q, steps) { let cur = Q; for (let k = stmts.length - 1; k >= 0; k--) cur = wpStmt(stmts[k], cur, steps); return cur; }
+function wpStmt(s, Q, steps) {
+  if (s.t === "asg") {
+    const R = subst(clean(Q), s.v, s.e);
+    steps.push({ hl: [s.line], slots: { [s.line]: R }, title: `Zuweisung <code>${s.v} := …</code>`,
+      detail: `wp(<i>${s.v}</i> := E, Q) = Q[<i>${s.v}</i> ↦ E]. Ersetze jedes <i>${s.v}</i> durch <span class="formula">${show(s.e)}</span>.` });
+    return R;
+  }
+  const endThen = s.el ? s.elseLine : s.endLine;
+  const slots = { [endThen]: clean(Q) }; if (s.el) slots[s.endLine] = clean(Q);
+  steps.push({ hl: [endThen, s.endLine], slots, title: "if: Q muss am Ende beider Zweige gelten", detail: "Die Nachbedingung wird in beide Zweige hineinkopiert." });
+  const T = wpSeq(s.th, Q, steps);
+  const E = s.el ? wpSeq(s.el, Q, steps) : Q;
+  const R = { t: "bin", op: "&&", l: { t: "bin", op: "==>", l: s.c, r: clean(T) }, r: { t: "bin", op: "==>", l: NOT(s.c), r: clean(E) } };
+  steps.push({ hl: [s.line], slots: { [s.line]: { ...R, hl: true } }, title: "Fallunterscheidung (if)",
+    detail: "wp(if c {S₁} else {S₂}, Q) = (c ⇒ wp(S₁, Q)) ∧ (¬c ⇒ wp(S₂, Q))" });
+  return R;
+}
+
+const WP_PRESETS = [
+  { name: "Zuweisungsfolge", prog: "y := x + 1;\nz := y * 2;", pre: "x >= 0", post: "z > 0",
+    hint: "Tipp: Setze P auf <code>x >= -1</code>. Der Solver findet dann ein Gegenbeispiel." },
+  { name: "Betrag mit if/else", prog: "if x < 0 {\n  y := -x;\n} else {\n  y := x;\n}", pre: "true", post: "y >= 0 && (y == x || y == -x)",
+    hint: "Tipp: Ändere im Programm <code>y := -x;</code> zu <code>y := x;</code> (✎)." },
+  { name: "Variablen tauschen", prog: "t := x;\nx := y;\ny := t;", pre: "x == a && y == b", post: "x == b && y == a",
+    hint: "Tipp: Baue den klassischen Fehler <code>x := y; y := x;</code> ohne <code>t</code> ein (✎)." },
+  { name: "Rabatt (ganzzahlig)", prog: "if betrag >= 100 {\n  preis := betrag - betrag / 10;\n} else {\n  preis := betrag;\n}", pre: "betrag >= 0", post: "0 <= preis && preis <= betrag",
+    hint: "Tipp: Setze P auf <code>true</code>. Was passiert bei negativen Beträgen?" },
+];
+
+const wp = { src: "", stmts: [], steps: [], idx: 0, playing: false, runId: 0 };
+function wpInit() {
+  const sel = $("#wpPreset");
+  sel.innerHTML = WP_PRESETS.map((p, i) => `<option value="${i}">${p.name}</option>`).join("");
+  sel.onchange = () => wpLoad(WP_PRESETS[+sel.value]);
+  $("#wpPlay").onclick = wpPlay;
+  $("#wpStep").onclick = () => { wp.playing = false; wpAdvance(); };
+  $("#wpReset").onclick = () => wpPrepare();
+  $("#wpPre").onchange = $("#wpPost").onchange = () => wpPrepare();
+  $("#wpEdit").onclick = () => {
+    const box = $("#wpEditBox"), open = box.style.display === "none";
+    box.style.display = open ? "block" : "none"; $("#wpCode").style.display = open ? "none" : "block";
+    $("#wpSrc").value = wp.src;
+  };
+  $("#wpApply").onclick = () => {
+    wp.src = $("#wpSrc").value; $("#wpEditBox").style.display = "none"; $("#wpCode").style.display = "block"; wpPrepare();
+  };
+  wpLoad(WP_PRESETS[0]);
+}
+function wpLoad(p) { wp.src = p.prog; $("#wpPre").value = p.pre; $("#wpPost").value = p.post; $("#wpHint").innerHTML = p.hint; wpPrepare(); }
+function wpPrepare() {
+  wp.runId++; wp.playing = false; wp.idx = 0;
+  $("#wpSteps").innerHTML = ""; $("#wpSolver").innerHTML = "";
+  try {
+    wp.stmts = parseProg(wp.src);
+    wp.P = parseExpr($("#wpPre").value);
+    wp.Q = parseExpr($("#wpPost").value);
+  } catch (e) {
+    $("#wpCode").innerHTML = `<div class="ln"><span class="no"></span><span class="tx bad">${esc(e.message)}</span></div>`;
+    wp.steps = []; return;
+  }
+  const lines = wp.src.split("\n");
+  let html = `<div class="ln spec"><span class="no"></span><span class="tx">requires ${show(wp.P)}</span></div>`;
+  lines.forEach((l, i) => {
+    html += `<div class="anno" data-slot="${i}"><span class="no"></span><span class="f"></span></div>`;
+    html += `<div class="ln" data-line="${i}"><span class="no">${i + 1}</span><span class="tx">${highlight(l, KWS_WP)}</span></div>`;
+  });
+  html += `<div class="anno" data-slot="end"><span class="no"></span><span class="f"></span></div>`;
+  html += `<div class="ln spec"><span class="no"></span><span class="tx">ensures ${show(wp.Q)}</span></div>`;
+  $("#wpCode").innerHTML = html;
+  const steps = [{ hl: [], slots: { end: wp.Q }, title: "Start: Nachbedingung Q ans Programmende", detail: "Wir rechnen von unten nach oben." }];
+  wp.W = wpSeq(wp.stmts, wp.Q, steps);
+  // wp landet an der ersten Programmzeile; bei leerem Programm am Ende
+  steps.push({ hl: [], slots: {}, title: "Verifikationsbedingung", vc: true,
+    detail: `Zu zeigen: <span class="formula">${show({ t: "bin", op: "==>", l: wp.P, r: clean(wp.W) })}</span>` });
+  wp.steps = steps;
+}
+function wpAdvance() {
+  if (wp.idx >= wp.steps.length) return false;
+  const st = wp.steps[wp.idx++];
+  $$("#wpCode .anno.show").forEach(a => a.classList.add("old"));
+  $$("#wpCode .ln").forEach(l => l.classList.toggle("hl", st.hl.includes(+l.dataset.line)));
+  for (const [slot, f] of Object.entries(st.slots)) {
+    const a = $(`#wpCode .anno[data-slot="${slot}"]`);
+    if (!a) continue;
+    a.classList.remove("old");
+    a.querySelector(".f").innerHTML = `<span class="formula">{ ${show(f)} }</span>`;
+    a.classList.add("show");
+  }
+  $$("#wpSteps li").forEach(li => li.classList.remove("cur"));
+  const li = document.createElement("li"); li.className = "cur";
+  li.innerHTML = `<div class="t">${wp.idx}. ${st.title}</div><div class="d">${st.detail}</div>`;
+  $("#wpSteps").appendChild(li); li.scrollIntoView?.({ block: "nearest" });
+  if (st.vc) wpSolve();
+  return true;
+}
+async function wpPlay() {
+  if (wp.idx >= wp.steps.length) wpPrepare();
+  const id = wp.runId; wp.playing = true;
+  while (wp.playing && id === wp.runId && wpAdvance()) await sleep(1100);
+}
+function rangeFor(n) { return [200, 40, 12, 6, 3][Math.min(n, 5) - 1] || 3; }
+async function wpSolve() {
+  const id = wp.runId;
+  const VC = { t: "bin", op: "==>", l: wp.P, r: clean(wp.W) };
+  const vars = [...freeVars(VC)].sort();
+  const box = $("#wpSolver");
+  if (!vars.length) {
+    const ok = ev(VC, {});
+    box.innerHTML = `<div class="verdict ${ok ? "ok" : "bad"}">${ok ? "✓ Die Bedingung ist konstant wahr: bewiesen." : "✗ Die Bedingung ist konstant falsch."}</div>`;
+    return;
+  }
+  const R = rangeFor(vars.length), span = 2 * R + 1, total = span ** vars.length;
+  box.innerHTML = `<h3>Mini-Solver</h3><div class="note">Sucht eine Belegung mit <b>P wahr</b> und <b>wp falsch</b> (= Gegenbeispiel) über ${vars.map(v => `<i>${v}</i>`).join(", ")} ∈ [−${R}, ${R}] (${total.toLocaleString("de-DE")} Belegungen)</div>
+    <div class="bar" style="margin:8px 0 4px"><i></i></div><div class="ticker">…</div><div class="res"></div>`;
+  const bar = $(".bar > i", box), tick = $(".ticker", box), res = $(".res", box);
+  const per = Math.max(1, Math.ceil(total / 45));
+  let k = 0, cex = null, err = null;
+  while (k < total && !cex) {
+    const end = Math.min(total, k + per);
+    for (; k < end; k++) {
+      let r = k; const env = {};
+      for (const v of vars) { env[v] = (r % span) - R; r = Math.floor(r / span); }
+      try { if (!ev(VC, env)) { cex = env; break; } }
+      catch (e) { cex = env; err = e.message; break; }
+    }
+    if (id !== wp.runId) return;
+    bar.style.width = (100 * k / total) + "%";
+    const shown = cex || (() => { let r = Math.min(k, total - 1); const env = {}; for (const v of vars) { env[v] = (r % span) - R; r = Math.floor(r / span); } return env; })();
+    tick.textContent = "prüfe " + vars.map(v => `${v} = ${shown[v]}`).join(", ");
+    await frame();
+  }
+  if (cex) {
+    const asg = vars.map(v => `<i>${v}</i> = ${cex[v]}`).join(", ");
+    let run = "";
+    try {
+      const trace = [], envIn = { ...cex }; exec(wp.stmts, envIn, trace);
+      const qOk = ev(wp.Q, envIn);
+      run = `<br>Probe durch echte Ausführung: ${trace.map(esc).join(" → ") || "(nichts)"} ⇒ Q ist <b>${qOk}</b>.`;
+    } catch (e) { run = `<br>Ausführung: ${esc(e.message)}`; }
+    res.innerHTML = `<div class="verdict bad pop">✗ <b>Gegenbeispiel:</b> ${asg}${err ? ` (${esc(err)})` : ""}<br>P ist dort wahr, wp(C, Q) aber falsch. Das Programm erfüllt die Spezifikation also <b>nicht</b>.${run}</div>`;
+  } else {
+    res.innerHTML = `<div class="verdict ok pop">✓ <b>Kein Gegenbeispiel</b> im Suchbereich. Ein echter SMT-Solver (z. B. Z3) zeigt, dass <i>P ∧ ¬wp</i> <b>unerfüllbar</b> ist, und zwar symbolisch für <b>alle</b> ganzen Zahlen. Damit ist das Programm bewiesen korrekt bezüglich P und Q.</div>`;
+  }
+}
+wpInit();
+
+/* =====================================================================
+   TAB 2 – Schleifeninvarianten (Dafny-Stil)
+   ===================================================================== */
+const KWS_DFY = new Set(["method", "returns", "requires", "ensures", "invariant", "decreases", "var", "while", "if", "forall", "exists", "array", "int"]);
+const BASE = [
+  "method Max(a: array<int>) returns (m: int)",
+  "  requires a.Length > 0",
+  "  ensures forall k :: 0 <= k < a.Length ==> a[k] <= m",
+  "  ensures exists k :: 0 <= k < a.Length && a[k] == m",
+  "{",
+  "  m := a[0];",
+  "  var i := 1;",
+  "  while i < a.Length",
+  "    invariant 1 <= i <= a.Length",
+  "    invariant forall k :: 0 <= k < i ==> a[k] <= m",
+  "    invariant exists k :: 0 <= k < i && a[k] == m",
+  "    decreases a.Length - i",
+  "  {",
+  "    if a[i] > m { m := a[i]; }",
+  "    i := i + 1;",
+  "  }",
+  "}",
+];
+const get = (a, i) => { if (i < 0 || i >= a.length) throw new Error(`Index ${i} außerhalb der Grenzen (a.Length = ${a.length})`); return a[i]; };
+const INV1 = { line: 8, f: (a, i) => 1 <= i && i <= a.length };
+const INV2 = { line: 9, f: (a, i, m) => a.slice(0, Math.max(0, i)).every(x => x <= m) };
+const INV3 = { line: 10, f: (a, i, m) => a.slice(0, Math.max(0, i)).some(x => x === m) };
+const POSTS = [{ line: 2, f: (a, m) => a.every(x => x <= m) }, { line: 3, f: (a, m) => a.some(x => x === m) }];
+const STD = {
+  init: a => ({ m: get(a, 0), i: 1 }),
+  guard: (a, i) => i < a.length,
+  body: (a, i, m) => { if (get(a, i) > m) m = get(a, i); return { i: i + 1, m }; },
+  invs: [INV1, INV2, INV3],
+  dec: (a, i) => a.length - i,
+};
+const VARIANTS = [
+  { name: "✓ Korrekt", desc: "Die Originalversion. Alle vier Verpflichtungen gelten, also ist die Methode bewiesen.", lines: BASE, changed: [], ...STD },
+  { name: "Off-by-one in der Schleife", desc: "<code>while i < a.Length - 1</code>: Das letzte Element wird nie betrachtet. Der Fehler zeigt sich bei der Verpflichtung <b>Abschluss</b>.",
+    lines: BASE.map((l, i) => i === 7 ? "  while i < a.Length - 1" : l), changed: [7], ...STD, guard: (a, i) => i < a.length - 1 },
+  { name: "Falsche Initialisierung", desc: "<code>m := 0</code> statt <code>m := a[0]</code>. Das schlägt bei Arrays fehl, die nur negative oder nur positive Zahlen enthalten.",
+    lines: BASE.map((l, i) => i === 5 ? "  m := 0;" : l), changed: [5], ...STD, init: a => ({ m: 0, i: 1 }) },
+  { name: "Falscher Vergleich", desc: "<code>a[i] < m</code> statt <code>&gt;</code>. Der Rumpf zerstört die Invariante, die Verpflichtung <b>Erhaltung</b> schlägt fehl.",
+    lines: BASE.map((l, i) => i === 13 ? "    if a[i] < m { m := a[i]; }" : l), changed: [13], ...STD,
+    body: (a, i, m) => { if (get(a, i) < m) m = get(a, i); return { i: i + 1, m }; } },
+  { name: "Inkrement vergessen", desc: "<code>i := i + 1</code> fehlt. Die Schleife <b>terminiert nicht</b> (Verpflichtung 4). Außerdem kann <code>m</code> durch <code>a[i]</code> ersetzt werden, obwohl <code>i</code> nicht weiterläuft. Dadurch bricht auch die <code>exists</code>-Invariante.",
+    lines: BASE.map((l, i) => i === 14 ? "    // i := i + 1;   (vergessen!)" : l), changed: [14], ...STD,
+    body: (a, i, m) => { if (get(a, i) > m) m = get(a, i); return { i, m }; } },
+  { name: "Invariante zu schwach", desc: "Der <b>Code ist korrekt</b>, aber die <code>forall</code>-Invariante fehlt. Nach der Schleife weiß der Verifizierer nicht, dass m das Maximum ist, deshalb ist die Methode <b>nicht beweisbar</b>. Genau hier steckt die eigentliche Arbeit bei der Verifikation.",
+    lines: BASE.filter((_, i) => i !== 9), changed: [], removedNote: true, ...STD, invs: [INV1, { ...INV3, line: 9 }],
+    lineMap: n => (n > 9 ? n - 1 : n) },
+  { name: "≥ statt >", desc: "<code>a[i] >= m</code>: Das ändert das Verhalten bei gleichen Werten, ist aber weiterhin korrekt. Der Beweis gelingt.",
+    lines: BASE.map((l, i) => i === 13 ? "    if a[i] >= m { m := a[i]; }" : l), changed: [13], ...STD,
+    body: (a, i, m) => { if (get(a, i) >= m) m = get(a, i); return { i: i + 1, m }; } },
+];
+const OBLS = [
+  { key: "init", title: "1 · Initialisierung", what: "requires ⇒ Invariante gilt beim Eintritt in die Schleife" },
+  { key: "keep", title: "2 · Erhaltung", what: "Invariante ∧ Bedingung ⇒ Invariante gilt nach dem Rumpf" },
+  { key: "exit", title: "3 · Abschluss", what: "Invariante ∧ ¬Bedingung ⇒ ensures" },
+  { key: "term", title: "4 · Terminierung", what: "decreases-Ausdruck ≥ 0 und wird in jedem Durchlauf kleiner" },
+];
+const ARRAYS = (() => { const out = [], vals = [-2, -1, 0, 1, 2]; const rec = (cur, n) => { if (cur.length === n) { out.push(cur.slice()); return; } for (const v of vals) { cur.push(v); rec(cur, n); cur.pop(); } }; for (let n = 1; n <= 4; n++) rec([], n); return out; })();
+const STATES = (() => { const out = []; for (const a of ARRAYS) for (let i = -1; i <= a.length + 1; i++) for (let m = -3; m <= 3; m++) out.push([a, i, m]); return out; })();
+const fmt = (a, i, m) => `a = [${a.join(", ")}]` + (i !== undefined ? `, i = ${i}` : "") + (m !== undefined ? `, m = ${m}` : "");
+
+const inv = { v: VARIANTS[0], runId: 0 };
+function invInit() {
+  $("#invVariants").innerHTML = VARIANTS.map((v, k) => `<button data-k="${k}" class="${k ? "" : "active"}">${v.name}</button>`).join("");
+  $$("#invVariants button").forEach(b => b.onclick = () => {
+    $$("#invVariants button").forEach(x => x.classList.toggle("active", x === b));
+    inv.v = VARIANTS[+b.dataset.k]; invRender();
+  });
+  $("#invRun").onclick = invRun;
+  $("#invCount").textContent = `bis zu ${STATES.length.toLocaleString("de-DE")}`;
+  invRender();
+}
+function invRender(hl = []) {
+  inv.runId++;
+  const v = inv.v;
+  $("#invCode").innerHTML = v.lines.map((l, i) =>
+    `<div class="ln${v.changed.includes(i) ? " changed" : ""}" data-line="${i}"><span class="no">${i + 1}</span><span class="tx">${highlight(l, KWS_DFY)}</span></div>`).join("");
+  $("#invDesc").innerHTML = v.desc + (v.removedNote ? " <span class=\"warn\">(Zeile mit <code>invariant forall …</code> entfernt)</span>" : "");
+  $("#invObls").innerHTML = OBLS.map(o => `<div class="obl" data-k="${o.key}"><div class="hd"><h3>${o.title}</h3><span class="pill idle">offen</span></div>
+    <div class="what">${o.what}</div><div class="bar"><i></i></div><div class="st"></div><div class="cex"></div></div>`).join("");
+  $("#invTerm").textContent = "$ dafny verify max.dfy";
+}
+function invHl(lines) { $$("#invCode .ln").forEach(l => l.classList.toggle("hl", lines.includes(+l.dataset.line))); }
+function checkObligation(v, key, s) {
+  const invOk = (a, i, m) => v.invs.find(x => !x.f(a, i, m));
+  if (key === "init") {
+    const a = s; let st;
+    try { st = v.init(a); } catch (e) { return { msg: e.message, line: 5, cex: fmt(a) }; }
+    const bad = invOk(a, st.i, st.m);
+    if (bad) return { line: bad.line, msg: "Diese Schleifeninvariante gilt eventuell nicht beim Eintritt in die Schleife.", cex: `${fmt(a)} ⇒ nach Initialisierung ${fmt(a, st.i, st.m).replace(/^a = \[[^\]]*\], /, "")}` };
+    return null;
+  }
+  const [a, i, m] = s;
+  if (invOk(a, i, m)) return undefined; // Zustand erfüllt die Invariante nicht → irrelevant
+  const g = v.guard(a, i);
+  if (key === "exit") {
+    if (g) return undefined;
+    const bad = POSTS.find(p => !p.f(a, m));
+    if (bad) return { line: bad.line, msg: "Eine Nachbedingung gilt eventuell nicht, wenn die Methode endet.", cex: `${fmt(a, i, m)}: Invariante ✓, Schleifenbedingung falsch, aber ensures (Zeile ${bad.line + 1}) ✗` };
+    return null;
+  }
+  if (!g) return undefined;
+  let r;
+  try { r = v.body(a, i, m); } catch (e) { return { line: 13, msg: e.message, cex: fmt(a, i, m) }; }
+  if (key === "keep") {
+    const bad = invOk(a, r.i, r.m);
+    if (bad) return { line: bad.line, msg: "Diese Schleifeninvariante wird vom Schleifenrumpf eventuell nicht erhalten.", cex: `vorher ${fmt(a, i, m)} ✓ → nachher i = ${r.i}, m = ${r.m} ✗` };
+    return null;
+  }
+  if (key === "term") {
+    const d0 = v.dec(a, i), d1 = v.dec(a, r.i);
+    if (d0 < 0) return { line: 11, msg: "Der decreases-Ausdruck ist eventuell negativ.", cex: fmt(a, i, m) };
+    if (!(d1 < d0)) return { line: 11, msg: "Der decreases-Ausdruck wird eventuell nicht kleiner.", cex: `${fmt(a, i, m)}: a.Length − i = ${d0} vorher, ${d1} nachher` };
+    return null;
+  }
+}
+async function invRun() {
+  invRender();
+  const id = inv.runId, v = inv.v, errors = [];
+  const ln = n => (v.lineMap ? v.lineMap(n) : n);
+  const hlFor = { init: [5, 6, 8, 9, 10], keep: [8, 9, 10, 12, 13, 14, 15], exit: [2, 3, 7, 8, 9, 10], term: [11, 13, 14] };
+  $("#invRun").disabled = true;
+  for (const o of OBLS) {
+    const card = $(`.obl[data-k="${o.key}"]`); card.classList.add("run");
+    invHl([...new Set(hlFor[o.key].map(ln))]);
+    $(".pill", card).className = "pill warn"; $(".pill", card).textContent = "prüft …";
+    const space = o.key === "init" ? ARRAYS : STATES;
+    const per = Math.ceil(space.length / 40);
+    let checked = 0, fail = null, k = 0;
+    while (k < space.length) {
+      const end = Math.min(space.length, k + per);
+      for (; k < end; k++) {
+        const r = checkObligation(v, o.key, space[k]);
+        if (r === undefined) continue;
+        checked++;
+        if (r && !fail) fail = r;
+      }
+      if (id !== inv.runId) return;
+      $(".bar > i", card).style.width = (100 * k / space.length) + "%";
+      const s = space[Math.min(k, space.length - 1)];
+      $(".st", card).textContent = `${checked.toLocaleString("de-DE")} relevante Zustände · ` + (o.key === "init" ? fmt(s) : fmt(...s));
+      await frame();
+      if (fail) break;
+    }
+    card.classList.remove("run");
+    if (fail) {
+      card.classList.add("fail"); $(".pill", card).className = "pill bad"; $(".pill", card).textContent = "✗ fehlgeschlagen";
+      $(".cex", card).innerHTML = `<span class="bad">Gegenbeispiel:</span> <code>${esc(fail.cex)}</code>`;
+      errors.push({ ...fail, line: ln(fail.line) });
+    } else {
+      card.classList.add("pass"); $(".pill", card).className = "pill ok"; $(".pill", card).textContent = "✓ bewiesen";
+      $(".st", card).textContent = `${checked.toLocaleString("de-DE")} relevante Zustände, alle ✓`;
+    }
+    await sleep(250);
+  }
+  invHl(errors.map(e => e.line));
+  const out = ["$ dafny verify max.dfy"];
+  for (const e of errors) out.push(`max.dfy(${e.line + 1}): Fehler: ${e.msg}`);
+  out.push("", `Dafny program verifier finished with ${OBLS.length - errors.length} verified, ${errors.length} error${errors.length === 1 ? "" : "s"}`);
+  $("#invTerm").innerHTML = out.map((l, i) => `<span class="${l.includes("Fehler") ? "bad" : (i === out.length - 1 ? (errors.length ? "bad" : "ok") : "")}">${esc(l)}</span>`).join("\n");
+  $("#invRun").disabled = false;
+}
+invInit();
+
+/* =====================================================================
+   TAB 3 – Model Checking zweier Threads
+   ===================================================================== */
+const MODES = {
+  race: { name: "ohne Lock", prog: ["tmp = counter", "counter = tmp + 1"] },
+  lock: { name: "mit Lock", prog: ["lock()", "tmp = counter", "counter = tmp + 1", "unlock()"] },
+  atomic: { name: "atomares Inkrement", prog: ["counter += 1   // atomar"] },
+};
+function stepFn(mode, s, t) {
+  const pc = s.pc[t], prog = MODES[mode].prog;
+  if (pc >= prog.length) return null;
+  const n = { pc: s.pc.slice(), tmp: s.tmp.slice(), c: s.c, lock: s.lock };
+  const ins = prog[pc];
+  if (ins.startsWith("lock")) { if (s.lock !== -1) return null; n.lock = t; }
+  else if (ins.startsWith("unlock")) n.lock = -1;
+  else if (ins.startsWith("tmp")) n.tmp[t] = s.c;
+  else if (ins.startsWith("counter = tmp")) n.c = s.tmp[t] + 1;
+  else n.c = s.c + 1;
+  n.pc[t]++;
+  return n;
+}
+const skey = s => `${s.pc}|${s.tmp}|${s.c}|${s.lock}`;
+function explore(mode) {
+  const init = { pc: [0, 0], tmp: [0, 0], c: 0, lock: -1 };
+  const nodes = new Map(), order = [], edges = [];
+  const add = (s, depth) => { const k = skey(s); if (!nodes.has(k)) { const n = { k, s, depth, id: nodes.size, out: [], parent: null }; nodes.set(k, n); order.push({ type: "node", n }); return [n, true]; } return [nodes.get(k), false]; };
+  const [root] = add(init, 0); const q = [root];
+  while (q.length) {
+    const n = q.shift();
+    for (const t of [0, 1]) {
+      const ns = stepFn(mode, n.s, t); if (!ns) continue;
+      const [m, isNew] = add(ns, n.depth + 1);
+      const e = { from: n, to: m, t }; edges.push(e); n.out.push(e); order.push({ type: "edge", e });
+      if (isNew) { m.parent = e; q.push(m); }
+    }
+  }
+  const all = [...nodes.values()];
+  const finals = all.filter(n => n.out.length === 0);
+  // Anzahl der Ausführungsreihenfolgen (Pfade) pro Knoten
+  const paths = new Map([[root, 1]]);
+  [...all].sort((a, b) => a.depth - b.depth).forEach(n => n.out.forEach(e => paths.set(e.to, (paths.get(e.to) || 0) + (paths.get(n) || 0))));
+  return { root, all, edges, order, finals, paths };
+}
+const mc = { mode: "race", runId: 0, res: null };
+function mcInit() {
+  $("#mcModes").innerHTML = Object.entries(MODES).map(([k, m]) => `<button data-k="${k}" class="${k === "race" ? "active" : ""}">${m.name}</button>`).join("");
+  $$("#mcModes button").forEach(b => b.onclick = () => { $$("#mcModes button").forEach(x => x.classList.toggle("active", x === b)); mc.mode = b.dataset.k; mcReset(); });
+  $("#mcRun").onclick = mcRun; $("#mcTrace").onclick = mcTrace;
+  mcReset();
+}
+function mcThreads(pcs = [null, null]) {
+  const prog = MODES[mc.mode].prog;
+  $("#mcThreads").innerHTML = ["A", "B"].map((name, t) => `<div><div class="thead" style="color:${t ? "var(--c2)" : "var(--c1)"}">Thread ${name}</div><div class="code">${
+    prog.map((l, i) => `<div class="ln${pcs[t] === i ? " hl" : ""}"><span class="no">${i + 1}</span><span class="tx">${highlight(l, new Set(["counter"]))}</span></div>`).join("")}</div></div>`).join("");
+}
+function mcVars(s) {
+  $("#mcVars").innerHTML = s ? `<span>counter = <b>${s.c}</b></span><span>tmp<sub>A</sub> = <b>${s.tmp[0]}</b></span><span>tmp<sub>B</sub> = <b>${s.tmp[1]}</b></span>${mc.mode === "lock" ? `<span>lock = <b>${s.lock < 0 ? "frei" : "ABCD"[s.lock]}</b></span>` : ""}` : "";
+}
+function mcReset() {
+  mc.runId++; mc.res = null; mcThreads(); mcVars({ pc: [0, 0], tmp: [0, 0], c: 0, lock: -1 });
+  $("#mcGraph").innerHTML = ""; $("#mcVerdict").style.display = "none"; $("#mcTrace").disabled = true; $("#mcStats").textContent = "";
+}
+function layout(res) {
+  const layers = {}; res.all.forEach(n => (layers[n.depth] ||= []).push(n));
+  const maxD = Math.max(...res.all.map(n => n.depth));
+  const W = 520, H = Math.max(260, 60 + maxD * 58);
+  Object.values(layers).forEach(L => L.forEach((n, i) => { n.x = W * (i + 1) / (L.length + 1); n.y = 30 + n.depth * ((H - 60) / Math.max(1, maxD)); }));
+  return { W, H };
+}
+async function mcRun() {
+  mcReset(); const id = mc.runId;
+  const res = explore(mc.mode); mc.res = res;
+  const { W, H } = layout(res);
+  const svg = $("#mcGraph"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("height", Math.min(H, 520));
+  const gE = document.createElementNS("http://www.w3.org/2000/svg", "g"), gN = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.append(gE, gN);
+  let nN = 0, nE = 0;
+  for (const item of res.order) {
+    if (id !== mc.runId) return;
+    if (item.type === "node") {
+      const n = item.n, fin = n.out.length === 0 && n.depth > 0;
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "pop"); g.style.transformOrigin = `${n.x}px ${n.y}px`; g.dataset.k = n.k;
+      const stroke = "var(--mut)";
+      g.innerHTML = `<title>pc=(${n.s.pc}) tmpA=${n.s.tmp[0]} tmpB=${n.s.tmp[1]} counter=${n.s.c}</title>
+        <circle cx="${n.x}" cy="${n.y}" r="15" fill="var(--card-bg)" stroke="${stroke}" stroke-width="1.5"/>
+        <text x="${n.x}" y="${n.y + 4}" text-anchor="middle" font-size="11" fill="var(--fg)">c=${n.s.c}</text>`;
+      gN.appendChild(g); n.el = g; nN++;
+      if (fin) { /* Endzustand wird nach der Suche bewertet */ }
+    } else {
+      const e = item.e;
+      const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l.setAttribute("x1", e.from.x); l.setAttribute("y1", e.from.y + 15); l.setAttribute("x2", e.to.x); l.setAttribute("y2", e.to.y - 15);
+      l.setAttribute("stroke", e.t ? "var(--c2)" : "var(--c1)"); l.setAttribute("stroke-width", "2"); l.setAttribute("opacity", ".75");
+      gE.appendChild(l); e.el = l; nE++;
+    }
+    $("#mcStats").textContent = `Zustände: ${nN} · Übergänge: ${nE}`;
+    mcVars(item.type === "node" ? item.n.s : item.e.to.s);
+    await sleep(item.type === "node" ? 140 : 70);
+  }
+  const bad = res.finals.filter(n => n.s.c !== 2);
+  res.finals.forEach(n => { const c = n.el.querySelector("circle"); c.setAttribute("stroke", n.s.c === 2 ? "var(--ok)" : "var(--err)"); c.setAttribute("stroke-width", "3.5"); });
+  const totalPaths = res.finals.reduce((s, n) => s + res.paths.get(n), 0), badPaths = bad.reduce((s, n) => s + res.paths.get(n), 0);
+  const v = $("#mcVerdict"); v.style.display = "block";
+  if (bad.length) {
+    v.className = "verdict bad pop";
+    v.innerHTML = `✗ <b>Eigenschaft verletzt:</b> <code>counter == 2</code> gilt nicht in allen Endzuständen.<br>${badPaths} von ${totalPaths} möglichen Ausführungsreihenfolgen enden mit <b>counter = 1</b> (Lost Update). Mit „Fehlerpfad abspielen“ siehst du den Ablauf, den der Model Checker als Gegenbeispiel liefert.`;
+    mc.badNode = bad[0]; $("#mcTrace").disabled = false;
+  } else {
+    v.className = "verdict ok pop";
+    v.innerHTML = `✓ <b>Eigenschaft gilt:</b> ${res.finals.length === 1 ? "Im einzigen Endzustand" : `In allen ${res.finals.length} Endzuständen`} ist <code>counter == 2</code>. Das gilt für alle ${totalPaths} Ausführungsreihenfolgen, weil der gesamte Zustandsraum durchsucht wurde.`;
+  }
+}
+async function mcTrace() {
+  const id = mc.runId, path = [];
+  for (let n = mc.badNode; n.parent; n = n.parent.from) path.unshift(n.parent);
+  $$("#mcGraph line").forEach(l => l.setAttribute("opacity", ".18"));
+  let s = mc.res.root.s; mcThreads(s.pc); mcVars(s); await sleep(700);
+  for (const e of path) {
+    if (id !== mc.runId) return;
+    mcThreads(e.from.s.pc.map((p, t) => (t === e.t ? p : null)));
+    await sleep(650);
+    e.el.setAttribute("opacity", "1"); e.el.setAttribute("stroke-width", "4");
+    e.to.el.querySelector("circle").setAttribute("fill", "color-mix(in srgb, var(--err) 25%, var(--card-bg))");
+    mcVars(e.to.s);
+    await sleep(650);
+  }
+  mcThreads();
+}
+mcInit();
+/* =====================================================================
+   TAB 4 – TLA+ im Alltag: kleiner Model Checker im Stil von TLC
+   ===================================================================== */
+const KWS_TLA = new Set(["MODULE", "EXTENDS", "VARIABLES", "CONSTANTS", "IF", "THEN", "ELSE", "EXCEPT", "UNCHANGED", "DOMAIN", "Integers", "TRUE", "FALSE"]);
+function tlaHL(line) {
+  const ci = line.indexOf("\\*"), code = ci >= 0 ? line.slice(0, ci) : line;
+  const re = /("[^"]*")|(\b\d+\b)|(\\A|\\E|\\in|\\notin|\/\\|\\\/|==|\|->|=>|'|#|\.\.)|([A-Za-z_]\w*)|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(code))) {
+    if (m[1]) out += `<span class="tok-str">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-num">${m[2]}</span>`;
+    else if (m[3]) out += `<span class="tok-op">${esc(m[3])}</span>`;
+    else if (m[4]) out += KWS_TLA.has(m[4]) ? `<span class="tok-kw">${m[4]}</span>` : m[4];
+    else out += esc(m[5]);
+  }
+  if (ci >= 0) out += `<span class="tok-com">${esc(line.slice(ci))}</span>`;
+  return out;
+}
+// Werte so ausgeben, wie TLC sie (vereinfacht) darstellt
+const tv = v => typeof v === "number" ? String(v) : typeof v === "string" ? `"${v}"` : `[${Object.entries(v).map(([k, x]) => `${k} |-> ${tv(x)}`).join(", ")}]`;
+const L = s => s.replace(/^\n/, "").replace(/\n$/, "").split("\n");
+
+const ALICE_BOB = ["Alice", "Bob"], ANNA_BEN = ["Anna", "Ben"];
+const TLA_MODELS = [
+  {
+    key: "konto", name: "💶 Gemeinsames Konto", file: "Konto.tla",
+    story: "Alice und Bob teilen sich ein Konto mit <b>100 €</b>. Beide stehen gleichzeitig an verschiedenen Geldautomaten und wollen je <b>80 €</b> abheben. Der Automat prüft erst den Kontostand und bucht dann ab. Dazwischen kann der andere Automat an der Reihe sein. Dieses Muster heißt <b>Check-then-Act</b> und steckt auch hinter doppelt verkauften Kinoplätzen und dem „letzten Artikel“, den zwei Kunden gleichzeitig kaufen.",
+    prop: "Geprüft wird die Invariante <code>NieUeberzogen</code>: Der Kontostand wird nie negativ.",
+    init: { kontostand: 100, pc: { Alice: "bereit", Bob: "bereit" } },
+    inv: [{ n: "NieUeberzogen", f: s => s.kontostand >= 0 }],
+    view: s => {
+      const st = { bereit: "🧍 bereit", geprueft: "🔍 hat geprüft", fertig: "💸 hat 80 € abgehoben", abgelehnt: "🚫 abgelehnt" };
+      return `<span class="${s.kontostand < 0 ? "bad" : ""}">💶 Kontostand <b>${s.kontostand} €</b></span><br>Alice: ${st[s.pc.Alice]} · Bob: ${st[s.pc.Bob]}`;
+    },
+    bugMsg: "Beide Automaten haben geprüft, <i>bevor</i> einer abgebucht hat. Jede Prüfung war für sich richtig, das Konto steht trotzdem bei −60 €. Ein Test mit nur einer Person oder mit zufälligem Timing findet das selten.",
+    variants: {
+      bug: {
+        desc: "Prüfen und Abbuchen sind <b>zwei getrennte Schritte</b>. So sieht es oft im Code aus: erst <code>SELECT</code>, dann <code>UPDATE</code>.",
+        lines: L(`
+------------------------------ MODULE Konto ------------------------------
+EXTENDS Integers
+VARIABLES kontostand, pc
+vars     == <<kontostand, pc>>
+Personen == {"Alice", "Bob"}
+Betrag   == 80
+
+Init == /\\ kontostand = 100
+        /\\ pc = [p \\in Personen |-> "bereit"]
+
+\\* Schritt 1: Der Automat prüft, ob genug Geld da ist
+Pruefen(p) == /\\ pc[p] = "bereit"
+              /\\ kontostand >= Betrag
+              /\\ pc' = [pc EXCEPT ![p] = "geprueft"]
+              /\\ UNCHANGED kontostand
+
+\\* Schritt 2: Er bucht ab, ohne noch einmal zu prüfen
+Abbuchen(p) == /\\ pc[p] = "geprueft"
+               /\\ kontostand' = kontostand - Betrag
+               /\\ pc' = [pc EXCEPT ![p] = "fertig"]
+
+Ablehnen(p) == /\\ pc[p] = "bereit"
+               /\\ kontostand < Betrag
+               /\\ pc' = [pc EXCEPT ![p] = "abgelehnt"]
+               /\\ UNCHANGED kontostand
+
+Fertig == /\\ \\A p \\in Personen : pc[p] \\in {"fertig", "abgelehnt"}
+          /\\ UNCHANGED vars
+
+Next == (\\E p \\in Personen : Pruefen(p) \\/ Abbuchen(p) \\/ Ablehnen(p))
+        \\/ Fertig
+Spec == Init /\\ [][Next]_vars
+
+NieUeberzogen == kontostand >= 0          \\* Invariante
+==========================================================================`),
+        actions: [
+          { n: "Pruefen", ps: ALICE_BOB, g: (s, p) => s.pc[p] === "bereit" && s.kontostand >= 80, a: (s, p) => { s.pc[p] = "geprueft"; }, d: p => `${p}s Automat prüft: 100 € ≥ 80 €, genug Geld da.` },
+          { n: "Abbuchen", ps: ALICE_BOB, g: (s, p) => s.pc[p] === "geprueft", a: (s, p) => { s.kontostand -= 80; s.pc[p] = "fertig"; }, d: p => `${p}s Automat bucht 80 € ab, ohne neu zu prüfen.` },
+          { n: "Ablehnen", ps: ALICE_BOB, g: (s, p) => s.pc[p] === "bereit" && s.kontostand < 80, a: (s, p) => { s.pc[p] = "abgelehnt"; }, d: p => `${p} wird abgewiesen.` },
+          { n: "Fertig", g: s => ALICE_BOB.every(p => ["fertig", "abgelehnt"].includes(s.pc[p])) },
+        ],
+      },
+      fix: {
+        desc: "Prüfen und Abbuchen passieren in <b>einem</b> atomaren Schritt, etwa als <code>UPDATE konto SET stand = stand - 80 WHERE stand &gt;= 80</code> oder in einer Transaktion.",
+        lines: L(`
+------------------------------ MODULE Konto ------------------------------
+EXTENDS Integers
+VARIABLES kontostand, pc
+vars     == <<kontostand, pc>>
+Personen == {"Alice", "Bob"}
+Betrag   == 80
+
+Init == /\\ kontostand = 100
+        /\\ pc = [p \\in Personen |-> "bereit"]
+
+\\* Prüfen und Abbuchen in EINEM Schritt (atomar)
+Abheben(p) == /\\ pc[p] = "bereit"
+              /\\ kontostand >= Betrag
+              /\\ kontostand' = kontostand - Betrag
+              /\\ pc' = [pc EXCEPT ![p] = "fertig"]
+
+Ablehnen(p) == /\\ pc[p] = "bereit"
+               /\\ kontostand < Betrag
+               /\\ pc' = [pc EXCEPT ![p] = "abgelehnt"]
+               /\\ UNCHANGED kontostand
+
+Fertig == /\\ \\A p \\in Personen : pc[p] \\in {"fertig", "abgelehnt"}
+          /\\ UNCHANGED vars
+
+Next == (\\E p \\in Personen : Abheben(p) \\/ Ablehnen(p))
+        \\/ Fertig
+Spec == Init /\\ [][Next]_vars
+
+NieUeberzogen == kontostand >= 0          \\* Invariante
+==========================================================================`),
+        actions: [
+          { n: "Abheben", ps: ALICE_BOB, g: (s, p) => s.pc[p] === "bereit" && s.kontostand >= 80, a: (s, p) => { s.kontostand -= 80; s.pc[p] = "fertig"; }, d: p => `${p} hebt in einem Schritt 80 € ab.` },
+          { n: "Ablehnen", ps: ALICE_BOB, g: (s, p) => s.pc[p] === "bereit" && s.kontostand < 80, a: (s, p) => { s.pc[p] = "abgelehnt"; }, d: p => `${p} wird abgewiesen.` },
+          { n: "Fertig", g: s => ALICE_BOB.every(p => ["fertig", "abgelehnt"].includes(s.pc[p])) },
+        ],
+      },
+    },
+  },
+  {
+    key: "ueberweisung", name: "🏦 Überweisung mit Absturz", file: "Ueberweisung.tla",
+    story: "Du überweist <b>50 €</b> vom Girokonto aufs Sparkonto. Die Buchung besteht aus zwei Schritten: abbuchen, dann gutschreiben. Der Server kann <b>zwischen den Schritten abstürzen</b>. Ein Test mit einem stabilen Server sieht das nie. In TLA+ ist der Absturz einfach eine weitere Aktion, die jederzeit passieren darf.",
+    prop: "Geprüft wird die Invariante <code>GeldErhalten</code>: Wenn der Vorgang abgeschlossen ist, liegen zusammen wieder 100 € auf beiden Konten.",
+    init: null, // je Variante unterschiedlich
+    inv: [{ n: "GeldErhalten", f: s => s.schritt !== "fertig" || s.giro + s.spar === 100 }],
+    view: s => {
+      const sum = s.giro + s.spar;
+      return `🏦 Giro <b>${s.giro} €</b> · 🐷 Sparkonto <b>${s.spar} €</b> · <span class="${s.schritt === "fertig" && sum !== 100 ? "bad" : ""}">Summe <b>${sum} €</b></span><br>Schritt: <code>${s.schritt}</code>${"log" in s ? ` · Log: <code>${s.log}</code>` : ""}`;
+    },
+    bugMsg: "Abgebucht, abgestürzt, vergessen: 50 € sind einfach verschwunden. Der Fehlerpfad ist nur drei Schritte lang, im echten Betrieb tritt er aber nur bei einem Absturz genau in diesem Moment auf.",
+    variants: {
+      bug: {
+        desc: "Nach einem Neustart weiß der Server nichts mehr von der halb fertigen Überweisung.",
+        init: { giro: 100, spar: 0, schritt: "start" },
+        lines: L(`
+--------------------------- MODULE Ueberweisung ---------------------------
+EXTENDS Integers
+VARIABLES giro, spar, schritt
+vars == <<giro, spar, schritt>>
+
+Init == /\\ giro = 100
+        /\\ spar = 0
+        /\\ schritt = "start"
+
+Abbuchen == /\\ schritt = "start"
+            /\\ giro' = giro - 50
+            /\\ schritt' = "abgebucht"
+            /\\ UNCHANGED spar
+
+Gutschreiben == /\\ schritt = "abgebucht"
+                /\\ spar' = spar + 50
+                /\\ schritt' = "fertig"
+                /\\ UNCHANGED giro
+
+\\* Der Server stürzt ab. Nach dem Neustart gilt der Auftrag als erledigt.
+Absturz == /\\ schritt = "abgebucht"
+           /\\ schritt' = "fertig"
+           /\\ UNCHANGED <<giro, spar>>
+
+Fertig == schritt = "fertig" /\\ UNCHANGED vars
+
+Next == Abbuchen \\/ Gutschreiben \\/ Absturz \\/ Fertig
+Spec == Init /\\ [][Next]_vars
+
+\\* Invariante: Ist der Vorgang abgeschlossen, ist kein Geld verschwunden
+GeldErhalten == schritt = "fertig" => giro + spar = 100
+===========================================================================`),
+        actions: [
+          { n: "Abbuchen", g: s => s.schritt === "start", a: s => { s.giro -= 50; s.schritt = "abgebucht"; }, d: () => "Vom Girokonto werden 50 € abgebucht." },
+          { n: "Gutschreiben", g: s => s.schritt === "abgebucht", a: s => { s.spar += 50; s.schritt = "fertig"; }, d: () => "Dem Sparkonto werden 50 € gutgeschrieben." },
+          { n: "Absturz", g: s => s.schritt === "abgebucht", a: s => { s.schritt = "fertig"; }, d: () => "💥 Der Server stürzt ab und startet neu. Die Gutschrift fehlt." },
+          { n: "Fertig", g: s => s.schritt === "fertig" },
+        ],
+      },
+      fix: {
+        desc: "Mit dem Abbuchen wird in derselben lokalen Transaktion ein <b>Log-Eintrag</b> geschrieben. Nach einem Neustart liest der Server das Log und holt die Gutschrift nach. Das ist das Prinzip von Write-Ahead-Log und Outbox-Pattern.",
+        init: { giro: 100, spar: 0, schritt: "start", log: "leer" },
+        lines: L(`
+--------------------------- MODULE Ueberweisung ---------------------------
+EXTENDS Integers
+VARIABLES giro, spar, schritt, log
+vars == <<giro, spar, schritt, log>>
+
+Init == /\\ giro = 100
+        /\\ spar = 0
+        /\\ schritt = "start"
+        /\\ log = "leer"
+
+\\* Abbuchen und Log-Eintrag landen in derselben lokalen Transaktion
+Abbuchen == /\\ schritt = "start"
+            /\\ giro' = giro - 50
+            /\\ log' = "offen"
+            /\\ schritt' = "abgebucht"
+            /\\ UNCHANGED spar
+
+Gutschreiben == /\\ schritt \\in {"abgebucht", "neustart"}
+                /\\ log = "offen"
+                /\\ spar' = spar + 50
+                /\\ log' = "erledigt"
+                /\\ schritt' = "fertig"
+                /\\ UNCHANGED giro
+
+\\* Der Server stürzt ab (auch mehrfach). Nach dem Neustart liest er das Log.
+Absturz == /\\ schritt \\in {"abgebucht", "neustart"}
+           /\\ schritt' = "neustart"
+           /\\ UNCHANGED <<giro, spar, log>>
+
+Fertig == schritt = "fertig" /\\ UNCHANGED vars
+
+Next == Abbuchen \\/ Gutschreiben \\/ Absturz \\/ Fertig
+Spec == Init /\\ [][Next]_vars
+
+\\* Invariante: Ist der Vorgang abgeschlossen, ist kein Geld verschwunden
+GeldErhalten == schritt = "fertig" => giro + spar = 100
+===========================================================================`),
+        actions: [
+          { n: "Abbuchen", g: s => s.schritt === "start", a: s => { s.giro -= 50; s.log = "offen"; s.schritt = "abgebucht"; }, d: () => "50 € werden abgebucht, das Log notiert „offen“." },
+          { n: "Gutschreiben", g: s => ["abgebucht", "neustart"].includes(s.schritt) && s.log === "offen", a: s => { s.spar += 50; s.log = "erledigt"; s.schritt = "fertig"; }, d: () => "Die Gutschrift wird ausgeführt (auch nach einem Neustart)." },
+          { n: "Absturz", g: s => ["abgebucht", "neustart"].includes(s.schritt), a: s => { s.schritt = "neustart"; }, d: () => "💥 Absturz und Neustart. Das Log steht noch auf „offen“." },
+          { n: "Fertig", g: s => s.schritt === "fertig" },
+        ],
+      },
+    },
+  },
+  {
+    key: "aufzug", name: "🛗 Aufzug", file: "Aufzug.tla",
+    story: "Ein Aufzug fährt zwischen Etage 0, 1 und 2. Fahrgäste drücken Knöpfe, die Tür geht auf und zu. Es gibt keine Threads und kein Netzwerk, nur eine <b>Steuerung als Zustandsautomat</b>. Auch hier gibt es viele mögliche Reihenfolgen von Ereignissen, und eine davon ist gefährlich.",
+    prop: "Geprüft wird die Invariante <code>TuerSicher</code>: Solange der Aufzug fährt, ist die Tür zu.",
+    init: { etage: 0, ziel: 0, tuer: "zu", fahrt: "steht" },
+    inv: [{ n: "TuerSicher", f: s => s.fahrt !== "faehrt" || s.tuer === "zu" }],
+    view: s => `${s.fahrt === "faehrt" ? "🛗 fährt" : "🛗 steht"} · Tür <b class="${s.fahrt === "faehrt" && s.tuer === "offen" ? "bad" : ""}">${s.tuer}</b> · Ziel: Etage ${s.ziel}
+      <div class="floors">${[0, 1, 2].map(e => `<span class="${e === s.etage ? "here" : ""}">E${e}${e === s.etage ? (s.tuer === "offen" ? " 🚪" : " ▣") : ""}${e === s.ziel ? " 🎯" : ""}</span>`).join("")}</div>`,
+    bugMsg: "Die Tür steht offen, jemand drückt „Etage 1“, und der Aufzug fährt los. Jede einzelne Regel klingt vernünftig. Erst die Kombination ist gefährlich.",
+    variants: {
+      bug: {
+        desc: "<code>Losfahren</code> prüft nur, ob ein anderes Ziel gewählt ist, nicht aber die Tür.",
+        lines: L(`
+------------------------------ MODULE Aufzug ------------------------------
+EXTENDS Integers
+VARIABLES etage, ziel, tuer, fahrt
+vars   == <<etage, ziel, tuer, fahrt>>
+Etagen == 0..2
+
+Init == /\\ etage = 0
+        /\\ ziel = 0
+        /\\ tuer = "zu"
+        /\\ fahrt = "steht"
+
+\\* Jemand drückt einen Knopf (innen oder außen)
+Rufen(e) == /\\ fahrt = "steht"
+            /\\ ziel' = e
+            /\\ UNCHANGED <<etage, tuer, fahrt>>
+
+\\* Losfahren, sobald ein anderes Ziel gewählt ist
+Losfahren == /\\ fahrt = "steht"
+             /\\ etage # ziel
+             /\\ fahrt' = "faehrt"
+             /\\ UNCHANGED <<etage, ziel, tuer>>
+
+EineEtage == /\\ fahrt = "faehrt"
+             /\\ etage' = IF ziel > etage THEN etage + 1 ELSE etage - 1
+             /\\ fahrt' = IF etage' = ziel THEN "steht" ELSE "faehrt"
+             /\\ UNCHANGED <<ziel, tuer>>
+
+TuerAuf == /\\ fahrt = "steht" /\\ etage = ziel /\\ tuer = "zu"
+           /\\ tuer' = "offen"
+           /\\ UNCHANGED <<etage, ziel, fahrt>>
+
+TuerZu == /\\ tuer = "offen"
+          /\\ tuer' = "zu"
+          /\\ UNCHANGED <<etage, ziel, fahrt>>
+
+Next == (\\E e \\in Etagen : Rufen(e))
+        \\/ Losfahren \\/ EineEtage \\/ TuerAuf \\/ TuerZu
+Spec == Init /\\ [][Next]_vars
+
+\\* Invariante: Der Aufzug fährt nie mit offener Tür
+TuerSicher == fahrt = "faehrt" => tuer = "zu"
+===========================================================================`),
+      },
+      fix: {
+        desc: "Eine einzige zusätzliche Bedingung: <code>tuer = \"zu\"</code> in <code>Losfahren</code>. TLC prüft danach alle erreichbaren Zustände und findet keine Verletzung mehr.",
+        lines: null, // wird unten aus der Fehler-Variante abgeleitet
+      },
+    },
+  },
+  {
+    key: "besteck", name: "🍴 Mitbewohner & Besteck", file: "Mitbewohner.tla",
+    story: "Anna und Ben teilen sich in der WG ein Messer und eine Gabel. Wer essen will, braucht beides. Anna greift zuerst zum Messer, Ben zuerst zur Gabel. Beides gleichzeitig: Jeder hält ein Teil in der Hand und wartet ewig auf das andere. Das ist ein <b>Deadlock</b>, wie bei zwei Datenbank-Transaktionen, die Zeilen in unterschiedlicher Reihenfolge sperren.",
+    prop: "Geprüft werden die Invariante <code>NieGleichzeitig</code> (es essen nie beide gleichzeitig) und ob das System <b>hängen bleiben</b> kann. Die Deadlock-Prüfung macht TLC von sich aus.",
+    init: { besteck: { Messer: "frei", Gabel: "frei" }, pc: { Anna: "hungrig", Ben: "hungrig" } },
+    inv: [{ n: "NieGleichzeitig", f: s => !(s.pc.Anna === "isst" && s.pc.Ben === "isst") }],
+    view: s => {
+      const st = { hungrig: "😋 hungrig", wartet: "⏳ wartet aufs zweite Teil", isst: "🍝 isst", satt: "😌 satt" };
+      const w = x => x === "frei" ? "frei" : `bei ${x}`;
+      return `🔪 Messer: <b>${w(s.besteck.Messer)}</b> · 🍴 Gabel: <b>${w(s.besteck.Gabel)}</b><br>Anna: ${st[s.pc.Anna]} · Ben: ${st[s.pc.Ben]}`;
+    },
+    bugMsg: "Anna hält das Messer, Ben die Gabel, keine Aktion ist mehr möglich. Die Invariante ist dabei nie verletzt worden. Das System steht einfach still.",
+    variants: {
+      bug: {
+        desc: "Die Reihenfolge, in der zum Besteck gegriffen wird, hängt von der Person ab.",
+        lines: L(`
+---------------------------- MODULE Mitbewohner ----------------------------
+VARIABLES besteck, pc
+vars     == <<besteck, pc>>
+Personen == {"Anna", "Ben"}
+Teile    == {"Messer", "Gabel"}
+
+\\* Anna greift zuerst zum Messer, Ben zuerst zur Gabel
+Erstes(p)  == IF p = "Anna" THEN "Messer" ELSE "Gabel"
+Zweites(p) == IF p = "Anna" THEN "Gabel" ELSE "Messer"
+
+Init == /\\ besteck = [t \\in Teile |-> "frei"]
+        /\\ pc = [p \\in Personen |-> "hungrig"]
+
+Nimm1(p) == /\\ pc[p] = "hungrig"
+            /\\ besteck[Erstes(p)] = "frei"
+            /\\ besteck' = [besteck EXCEPT ![Erstes(p)] = p]
+            /\\ pc' = [pc EXCEPT ![p] = "wartet"]
+
+Nimm2(p) == /\\ pc[p] = "wartet"
+            /\\ besteck[Zweites(p)] = "frei"
+            /\\ besteck' = [besteck EXCEPT ![Zweites(p)] = p]
+            /\\ pc' = [pc EXCEPT ![p] = "isst"]
+
+Ablegen(p) == /\\ pc[p] = "isst"
+              /\\ besteck' = [t \\in Teile |-> "frei"]
+              /\\ pc' = [pc EXCEPT ![p] = "satt"]
+
+Fertig == /\\ \\A p \\in Personen : pc[p] = "satt"
+          /\\ UNCHANGED vars
+
+Next == (\\E p \\in Personen : Nimm1(p) \\/ Nimm2(p) \\/ Ablegen(p))
+        \\/ Fertig
+Spec == Init /\\ [][Next]_vars
+
+NieGleichzeitig == ~(pc["Anna"] = "isst" /\\ pc["Ben"] = "isst")
+=============================================================================`),
+      },
+      fix: {
+        desc: "Beide greifen in <b>derselben Reihenfolge</b> zu: erst das Messer, dann die Gabel. Eine feste Sperr-Reihenfolge ist auch in Datenbanken und bei Locks die Standardlösung gegen Deadlocks.",
+        lines: null,
+      },
+    },
+  },
+];
+
+// Aufzug: Aktionen sind für beide Varianten gleich, bis auf die Tür-Bedingung in Losfahren
+{
+  const m = TLA_MODELS.find(x => x.key === "aufzug");
+  const mk = checkDoor => [
+    { n: "Rufen", ps: [0, 1, 2], g: s => s.fahrt === "steht", a: (s, e) => { s.ziel = e; }, d: e => `Jemand drückt den Knopf für Etage ${e}.` },
+    { n: "Losfahren", g: s => s.fahrt === "steht" && s.etage !== s.ziel && (!checkDoor || s.tuer === "zu"), a: s => { s.fahrt = "faehrt"; }, d: () => "Der Aufzug fährt los." },
+    { n: "EineEtage", g: s => s.fahrt === "faehrt", a: s => { s.etage += s.ziel > s.etage ? 1 : -1; s.fahrt = s.etage === s.ziel ? "steht" : "faehrt"; }, d: () => "Der Aufzug fährt eine Etage weiter." },
+    { n: "TuerAuf", g: s => s.fahrt === "steht" && s.etage === s.ziel && s.tuer === "zu", a: s => { s.tuer = "offen"; }, d: () => "Die Tür geht auf." },
+    { n: "TuerZu", g: s => s.tuer === "offen", a: s => { s.tuer = "zu"; }, d: () => "Die Tür geht zu." },
+  ];
+  m.variants.bug.actions = mk(false);
+  m.variants.fix.actions = mk(true);
+  const b = m.variants.bug.lines, i = b.findIndex(l => l.startsWith("             /\\ etage # ziel"));
+  m.variants.fix.lines = b.slice(0, i + 1).concat(["             /\\ tuer = \"zu\"                 \\* NEU: erst bei geschlossener Tür"], b.slice(i + 1))
+    .map(l => l === "\\* Losfahren, sobald ein anderes Ziel gewählt ist" ? "\\* Losfahren, sobald ein anderes Ziel gewählt ist UND die Tür zu ist" : l);
+}
+// Mitbewohner: gleiche Aktionen, nur die Reihenfolge der Besteckteile unterscheidet sich
+{
+  const m = TLA_MODELS.find(x => x.key === "besteck");
+  const mk = (first, second) => [
+    { n: "Nimm1", ps: ANNA_BEN, g: (s, p) => s.pc[p] === "hungrig" && s.besteck[first(p)] === "frei", a: (s, p) => { s.besteck[first(p)] = p; s.pc[p] = "wartet"; }, d: p => `${p} nimmt ${first(p) === "Messer" ? "das Messer" : "die Gabel"}.` },
+    { n: "Nimm2", ps: ANNA_BEN, g: (s, p) => s.pc[p] === "wartet" && s.besteck[second(p)] === "frei", a: (s, p) => { s.besteck[second(p)] = p; s.pc[p] = "isst"; }, d: p => `${p} nimmt ${second(p) === "Messer" ? "das Messer" : "die Gabel"} und isst.` },
+    { n: "Ablegen", ps: ANNA_BEN, g: (s, p) => s.pc[p] === "isst", a: (s, p) => { s.besteck = { Messer: "frei", Gabel: "frei" }; s.pc[p] = "satt"; }, d: p => `${p} ist satt und legt das Besteck zurück.` },
+    { n: "Fertig", g: s => ANNA_BEN.every(p => s.pc[p] === "satt") },
+  ];
+  m.variants.bug.actions = mk(p => p === "Anna" ? "Messer" : "Gabel", p => p === "Anna" ? "Gabel" : "Messer");
+  m.variants.fix.actions = mk(() => "Messer", () => "Gabel");
+  m.variants.fix.lines = m.variants.bug.lines.map(l =>
+    l.startsWith("\\* Anna greift") ? "\\* Beide greifen in derselben Reihenfolge: erst Messer, dann Gabel"
+    : l.startsWith("Erstes(p)") ? "Erstes(p)  == \"Messer\""
+    : l.startsWith("Zweites(p)") ? "Zweites(p) == \"Gabel\"" : l);
+}
+
+function tlcCheck(m, v) {
+  const init = v.init || m.init, key = s => JSON.stringify(s);
+  const root = { s: init, parent: null, act: null, p: null, depth: 0 };
+  const seen = new Set([key(init)]), q = [root], order = [root];
+  let generated = 1, depth = 0;
+  const res = (kind, extra) => ({ kind, generated, distinct: seen.size, queue: q.length, depth: depth + 1, order, ...extra });
+  const bad0 = m.inv.find(iv => !iv.f(init));
+  if (bad0) return res("inv", { inv: bad0.n, node: root });
+  while (q.length) {
+    const nd = q.shift(); let enabled = false;
+    for (const a of v.actions) for (const p of a.ps || [null]) {
+      if (!a.g(nd.s, p)) continue;
+      enabled = true; generated++;
+      const ns = structuredClone(nd.s); if (a.a) a.a(ns, p);
+      const k = key(ns); if (seen.has(k)) continue;
+      seen.add(k);
+      const nn = { s: ns, parent: nd, act: a, p, depth: nd.depth + 1 };
+      order.push(nn); depth = Math.max(depth, nn.depth);
+      const bad = m.inv.find(iv => !iv.f(ns));
+      if (bad) return res("inv", { inv: bad.n, node: nn });
+      q.push(nn);
+    }
+    if (!enabled) return res("deadlock", { node: nd });
+  }
+  return res("ok");
+}
+const actLine = (lines, name) => { const re = new RegExp("^" + name + "(\\(|\\s*==)"); return lines.findIndex(l => re.test(l)); };
+const actRange = (lines, name) => { const out = []; for (let i = actLine(lines, name); i >= 0 && i < lines.length && lines[i].trim(); i++) out.push(i); return out; };
+
+const tla = { m: TLA_MODELS[0], v: "bug", runId: 0 };
+function tlaInit() {
+  $("#tlaModels").innerHTML = TLA_MODELS.map((m, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${m.name}</button>`).join("");
+  $$("#tlaModels button").forEach(b => b.onclick = () => { $$("#tlaModels button").forEach(x => x.classList.toggle("active", x === b)); tla.m = TLA_MODELS[+b.dataset.i]; tlaSetVariant("bug"); });
+  $("#tlaVariants").innerHTML = `<button data-v="bug" class="active">🐞 mit Fehler</button><button data-v="fix">✓ korrigiert</button>`;
+  $$("#tlaVariants button").forEach(b => b.onclick = () => tlaSetVariant(b.dataset.v));
+  $("#tlaRun").onclick = tlaRun;
+  tlaShow();
+}
+function tlaSetVariant(v) { tla.v = v; $$("#tlaVariants button").forEach(x => x.classList.toggle("active", x.dataset.v === v)); tlaShow(); }
+function tlaShow() {
+  tla.runId++;
+  const m = tla.m, v = m.variants[tla.v], other = m.variants[tla.v === "bug" ? "fix" : "bug"];
+  const otherSet = new Set(other.lines.map(l => l.trim()));
+  $("#tlaStory").innerHTML = `<p>${m.story}</p><p>${m.prop}</p>`;
+  $("#tlaDesc").innerHTML = (tla.v === "bug" ? "🐞 " : "✓ ") + v.desc;
+  $("#tlaFile").textContent = m.file;
+  $("#tlaCode").innerHTML = v.lines.map((l, i) => `<div class="ln${l.trim() && !otherSet.has(l.trim()) ? " changed" : ""}" data-line="${i}"><span class="no">${i + 1}</span><span class="tx">${tlaHL(l)}</span></div>`).join("");
+  $("#tlaTerm").textContent = `$ tlc ${m.file}`;
+  $("#tlaView").innerHTML = `<div class="note">Startzustand</div>${m.view(v.init || m.init)}`;
+  $("#tlaVerdict").style.display = "none"; $("#tlaBar").style.width = "0"; $("#tlaStats").textContent = "";
+  $("#tlaRun").disabled = false;
+}
+async function tlaRun() {
+  tlaShow();
+  const id = tla.runId, m = tla.m, v = m.variants[tla.v], mod = m.file.replace(".tla", "");
+  $("#tlaRun").disabled = true;
+  const term = $("#tlaTerm"), out = [`$ tlc ${esc(m.file)}`, "Computing initial states...", "Finished computing initial states: 1 distinct state generated."];
+  const put = () => { term.innerHTML = out.join("\n"); term.scrollTop = term.scrollHeight; };
+  put();
+  const r = tlcCheck(m, v);
+  // Fortschritt: die gefundenen Zustände in Suchreihenfolge aufleuchten lassen
+  for (let i = 0; i < r.order.length; i++) {
+    if (id !== tla.runId) return;
+    $("#tlaBar").style.width = (100 * (i + 1) / r.order.length) + "%";
+    $("#tlaView").innerHTML = `<div class="note">Zustand ${i + 1} (Breitensuche)</div>${m.view(r.order[i].s)}`;
+    $("#tlaStats").textContent = `${i + 1} verschiedene Zustände gefunden`;
+    await sleep(Math.max(25, 1400 / r.order.length));
+  }
+  const v$ = $("#tlaVerdict");
+  if (r.kind === "ok") {
+    out.push("Model checking completed. No error has been found.",
+      `  ${r.generated} states generated, ${r.distinct} distinct states found, 0 states left on queue.`,
+      `The depth of the complete state graph search is ${r.depth}.`);
+    put();
+    v$.className = "verdict ok pop"; v$.style.display = "block";
+    v$.innerHTML = `✓ <b>Keine Verletzung:</b> TLC hat <b>alle ${r.distinct} erreichbaren Zustände</b> geprüft. In keinem davon ist ${m.inv.map(i => `<code>${i.n}</code>`).join(" oder ")} verletzt, und es gibt keinen Deadlock. Das gilt für <i>jede</i> mögliche Reihenfolge der Aktionen, nicht nur für die getesteten.`;
+    $("#tlaRun").disabled = false; return;
+  }
+  out.push(`<span class="bad">${r.kind === "inv" ? `Error: Invariant ${r.inv} is violated.` : "Error: Deadlock reached."}</span>`, "Error: The behavior up to this point is:");
+  put();
+  const path = []; for (let n = r.node; n; n = n.parent) path.unshift(n);
+  for (let i = 0; i < path.length; i++) {
+    if (id !== tla.runId) return;
+    const n = path[i], prev = path[i - 1];
+    const label = n.act ? `<${n.act.n}${n.p !== null ? `(${n.p})` : ""} line ${actLine(v.lines, n.act.n) + 1}, module ${mod}>` : "<Initial predicate>";
+    out.push(`State ${i + 1}: ${esc(label)}`);
+    for (const [k, val] of Object.entries(n.s)) {
+      const changed = prev && JSON.stringify(prev.s[k]) !== JSON.stringify(val);
+      out.push(`/\\ ${k} = ${changed ? `<mark>${esc(tv(val))}</mark>` : esc(tv(val))}`);
+    }
+    out.push(""); put();
+    const range = actRange(v.lines, n.act ? n.act.n : "Init");
+    $$("#tlaCode .ln").forEach(l => l.classList.toggle("hl", range.includes(+l.dataset.line)));
+    $("#tlaView").innerHTML = `<div class="note">Fehlerpfad, Schritt ${i + 1}: ${n.act ? (n.act.d ? n.act.d(n.p) : n.act.n) : "Startzustand"}</div>${m.view(n.s)}`;
+    await sleep(1400);
+  }
+  out.push(`${r.generated} states generated, ${r.distinct} distinct states found, ${r.queue} states left on queue.`); put();
+  v$.className = "verdict bad pop"; v$.style.display = "block";
+  v$.innerHTML = (r.kind === "inv" ? `✗ <b>Invariante <code>${r.inv}</code> verletzt</b> nach ${path.length - 1} Schritten. ` : `✗ <b>Deadlock</b> nach ${path.length - 1} Schritten: Keine Aktion ist mehr möglich. `) + m.bugMsg + ` Wechsle auf „✓ korrigiert“ und starte TLC erneut.`;
+  $("#tlaRun").disabled = false;
+}
+tlaInit();
+
+/* =====================================================================
+   TAB 5 – Lean 4: Taktikbeweise Schritt für Schritt im Infoview
+   ===================================================================== */
+const KWS_LEAN = new Set(["def", "theorem", "example", "by", "with", "if", "then", "else", "fun", "match", "induction", "simp", "omega", "unfold", "split", "rw", "exact", "intro", "decide", "Nat", "List"]);
+function leanHL(line) {
+  const ci = line.indexOf("--"), code = ci >= 0 ? line.slice(0, ci) : line;
+  const re = /(#eval)|(\b\d+\b)|([A-Za-z_][\w.']*)|(:=|=>|→|⊢|≤|≥|·|\+\+|::)|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(code))) {
+    if (m[1]) out += `<span class="tok-kw">${m[1]}</span>`;
+    else if (m[2]) out += `<span class="tok-num">${m[2]}</span>`;
+    else if (m[3]) out += KWS_LEAN.has(m[3]) ? `<span class="tok-kw">${m[3]}</span>` : m[3];
+    else if (m[4]) out += `<span class="tok-op">${esc(m[4])}</span>`;
+    else out += esc(m[5]);
+  }
+  if (ci >= 0) out += `<span class="tok-com">${esc(line.slice(ci))}</span>`;
+  return out;
+}
+const G = (hyps, goal, c) => ({ c, hyps, goal });
+const RABATT_DEF = ["def rabatt (preis : Nat) : Nat :=", "  if preis ≥ 100 then preis - preis / 10 else preis"];
+const IF_RABATT = "(if preis ≥ 100 then preis - preis / 10 else preis)";
+const LEAN_EX = [
+  {
+    name: "🏷️ Rabatt macht nie teurer", file: "Rabatt.lean",
+    desc: "Ab 100 € gibt es 10 % Rabatt. Behauptung: Der Preis mit Rabatt ist <b>für jeden Preis</b> höchstens so hoch wie der ursprüngliche. Mit <code>Nat</code> (natürliche Zahlen) rechnen wir in ganzen Euro, die Division rundet ab.",
+    lines: [...RABATT_DEF, "", "#eval rabatt 120   -- 108", "#eval rabatt 80    -- 80", "",
+      "theorem rabatt_le (preis : Nat) : rabatt preis ≤ preis := by", "  unfold rabatt", "  split", "  · omega", "  · omega"],
+    steps: [
+      { line: 3, msg: "108", note: "Lean ist auch eine Programmiersprache: <code>#eval</code> führt die Funktion aus. 120 − 12 = 108." },
+      { line: 4, msg: "80", note: "Unter 100 € gibt es keinen Rabatt." },
+      { line: 6, goals: [G(["preis : Nat"], "rabatt preis ≤ preis")], note: "Die Behauptung wird zum <b>Ziel</b> (nach <code>⊢</code>). Über dem Strich steht, was wir haben: irgendeinen Preis. Ein Beweis gilt also für <i>jeden</i> Preis." },
+      { line: 7, goals: [G(["preis : Nat"], `${IF_RABATT} ≤ preis`)], note: "<code>unfold</code> setzt die Definition von <code>rabatt</code> ein." },
+      { line: 8, goals: [G(["preis : Nat", "h✝ : preis ≥ 100"], "preis - preis / 10 ≤ preis", "isTrue"), G(["preis : Nat", "h✝ : ¬preis ≥ 100"], "preis ≤ preis", "isFalse")], note: "<code>split</code> macht eine Fallunterscheidung nach der <code>if</code>-Bedingung. Jetzt sind <b>zwei Ziele</b> offen, jedes mit der passenden Annahme." },
+      { line: 9, goals: [G(["preis : Nat", "h✝ : ¬preis ≥ 100"], "preis ≤ preis", "isFalse")], note: "<code>omega</code> entscheidet lineare Arithmetik über ganzen Zahlen, auch mit Division durch Konstanten und der abgeschnittenen Subtraktion von <code>Nat</code>. Fall 1 ist erledigt." },
+      { line: 10, goals: [], done: "Beweis vollständig. Der Kernel hat <code>rabatt_le</code> geprüft: Für <b>jeden</b> der unendlich vielen Preise macht der Rabatt nicht teurer.", note: "Auch der zweite Fall ist erledigt." },
+    ],
+  },
+  {
+    name: "💰 Ab 100 € spart man ≥ 10 €", file: "Rabatt.lean",
+    desc: "Eine Aussage mit <b>Voraussetzung</b>: Wenn der Preis mindestens 100 € beträgt, spart man mindestens 10 €. Die Voraussetzung <code>h</code> steht als Annahme zur Verfügung.",
+    lines: [...RABATT_DEF, "", "theorem rabatt_spart (preis : Nat) (h : preis ≥ 100) :", "    rabatt preis + 10 ≤ preis := by", "  unfold rabatt", "  rw [if_pos h]", "  omega"],
+    steps: [
+      { line: 4, goals: [G(["preis : Nat", "h : preis ≥ 100"], "rabatt preis + 10 ≤ preis")], note: "Diesmal gibt es zwei Annahmen: den Preis und die Voraussetzung <code>h</code>." },
+      { line: 5, goals: [G(["preis : Nat", "h : preis ≥ 100"], `${IF_RABATT} + 10 ≤ preis`)], note: "Definition einsetzen." },
+      { line: 6, goals: [G(["preis : Nat", "h : preis ≥ 100"], "preis - preis / 10 + 10 ≤ preis")], note: "<code>rw [if_pos h]</code> schreibt das <code>if</code> mit Hilfe von <code>h</code> auf den <code>then</code>-Zweig um. Eine Fallunterscheidung ist nicht nötig, denn wir wissen ja, welcher Fall vorliegt." },
+      { line: 7, goals: [], done: "Beweis vollständig: Wer mindestens 100 € ausgibt, spart garantiert mindestens 10 €.", note: "<code>omega</code> nutzt <code>h</code>: Aus preis ≥ 100 folgt preis / 10 ≥ 10." },
+    ],
+  },
+  {
+    name: "❌ Falsche Behauptung", file: "Rabatt.lean",
+    desc: "Was passiert, wenn die Behauptung <b>nicht stimmt</b>? Hier wird behauptet, mit Rabatt sei es <i>immer</i> billiger. Lean lässt sich nicht überreden: Der Beweis scheitert genau an dem Fall, in dem die Aussage falsch ist.",
+    lines: [...RABATT_DEF, "", "-- Behauptung: Mit Rabatt ist es immer billiger. Stimmt das?", "theorem rabatt_immer_billiger (preis : Nat) :", "    rabatt preis < preis := by", "  unfold rabatt", "  split", "  · omega", "  · omega"],
+    steps: [
+      { line: 5, goals: [G(["preis : Nat"], "rabatt preis < preis")], note: "Das Ziel sieht harmlos aus." },
+      { line: 6, goals: [G(["preis : Nat"], `${IF_RABATT} < preis`)], note: "Definition einsetzen." },
+      { line: 7, goals: [G(["preis : Nat", "h✝ : preis ≥ 100"], "preis - preis / 10 < preis", "isTrue"), G(["preis : Nat", "h✝ : ¬preis ≥ 100"], "preis < preis", "isFalse")], note: "Schon hier sieht man das Problem: Im Fall <code>isFalse</code> soll <code>preis &lt; preis</code> gelten. Das ist für keine Zahl wahr." },
+      { line: 8, goals: [G(["preis : Nat", "h✝ : ¬preis ≥ 100"], "preis < preis", "isFalse")], note: "Fall 1 (ab 100 €) stimmt: Dort ist es wirklich billiger." },
+      { line: 9, goals: [G(["preis : Nat", "h✝ : ¬preis ≥ 100"], "preis < preis", "isFalse")], err: "omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  x ≤ 99\nwhere\n x := preis",
+        fail: "Lean akzeptiert den Satz nicht. <code>omega</code> nennt sogar die Bedingung für ein Gegenbeispiel: jeder Preis unter 100 €. Tatsächlich ist <code>rabatt 80 = 80</code>. Die Lösung ist die Voraussetzung <code>h : preis ≥ 100</code> wie im Beispiel davor.", note: "Hier scheitert der Beweis." },
+    ],
+  },
+  {
+    name: "🛒 Warenkörbe zusammenlegen", file: "Warenkorb.lean",
+    desc: "Ein Warenkorb ist eine Liste von Preisen in Cent. Behauptung: Legt man zwei Warenkörbe zusammen (<code>++</code>), ist die Summe gleich der Summe der beiden Einzelsummen, und zwar für <b>Listen jeder Länge</b>. Dafür braucht man <b>Induktion</b>, die Lean direkt unterstützt.",
+    lines: ["-- Ein Warenkorb ist eine Liste von Preisen (in Cent)", "def summe : List Nat → Nat", "  | []      => 0", "  | p :: ps => p + summe ps", "",
+      "#eval summe [499, 1299, 250]   -- 2048", "", "-- Zwei Warenkörbe zusammenlegen ändert die Gesamtsumme nicht",
+      "theorem summe_append (a b : List Nat) :", "    summe (a ++ b) = summe a + summe b := by", "  induction a with", "  | nil => simp [summe]", "  | cons p ps ih => simp [summe, ih, Nat.add_assoc]"],
+    steps: [
+      { line: 5, msg: "2048", note: "Die Funktion ist rekursiv: leerer Korb = 0, sonst erster Preis plus Summe vom Rest." },
+      { line: 9, goals: [G(["a b : List Nat"], "summe (a ++ b) = summe a + summe b")], note: "Zu zeigen für alle Listen <code>a</code> und <code>b</code>, also unendlich viele Fälle." },
+      { line: 10, goals: [G(["b : List Nat"], "summe ([] ++ b) = summe [] + summe b", "nil"), G(["b : List Nat", "p : Nat", "ps : List Nat", "ih : summe (ps ++ b) = summe ps + summe b"], "summe (p :: ps ++ b) = summe (p :: ps) + summe b", "cons")], note: "<code>induction</code> erzeugt zwei Ziele: den leeren Korb (<code>nil</code>) und einen Korb mit erstem Artikel <code>p</code> (<code>cons</code>). Im zweiten Fall darf man die Aussage für den kürzeren Rest <code>ps</code> schon benutzen: die <b>Induktionshypothese</b> <code>ih</code>." },
+      { line: 11, goals: [G(["b : List Nat", "p : Nat", "ps : List Nat", "ih : summe (ps ++ b) = summe ps + summe b"], "summe (p :: ps ++ b) = summe (p :: ps) + summe b", "cons")], note: "<code>simp</code> vereinfacht mit der Definition von <code>summe</code> und Standardregeln wie <code>[] ++ b = b</code> und <code>0 + x = x</code>. Der leere Fall ist erledigt." },
+      { line: 12, goals: [], done: "Beweis vollständig: Für Warenkörbe <b>jeder Größe</b> ist die Summe des zusammengelegten Korbs gleich der Summe der Teilsummen.", note: "Mit <code>ih</code> und dem Assoziativgesetz <code>Nat.add_assoc</code> sind beide Seiten gleich." },
+    ],
+  },
+];
+const lean = { ex: LEAN_EX[0], idx: -1, runId: 0 };
+function leanInit() {
+  $("#leanEx").innerHTML = LEAN_EX.map((e, i) => `<button data-i="${i}" class="${i ? "" : "active"}">${e.name}</button>`).join("");
+  $$("#leanEx button").forEach(b => b.onclick = () => { $$("#leanEx button").forEach(x => x.classList.toggle("active", x === b)); lean.ex = LEAN_EX[+b.dataset.i]; leanLoad(); });
+  $("#leanPrev").onclick = () => { lean.runId++; leanGo(Math.max(-1, lean.idx - 1)); };
+  $("#leanNext").onclick = () => { lean.runId++; leanGo(Math.min(lean.ex.steps.length - 1, lean.idx + 1)); };
+  $("#leanReset").onclick = () => { lean.runId++; leanGo(-1); };
+  $("#leanPlay").onclick = async () => {
+    const id = ++lean.runId;
+    for (let i = 0; i < lean.ex.steps.length; i++) { if (id !== lean.runId) return; leanGo(i); await sleep(1900); }
+  };
+  leanLoad();
+}
+function leanLoad() {
+  lean.runId++;
+  const e = lean.ex, stepLines = new Set(e.steps.map(s => s.line));
+  $("#leanDesc").innerHTML = `<p>${e.desc}</p>`;
+  $("#leanFile").textContent = e.file;
+  $("#leanCode").innerHTML = e.lines.map((l, i) => `<div class="ln${stepLines.has(i) ? " step" : ""}" data-line="${i}"><span class="no">${i + 1}</span><span class="tx">${leanHL(l)}</span></div>`).join("");
+  $$("#leanCode .ln.step").forEach(el => el.onclick = () => { lean.runId++; leanGo(e.steps.findIndex(s => s.line === +el.dataset.line)); });
+  leanGo(-1);
+}
+function leanGo(i) {
+  lean.idx = i;
+  const e = lean.ex, st = e.steps[i];
+  $$("#leanCode .ln").forEach(l => { l.classList.toggle("hl", !!st && +l.dataset.line === st.line); l.classList.toggle("err", !!st?.err && +l.dataset.line === st.line); });
+  $("#leanPrev").disabled = i < 0; $("#leanNext").disabled = i >= e.steps.length - 1;
+  const note = $("#leanNote");
+  if (!st) {
+    $("#leanPos").textContent = "Lean Infoview";
+    $("#leanGoals").innerHTML = `<span class="note">Mit „Weiter ▶“ wandert der Cursor durch den Beweis. Hier erscheint dann, was Lean an dieser Stelle weiß und was noch zu zeigen ist.</span>`;
+    note.style.display = "none"; return;
+  }
+  $("#leanPos").textContent = `▼ ${e.file}:${st.line + 1}:${e.lines[st.line].length}`;
+  let h = "";
+  if (st.msg !== undefined) h += `<div class="ivmsg info pop">${esc(st.msg)}</div>`;
+  if (st.goals) {
+    if (!st.goals.length) h += `<div class="ivmsg done pop">No goals</div>`;
+    else {
+      h += `<div class="note" style="margin-bottom:6px">${st.goals.length === 1 ? "1 goal" : `${st.goals.length} goals`}</div>`;
+      h += st.goals.map(g => `<div class="goal">${g.c ? `<div class="case">case ${g.c}</div>` : ""}${g.hyps.map(x => { const [n, ...t] = x.split(" : "); return `<div class="hyp"><b>${esc(n)}</b> : ${esc(t.join(" : "))}</div>`; }).join("")}<div class="tgt">⊢ ${esc(g.goal)}</div></div>`).join("");
+    }
+  }
+  if (st.err) h += `<div class="ivmsg err pop">${esc(st.err)}</div>`;
+  $("#leanGoals").innerHTML = h;
+  note.style.display = "block";
+  note.className = "verdict pop " + (st.done ? "ok" : st.fail ? "bad" : "");
+  note.innerHTML = (st.done ? "✓ " : st.fail ? "✗ " : "") + st.note + (st.done ? `<br><b>${st.done}</b>` : st.fail ? `<br>${st.fail}` : "");
+}
+leanInit();
+</script>
+</body>
+</html>

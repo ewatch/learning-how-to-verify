@@ -1,0 +1,120 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import WhereItSits from '../../../../components/WhereItSits.astro';
+import Evidence from '../../../../components/Evidence.astro';
+import LangTabs from '../../../../components/LangTabs.astro';
+import SimMount from '../../../../components/SimMount.astro';
+import PracticeCard from '../../../../components/PracticeCard.astro';
+import type { Locale, Practice } from '../../../../data/types';
+import { PRACTICES, PRACTICE_BY_ID } from '../../../../data/practices';
+import { GUIDE_BY_ID } from '../../../../data/guides';
+import { LAYERS } from '../../../../data/taxonomy';
+import { t, href } from '../../../../i18n/ui';
+import { inline } from '../../../../lib/inline';
+import { practiceMarkdown } from '../../../../lib/markdown';
+import { socraticPrompt } from '../../../../lib/prompts';
+
+export function getStaticPaths() {
+  return (['en', 'de'] as Locale[]).flatMap((lang) => PRACTICES.map((p) => ({ params: { lang, id: p.id }, props: { lang, p } })));
+}
+const { lang, p } = Astro.props as { lang: Locale; p: Practice };
+const en = lang === 'en';
+const layer = LAYERS.find((l) => l.id === p.layer)!;
+const idx = PRACTICES.indexOf(p);
+const prev = PRACTICES[idx - 1], next = PRACTICES[idx + 1];
+const socratic = socraticPrompt(p, lang, 'js', practiceMarkdown(p, lang)).replace('JavaScript / TypeScript', '__PROGLANG__');
+let n = 0;
+const num = () => String(++n).padStart(2, '0');
+---
+<Base lang={lang} path={`practices/${p.id}/`} md={`/${lang}/practices/${p.id}/index.md`} title={p.name[lang]} description={p.oneLiner[lang]}>
+  <article class="wrap practice" style={`--c: var(--l-${p.layer})`}>
+    <nav class="crumbs small" aria-label="Breadcrumb">
+      <a href={href(lang)}>{t(lang, 'navFunnel')}</a> / <a href={href(lang, `#layer-${p.layer}`)}>{layer.name[lang]}</a> / <span aria-current="page">{p.name[lang]}</span>
+    </nav>
+
+    <header class="head narrow">
+      <p class="eyebrow">{p.fromOverview ? t(lang, 'fromOverview') : t(lang, 'addedHere')}</p>
+      <h1>{p.name[lang]}</h1>
+      <p class="lede" set:html={inline(p.oneLiner[lang])} />
+      <p class="catches"><strong>{t(lang, 'catches')}:</strong> <span set:html={inline(p.catches[lang])} /></p>
+    </header>
+
+    <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'whereItSits')}</h2><WhereItSits p={p} lang={lang} /></section>
+
+    {p.sim && (
+      <section class="layer-section" id="try"><h2><span class="num">{num()}</span>{t(lang, 'tryIt')}</h2>
+        <p class="muted small">{t(lang, 'tryItHint')}</p>
+        <SimMount sim={p.sim} lang={lang} />
+      </section>
+    )}
+
+    <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'worthIt')}</h2>
+      <div class="grid cols-2">
+        <div><ul class="checks">{p.worth.map((x) => <li set:html={inline(x[lang])} />)}</ul></div>
+        <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={inline(x[lang])} />)}</ul></div>
+      </div>
+      <div class="ai card"><h3>{t(lang, 'withAgents')}</h3><p set:html={inline(p.ai[lang])} /></div>
+      {p.variants?.length ? (
+        <details class="disclose variants"><summary>{t(lang, 'variants')} ({p.variants.length})</summary>
+          <div class="body"><dl>{p.variants.map((v) => <><dt>{v.name[lang]}</dt><dd set:html={inline(v.text[lang])} /></>)}</dl></div>
+        </details>
+      ) : null}
+      <h3 class="evh">{t(lang, 'evidence')}</h3>
+      <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} />
+    </section>
+
+    <section class="layer-section" id="your-language"><h2><span class="num">{num()}</span>{t(lang, 'yourLanguage')}</h2>
+      <LangTabs p={p} lang={lang} />
+    </section>
+
+    <section class="layer-section" id="deeper"><h2><span class="num">{num()}</span>{t(lang, 'goDeeper')}</h2>
+      <h3>{t(lang, 'thinkFirst')}</h3>
+      <div class="think">
+        {p.think.map((q) => (
+          <details class="disclose"><summary set:html={inline(q.q[lang])} /><div class="body"><p set:html={inline(q.a[lang])} /></div></details>
+        ))}
+      </div>
+      <div class="socratic card">
+        <div>
+          <strong>{t(lang, 'socratic')}</strong>
+          <p class="muted small">{t(lang, 'socraticHint')}</p>
+        </div>
+        <button type="button" class="btn" data-copy="socratic" data-proglang>{t(lang, 'copy')}</button>
+        <pre id="socratic" hidden>{socratic}</pre>
+      </div>
+      {p.guides?.length ? (
+        <><h3>{t(lang, 'guides')}</h3>
+        <ul>{p.guides.map((g) => <li><a href={href(lang, `guides/${g}/`)}>{GUIDE_BY_ID.get(g)!.title[lang]}</a></li>)}</ul></>
+      ) : null}
+      <h3>{t(lang, 'related')}</h3>
+      <div class="grid cols-3">{p.related.map((id) => <PracticeCard p={PRACTICE_BY_ID.get(id)!} lang={lang} compact />)}</div>
+    </section>
+
+    <nav class="pager" aria-label={en ? 'Next and previous practice' : 'Nächste und vorherige Praktik'}>
+      {prev ? <a href={href(lang, `practices/${prev.id}/`)}>← {prev.name[lang]}</a> : <span />}
+      {next ? <a href={href(lang, `practices/${next.id}/`)}>{next.name[lang]} →</a> : <span />}
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .crumbs { color: var(--ink-3); margin-bottom: 18px; }
+  .crumbs a { color: var(--ink-3); }
+  .head { padding-bottom: 26px; }
+  .head h1 { border-left: 6px solid var(--c); padding-left: 14px; margin-left: -20px; }
+  @media (max-width: 760px) { .head h1 { margin-left: 0; } }
+  .catches { color: var(--ink-2); }
+  ul.checks li::marker { content: '✓  '; color: var(--ok); }
+  ul.limits li::marker { content: '–  '; color: var(--ink-3); }
+  .ai { margin: 18px 0; border-left: 4px solid var(--c); }
+  .ai p { margin: 0; }
+  .variants { margin: 14px 0; }
+  .variants dt { font-weight: 700; margin-top: 8px; }
+  .variants dd { margin: 2px 0 0; color: var(--ink-2); }
+  .evh { margin-top: 24px; }
+  .think { display: grid; gap: 8px; margin-bottom: 20px; }
+  .think summary { font-weight: 600 !important; }
+  .socratic { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 24px; }
+  .socratic p { margin: 2px 0 0; max-width: 36rem; }
+  .pager { display: flex; justify-content: space-between; gap: 12px; padding-top: 26px; border-top: 1px solid var(--rule); flex-wrap: wrap; }
+</style>

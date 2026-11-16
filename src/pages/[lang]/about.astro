@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import type { Locale } from '../../data/types';
+import { SOURCES } from '../../data/sources';
+import { TOOLS } from '../../data/tools';
+import { PRACTICES } from '../../data/practices';
+import { langPaths } from '../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
+---
+<Base lang={lang} path="about/" nav="about" title={en ? 'About' : 'Über'} description={en ? 'Credits, sources, privacy, and how this site verifies itself.' : 'Quellen, Datenschutz und wie diese Seite sich selbst prüft.'}>
+  <div class="wrap narrow">
+    <h1>{en ? 'About this site' : 'Über diese Seite'}</h1>
+
+    <h2>{en ? 'Credits' : 'Quellen der Ideen'}</h2>
+    <ul>
+      <li>{en ? 'The funnel (codebase → static analysis → verification → prose → human review) and the use of the lifecycle overview come from a talk by ' : 'Der Trichter (Codebasis → statische Analyse → Verifikation → Prosa → menschliches Review) und die Nutzung der Lebenszyklus-Übersicht stammen aus einem Vortrag von '}<strong>Lauren Tan (@poteto)</strong>.</li>
+      <li>{en ? 'The lifecycle overview of practices from pre-production to post-release was originally drawn by ' : 'Die Lebenszyklus-Übersicht der Praktiken von vor der Produktion bis nach dem Release zeichnete ursprünglich '}<strong>Cindy Sridharan (@copyconstruct)</strong>.</li>
+      <li>{en ? 'Both diagrams are redrawn here; the content of each practice page is our own.' : 'Beide Diagramme sind hier neu gezeichnet; die Inhalte der Praktikseiten sind eigene.'}</li>
+    </ul>
+
+    <h2 id="self-verification">{en ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</h2>
+    <p>{en ? 'A site about verification should use what it teaches. Every change runs through:' : 'Eine Seite über Verifikation sollte nutzen, was sie lehrt. Jede Änderung durchläuft:'}</p>
+    <ul>
+      <li><strong>{en ? 'Types' : 'Typen'}</strong>: <code>astro check</code> {en ? 'with TypeScript strict mode.' : 'mit strengem TypeScript-Modus.'}</li>
+      <li><strong>{en ? 'Data tests' : 'Datentests'}</strong>: {en ? `every one of the ${PRACTICES.length} practices must be complete in both languages, and reference only existing tools, practices and verified sources.` : `jede der ${PRACTICES.length} Praktiken muss in beiden Sprachen vollständig sein und darf nur auf existierende Werkzeuge, Praktiken und geprüfte Quellen verweisen.`}</li>
+      <li><strong>{en ? 'License check' : 'Lizenzprüfung'}</strong>: {en ? `the license of each of the ${TOOLS.length} tools is compared with what GitHub reports for its repository.` : `die Lizenz jedes der ${TOOLS.length} Werkzeuge wird mit der Angabe von GitHub für das Repository verglichen.`}</li>
+      <li><strong>{en ? 'Unit and property-based tests' : 'Unit- und Property-Based Tests'}</strong> {en ? 'for the simulator engines (mutation runner, fuzzer, shrinker, model checker), with fast-check.' : 'für die Simulator-Engines (Mutationsläufer, Fuzzer, Shrinker, Model Checker), mit fast-check.'}</li>
+      <li><strong>{en ? 'Mutation testing' : 'Mutation Testing'}</strong> {en ? 'of those engines with StrykerJS, to check the tests above.' : 'dieser Engines mit StrykerJS, um die Tests oben zu prüfen.'}</li>
+      <li><strong>{en ? 'End-to-end smoke tests' : 'End-to-End-Smoke-Tests'}</strong> {en ? 'with Playwright in both languages, including an accessibility scan.' : 'mit Playwright in beiden Sprachen, inklusive Barrierefreiheits-Scan.'}</li>
+      <li><strong>{en ? 'Recorded tool output' : 'Aufgezeichnete Werkzeugausgabe'}</strong>: {en ? 'the TLA+ and Dafny outputs in the guides are real runs; a CI job re-runs them and fails if they change.' : 'die TLA+- und Dafny-Ausgaben in den Anleitungen stammen aus echten Läufen; ein CI-Job wiederholt sie und scheitert, wenn sie sich ändern.'}</li>
+    </ul>
+
+    <h2>{en ? 'Privacy' : 'Datenschutz'}</h2>
+    <p>{en ? 'No cookies, no analytics, no external fonts or scripts. Your theme and language choice are stored only in your own browser. Simulators run entirely in your browser.' : 'Keine Cookies, keine Analyse, keine externen Schriften oder Skripte. Theme- und Sprachwahl werden nur im eigenen Browser gespeichert. Simulatoren laufen vollständig im Browser.'}</p>
+
+    <h2>{en ? 'All sources' : 'Alle Quellen'} ({SOURCES.length})</h2>
+    <p class="muted small">{en ? 'Each citation was checked against the publisher, DOI or arXiv page. Preprints are marked.' : 'Jede Quelle wurde gegen Verlag, DOI- oder arXiv-Seite geprüft. Preprints sind markiert.'}</p>
+    <ol class="sources">
+      {sorted.map((s) => <li id={`src-${s.id}`}>{s.authors}. <a href={s.url} rel="noopener">{s.title}</a>. <em>{s.venue}</em>, {s.year}.{s.preprint && <> <span class="badge">preprint</span></>}</li>)}
+    </ol>
+  </div>
+</Base>
+<style>
+  h2 { margin-top: 2rem; }
+  .sources { font-size: .92rem; }
+  .sources li { margin-bottom: .5em; }
+</style>

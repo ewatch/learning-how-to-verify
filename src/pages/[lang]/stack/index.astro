@@ -1,0 +1,30 @@
+---
+import Base from '../../../layouts/Base.astro';
+import type { Locale } from '../../../data/types';
+import { LANGS } from '../../../data/taxonomy';
+import { PRACTICES } from '../../../data/practices';
+import { href } from '../../../i18n/ui';
+import { langPaths } from '../../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+const en = lang === 'en';
+---
+<Base lang={lang} path="stack/" nav="stack" title={en ? 'My stack' : 'Mein Stack'} description={en ? 'Pick your programming language and see every verification practice with open-source tools for it.' : 'Programmiersprache wählen und jede Verifikationspraktik mit passenden Open-Source-Werkzeugen sehen.'}>
+  <div class="wrap">
+    <header class="narrow">
+      <h1>{en ? 'Which language do you work in?' : 'In welcher Sprache arbeitest du?'}</h1>
+      <p class="lede">{en ? 'One page per language, with every practice and the open-source tools for it. Language-independent tools (TLA+, k6, OpenTelemetry …) are included on every page.' : 'Eine Seite pro Sprache, mit jeder Praktik und den Open-Source-Werkzeugen dafür. Sprachunabhängige Werkzeuge (TLA+, k6, OpenTelemetry …) stehen auf jeder Seite.'}</p>
+    </header>
+    <div class="grid cols-3 langs">
+      {LANGS.map((lg) => {
+        const n = PRACTICES.filter((p) => (p.tools[lg.id]?.length ?? 0) > 0).length;
+        return <a class="card lg" href={href(lang, `stack/${lg.id}/`)}><strong>{lg.name}</strong><span class="muted small">{en ? `${n} practices with dedicated tools` : `${n} Praktiken mit eigenen Werkzeugen`}</span></a>;
+      })}
+    </div>
+  </div>
+</Base>
+<style>
+  .langs { margin-top: 24px; }
+  .lg { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); font-size: 1.1rem; }
+  .lg:hover { border-color: var(--rule-strong); }
+</style>

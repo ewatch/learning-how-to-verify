@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "vitest": { "configFile": "vitest.weak.config.ts" },
+  "mutate": ["src/domain/pricing.ts", "src/domain/allocate.ts"],
+  "reporters": ["json"],
+  "jsonReporter": { "fileName": "reports/mutation-weak/mutation.json" },
+  "coverageAnalysis": "perTest",
+  "tempDirName": ".stryker-tmp",
+  "ignorePatterns": [".tools", ".tmp", "reports", "verification"]
+}

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software-Qualität interaktiv: Verifikation, Mutation Testing, Property-Based Testing</title>
+<style>
+/* ---------- gemeinsames Design (in allen Demo-Seiten identisch) ---------- */
+:root {
+  --fg: var(--foreground, #e7e9ee);
+  --bg: var(--background, #0f1117);
+  --card-bg: var(--card, #171a22);
+  --bd: var(--border, #2b303b);
+  --mut: var(--muted-foreground, #9aa3b2);
+  --acc: var(--accent, #c026d3);
+  --ok: var(--success, #22c55e);
+  --err: var(--destructive, #ef4444);
+  --wrn: var(--warning, #f59e0b);
+  --inf: var(--info, #3b82f6);
+  --codebg: var(--code-background, #0b0d12);
+  --codefg: var(--code-foreground, #e7e9ee);
+  --rad: var(--radius, 10px);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --c1: var(--chart-1, #3b82f6);
+  --c2: var(--chart-2, #f97316);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { color: var(--fg); font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); line-height: 1.5; font-size: 15px; }
+body.standalone { background: var(--bg); padding: 28px 20px 60px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 28px; margin: 4px 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 19px; margin: 0 0 8px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+a { color: var(--acc); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--acc); font-weight: 600; }
+.lead { color: var(--mut); font-size: 16px; max-width: 760px; }
+.card { background: var(--card-bg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 16px; }
+.explain { border-left: 3px solid var(--acc); padding: 10px 14px; background: color-mix(in srgb, var(--acc) 7%, transparent); border-radius: 0 var(--rad) var(--rad) 0; margin: 0 0 14px; }
+.explain p:last-child { margin: 0; }
+.note { font-size: 13px; color: var(--mut); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 16px; border-bottom: 1px solid var(--bd); }
+.tabs button { background: none; border: none; color: var(--mut); padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--acc); }
+.tab { display: none; }
+.tab.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+button.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+button.btn:hover { border-color: var(--acc); }
+button.btn.primary { background: var(--primary, var(--acc)); color: var(--primary-foreground, #fff); border-color: transparent; }
+button.btn:disabled { opacity: .5; cursor: default; }
+select, input[type=text], textarea { font: inherit; font-size: 14px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 9px; }
+input[type=text] { font-family: var(--mono); }
+textarea { font-family: var(--mono); font-size: 13px; width: 100%; line-height: 1.55; resize: vertical; tab-size: 2; }
+label.lbl { font-size: 12px; color: var(--mut); display: block; margin-bottom: 3px; font-weight: 600; }
+.code { font-family: var(--mono); font-size: 13px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 8px 0; overflow-x: auto; }
+.ln { display: flex; white-space: pre; border-left: 3px solid transparent; transition: background .25s, border-color .25s; min-height: 20px; }
+.ln .no { width: 34px; text-align: right; padding-right: 12px; color: var(--mut); opacity: .55; user-select: none; flex: none; }
+.ln .tx { padding-right: 12px; }
+.ln.hl { background: color-mix(in srgb, var(--acc) 20%, transparent); border-left-color: var(--acc); }
+.ln.changed .tx { text-decoration: underline wavy color-mix(in srgb, var(--wrn) 80%, transparent); text-underline-offset: 4px; }
+.tok-kw { color: #b866e0; } .tok-num { color: #d68a2e; } .tok-str { color: #3da86b; } .tok-com { color: var(--mut); font-style: italic; } .tok-fn { color: #3f8fe8; }
+.ok { color: var(--ok); } .bad { color: var(--err); } .warn { color: var(--wrn); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; }
+.pill.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.pill.bad { background: color-mix(in srgb, var(--err) 16%, transparent); }
+.pill.warn { background: color-mix(in srgb, var(--wrn) 16%, transparent); }
+.pill.idle { background: color-mix(in srgb, var(--mut) 16%, transparent); color: var(--mut); }
+.term { font-family: var(--mono); font-size: 12.5px; background: var(--codebg); color: var(--codefg); border: 1px solid var(--bd); border-radius: var(--rad); padding: 10px 12px; white-space: pre-wrap; min-height: 44px; }
+.bar { height: 6px; background: color-mix(in srgb, var(--mut) 18%, transparent); border-radius: 9px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .1s linear; }
+.footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--bd); font-size: 14px; color: var(--mut); }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.verdict { margin-top: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.verdict.bad { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--bd); background: var(--card-bg); color: var(--fg); cursor: pointer; }
+.chips button.active { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 16%, transparent); }
+.pill { white-space: nowrap; }
+
+.spaces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 640px) { .spaces { grid-template-columns: 1fr; } }
+.space { border: 1px solid var(--bd); border-radius: var(--rad); background: var(--card-bg); padding: 10px; }
+.space svg { display: block; width: 100%; height: auto; background: var(--codebg); border-radius: 6px; }
+.space .cap { font-size: 12.5px; color: var(--mut); margin-top: 6px; min-height: 38px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+.cards a.card { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px; transition: border-color .2s, transform .2s; }
+.cards a.card:hover { border-color: var(--acc); transform: translateY(-2px); }
+.cards .num { font-size: 12px; font-weight: 700; color: var(--acc); }
+.cards ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--mut); }
+.cards .go { margin-top: auto; font-weight: 700; color: var(--acc); font-size: 14px; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.cmp th, table.cmp td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--bd); vertical-align: top; }
+table.cmp th { font-size: 12.5px; color: var(--mut); }
+table.cmp td:first-child { font-weight: 600; white-space: nowrap; }
+
+/* ---------- „Einfach erklärt“ ---------- */
+.eli5 { border: 1px solid color-mix(in srgb, var(--inf) 45%, var(--bd)); background: color-mix(in srgb, var(--inf) 7%, var(--card-bg)); border-radius: var(--rad); margin: 14px 0 16px; }
+.eli5 > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 15.5px; list-style-position: inside; }
+.eli5 > summary .note { font-weight: 400; }
+.eli5-body { padding: 0 14px 12px; }
+.eli5-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 18px; margin-bottom: 8px; }
+.eli5 h4 { margin: 4px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--inf); }
+.eli5 p { font-size: 14.5px; margin: 0 0 6px; }
+.eli5 ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.eli5 li { margin: 3px 0; }
+.eli5 dl { margin: 0; font-size: 13.5px; }
+.eli5 dl > div { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--bd); }
+.eli5 dt { font-weight: 700; }
+.eli5 dd { margin: 0; color: var(--mut); }
+.eli5 .merke { margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--wrn) 12%, transparent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">Software-Qualität interaktiv</div>
+    <h1>Beweisen, Mutieren, Generieren</h1>
+    <p class="lead">Fünf Techniken, die weit über klassische Beispieltests hinausgehen. Jede Demo führt echten Code im Browser aus und zeigt animiert, was im Inneren passiert.</p>
+  </header>
+
+  <details class="eli5" open>
+    <summary>🧸 Einfach erklärt <span class="note">(ohne Vorkenntnisse, zum Zuklappen hier klicken)</span></summary>
+    <div class="eli5-body">
+      <div class="eli5-row">
+        <div><h4>Stell dir vor …</h4><p>Du hast ein Fahrrad gebaut und willst wissen, ob es sicher ist. Du kannst <b>ein paar Runden fahren</b> (das ist ein normaler Test). Du kannst <b>einen Ingenieur nachrechnen lassen</b>, dass der Rahmen jedes Gewicht bis 120 kg hält (das ist ein Beweis). Oder du lässt <b>ein Kind wild damit herumfahren</b> und schaust, was kaputtgeht (das ist Fuzzing).</p></div>
+        <div><h4>Und bei Software?</h4><p>Ein Programm bekommt <b>Eingaben</b> (z. B. einen Preis) und liefert ein <b>Ergebnis</b>. Ein normaler Test probiert nur ein paar Eingaben aus. Fehler verstecken sich aber oft bei genau den Eingaben, an die niemand gedacht hat. Die fünf Demos zeigen fünf Tricks, solche versteckten Fehler zu finden.</p></div>
+      </div>
+      <div class="eli5-row">
+        <div><h4>So probierst du die Demo aus</h4><ol><li>Schau dir die Animation oben an: Jeder Punkt ist eine ausprobierte Eingabe, das rote Kästchen ist ein versteckter Fehler.</li><li>Links probiert ein Mensch 4 Eingaben und verfehlt den Fehler. In der Mitte probiert ein Computer 160 zufällige. Rechts wird alles auf einmal geprüft.</li><li>Öffne danach eine Demo. Am besten fängst du mit <b>Property-Based Testing</b> oder <b>Fuzzing</b> an, die sind am anschaulichsten.</li></ol></div>
+        <div><h4>Wörter, die hier vorkommen</h4><dl><div><dt>Programm / Code</dt><dd>eine genaue Anleitung für den Computer, Schritt für Schritt</dd></div><div><dt>Eingabe</dt><dd>das, was man dem Programm gibt: eine Zahl, ein Text, ein Klick</dd></div><div><dt>Bug</dt><dd>ein Fehler im Programm: Es tut etwas anderes als gewollt</dd></div><div><dt>Test</dt><dd>ein kleines Programm, das prüft: Kommt bei dieser Eingabe das Richtige heraus?</dd></div><div><dt>Spezifikation</dt><dd>die genaue Beschreibung, was das Programm tun <i>soll</i></dd></div></dl></div>
+      </div>
+      <p class="merke">💡 <b>Merksatz:</b> Ein paar Tests zeigen nur, dass ein paar Fälle funktionieren. Die Techniken hier suchen gezielt nach den Fällen, die niemand ausprobiert hat.</p>
+    </div>
+  </details>
+
+
+  <h2 style="margin-top:20px">Wie viel vom Eingaberaum wird geprüft?</h2>
+  <p class="note">Jedes Feld ist der Raum aller möglichen Eingaben. Im <span class="bad">roten Bereich</span> steckt ein Bug.</p>
+  <div class="spaces">
+    <div class="space"><h3>Beispieltests</h3><svg id="sp1" viewBox="0 0 200 140"></svg><div class="cap" id="cap1"></div></div>
+    <div class="space"><h3>Property-Based Testing</h3><svg id="sp2" viewBox="0 0 200 140"></svg><div class="cap" id="cap2"></div></div>
+    <div class="space"><h3>Formale Verifikation</h3><svg id="sp3" viewBox="0 0 200 140"></svg><div class="cap" id="cap3"></div></div>
+  </div>
+  <div class="row" style="margin-top:8px"><button class="btn" id="replay">↺ Animation wiederholen</button><span class="note">Mutation Testing fehlt hier absichtlich: Es prüft nicht den Eingaberaum, sondern <b>die Tests selbst</b>.</span></div>
+
+  <h2 style="margin-top:26px">Die fünf Demos</h2>
+  <div class="cards">
+    <a class="card" href="verifikation.html"><span class="num">DEMO 1</span><h3>Formale Verifikation</h3>
+      <ul><li>wp-Kalkül Schritt für Schritt, mit Solver und Gegenbeispiel</li><li>Dafny-Schleifeninvarianten: die 4 Beweisverpflichtungen</li><li>Model Checking findet eine Race Condition</li><li>TLA+ im Alltag: Konto, Überweisung, Aufzug, Deadlock</li><li>Lean 4: Taktikbeweise mit Infoview</li></ul><span class="go">Öffnen →</span></a>
+    <a class="card" href="mutation-testing.html"><span class="num">DEMO 2</span><h3>Mutation Testing</h3>
+      <ul><li>Mutanten werden erzeugt und gegen die Tests ausgeführt</li><li>100 % Coverage, aber Lücken bei Grenzwerten und Seiteneffekten</li><li>äquivalente Mutanten und Timeouts</li></ul><span class="go">Öffnen →</span></a>
+    <a class="card" href="property-based-testing.html"><span class="num">DEMO 3</span><h3>Property-Based Testing</h3>
+      <ul><li>hunderte generierte Eingaben, live geprüft</li><li>Shrinking bis zum minimalen Gegenbeispiel</li><li>Statistik und Spezifikation schrittweise präzisieren</li></ul><span class="go">Öffnen →</span></a>
+    <a class="card" href="fuzzing.html"><span class="num">DEMO 4</span><h3>Fuzzing</h3>
+      <ul><li>blind vs. Coverage-geführt, mit gleichem Budget im Wettlauf</li><li>Korpus wächst: F → FU → FUZ → FUZZ …</li><li>Speicherexplosion, Wörterbuch, eigene Assertions, Crash-Minimierung</li></ul><span class="go">Öffnen →</span></a>
+    <a class="card" href="differential-testing.html"><span class="num">DEMO 5</span><h3>Differential Testing</h3>
+      <ul><li>URL-Validator vs. echter URL-Parser: SSRF-Lücken</li><li>Refactoring alt vs. neu ohne Spezifikation absichern</li><li>Abweichungen reduzieren, gruppieren und bewerten</li></ul><span class="go">Öffnen →</span></a>
+  </div>
+  <p class="note" style="margin-top:10px">Alle fünf Techniken an einer echten Anwendung (React, MUI, Fachlogik, REST-API): <a href="../petstore/README.md"><code>petstore/</code></a>. Sie braucht im Unterschied zu diesen Demos <code>npm install</code>.</p>
+
+  <h2 style="margin-top:26px">Vergleich</h2>
+  <div style="overflow-x:auto"><table class="cmp">
+    <thead><tr><th></th><th>Formale Verifikation</th><th>Mutation Testing</th><th>Property-Based Testing</th><th>Fuzzing</th><th>Differential Testing</th></tr></thead>
+    <tbody>
+      <tr><td>Prüft …</td><td>den Code gegen eine formale Spezifikation</td><td>die <b>Qualität der Tests</b></td><td>den Code gegen allgemeine Eigenschaften</td><td>robustes Verhalten bei beliebigen Eingaben</td><td>zwei Implementierungen gegeneinander</td></tr>
+      <tr><td>Ergebnis</td><td>Beweis oder Gegenbeispiel</td><td>Mutation Score und Liste überlebender Mutanten</td><td>minimales Gegenbeispiel, Seed, Statistik</td><td>Absturz-Eingaben (minimiert), Korpus</td><td>Abweichungsklassen mit Beispielen</td></tr>
+      <tr><td>Garantie</td><td><b>alle</b> Eingaben (relativ zur Spezifikation)</td><td>keine. Misst, welche Fehler die Tests finden würden</td><td>Stichprobe: hohe Konfidenz, kein Beweis</td><td>Stichprobe, aber sehr groß und tief</td><td>nur relativ zur anderen Implementierung</td></tr>
+      <tr><td>Aufwand</td><td>hoch (Spezifikation, Invarianten)</td><td>gering für Menschen, hoch an Rechenzeit</td><td>mittel (gute Eigenschaften finden)</td><td>gering (Harness), hoch an Rechenzeit</td><td>gering, wenn es eine zweite Implementierung gibt</td></tr>
+      <tr><td>Typische Schwäche</td><td>falsche/unvollständige Spezifikation</td><td>äquivalente Mutanten, Laufzeit</td><td>schlechte Generatoren übersehen Fälle</td><td>sieht ohne Assertions nur Abstürze; Prüfsummen bremsen</td><td>gemeinsame Fehler bleiben unsichtbar; wer hat recht?</td></tr>
+      <tr><td>Werkzeuge</td><td>Dafny, Frama-C, SPARK, Verus, Lean, Coq/Rocq, TLA+, CBMC</td><td>PIT, Stryker, mutmut, cosmic-ray, cargo-mutants, Mull</td><td>Hypothesis, QuickCheck, fast-check, jqwik, proptest</td><td>AFL++, libFuzzer, Jazzer, Atheris, cargo-fuzz, OSS-Fuzz, RESTler</td><td>Csmith, SQLancer, Diffy, Schattenbetrieb</td></tr>
+    </tbody>
+  </table></div>
+  <div class="explain" style="margin-top:14px"><p><b>Zusammenspiel:</b> Eine Property ist eine <i>ausführbare Spezifikation</i>. Bewährt sie sich im Property-Based Testing, ist sie ein guter Kandidat für eine formale <code>ensures</code>-Klausel. Mutation Testing zeigt wiederum, ob deine Beispiel- und Property-Tests stark genug sind. In der Praxis wird kritischer Kern-Code (Krypto, Protokolle, Kernel) verifiziert, und der Rest wird mit Properties und Mutation Testing abgesichert.</p></div>
+
+  <div class="footer">Alle Seiten sind eigenständige HTML-Dateien ohne externe Abhängigkeiten.</div>
+</div>
+<script>
+"use strict";
+/* ---------- gemeinsame Helfer ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+if (!getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim()) document.body.classList.add("standalone");
+
+function highlight(src, kws) {
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$äöüÄÖÜß][\w$äöüÄÖÜß]*)(\s*\()?|([\s\S])/g;
+  let out = "", m;
+  while ((m = re.exec(src))) {
+    if (m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tok-num">${m[3]}</span>`;
+    else if (m[4]) {
+      if (kws.has(m[4])) out += `<span class="tok-kw">${m[4]}</span>`;
+      else if (m[5]) out += `<span class="tok-fn">${m[4]}</span>`;
+      else out += m[4];
+      if (m[5]) out += esc(m[5]);
+    } else out += esc(m[6]);
+  }
+  return out;
+}
+function setupTabs() {
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    $$(".tabs button").forEach(x => x.classList.toggle("active", x === b));
+    $$(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  });
+}
+setupTabs();
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const BUG = { x: 128, y: 70, w: 26, h: 20 }; // Bug-Bereich im Eingaberaum
+const inBug = (x, y) => x >= BUG.x && x <= BUG.x + BUG.w && y >= BUG.y && y <= BUG.y + BUG.h;
+let anim = 0;
+function base(svg) { svg.innerHTML = ""; el("rect", { x: BUG.x, y: BUG.y, width: BUG.w, height: BUG.h, rx: 3, fill: "color-mix(in srgb, var(--err) 30%, transparent)", stroke: "var(--err)", "stroke-dasharray": "3 2" }, svg); }
+const dot = (svg, x, y, bad, r = 2.6) => { const c = el("circle", { cx: x, cy: y, r, fill: bad ? "var(--err)" : "var(--ok)", class: "pop" }, svg); c.style.transformOrigin = `${x}px ${y}px`; return c; };
+async function play() {
+  const id = ++anim;
+  const s1 = $("#sp1"), s2 = $("#sp2"), s3 = $("#sp3");
+  [s1, s2, s3].forEach(base);
+  $("#cap1").textContent = $("#cap2").textContent = $("#cap3").textContent = "";
+  // 1) Beispieltests: wenige, handverlesene Punkte
+  const ex = [[30, 30], [70, 100], [170, 40], [100, 60]];
+  (async () => {
+    for (const [x, y] of ex) { if (id !== anim) return; dot(s1, x, y, inBug(x, y), 4); await sleep(500); }
+    $("#cap1").innerHTML = `${ex.length} Eingaben, von Hand gewählt. Der Bug bleibt <b>unentdeckt</b>.`;
+  })();
+  // 2) PBT: viele Zufallspunkte, dann Shrinking Richtung „einfach“ (oben links im Bug-Bereich)
+  (async () => {
+    let r = 11; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    let hit = null;
+    for (let i = 0; i < 160; i++) {
+      if (id !== anim) return;
+      const x = 4 + rnd() * 192, y = 4 + rnd() * 132;
+      dot(s2, x, y, inBug(x, y)); if (inBug(x, y) && !hit) { hit = [x, y]; }
+      $("#cap2").textContent = `Test ${i + 1}: zufällige Eingabe …`;
+      await sleep(hit ? 6 : 22);
+    }
+    if (!hit) { $("#cap2").textContent = "Kein Treffer in dieser Stichprobe."; return; }
+    $("#cap2").textContent = "Treffer! Schrumpfen …";
+    let [x, y] = hit; const tx = BUG.x + 2, ty = BUG.y + 2;
+    const m = el("circle", { cx: x, cy: y, r: 5, fill: "none", stroke: "var(--wrn)", "stroke-width": 2 }, s2);
+    for (let k = 0; k < 6; k++) { if (id !== anim) return; x = (x + tx) / 2; y = (y + ty) / 2; m.setAttribute("cx", x); m.setAttribute("cy", y); await sleep(320); }
+    $("#cap2").innerHTML = `160 Zufallseingaben → Bug gefunden und auf ein <b>minimales Gegenbeispiel</b> geschrumpft.`;
+  })();
+  // 3) Formale Verifikation: der gesamte Raum wird symbolisch abgedeckt
+  (async () => {
+    const sweep = el("rect", { x: 0, y: 0, width: 0, height: 140, fill: "color-mix(in srgb, var(--inf) 22%, transparent)" }, s3);
+    for (let w = 0; w <= 200; w += 4) { if (id !== anim) return; sweep.setAttribute("width", w); await sleep(28); }
+    el("rect", { x: BUG.x, y: BUG.y, width: BUG.w, height: BUG.h, rx: 3, fill: "none", stroke: "var(--err)", "stroke-width": 2.5, class: "pop" }, s3);
+    $("#cap3").innerHTML = `<b>Alle</b> Eingaben auf einmal, symbolisch. Der Solver liefert garantiert ein Gegenbeispiel oder einen Beweis.`;
+  })();
+}
+$("#replay").onclick = play;
+play();
+</script>
+</body>
+</html>

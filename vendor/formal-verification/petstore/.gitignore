@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.tools/
+.stryker-tmp/
+reports/
+coverage/
+verification/**/generated/
+verification/tla/states/
+*.tsbuildinfo
+fuzz/corpus/
+crash-*
+timeout-*
+.tmp/

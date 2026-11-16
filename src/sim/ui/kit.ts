@@ -107,3 +107,41 @@ export function segmented<T extends string>(label: string, options: { value: T; 
 export function card(title: string, ...kids: (Node | string)[]): HTMLElement {
   return h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, title), ...kids);
 }
+
+/** Generic keyword/number/comment highlighter for non-JS listings (Dafny, Lean, wp pseudo-code). Returns HTML. */
+export function highlight(src: string, kws: Set<string>, comment = '//'): string {
+  const ci = src.indexOf(comment);
+  const code = ci >= 0 ? src.slice(0, ci) : src;
+  let out = '';
+  for (const m of code.matchAll(/(\b\d+\b)|([A-Za-z_][\w.']*)|([\s\S])/g)) {
+    if (m[1]) out += `<span class="tk-num">${m[1]}</span>`;
+    else if (m[2]) out += kws.has(m[2]) || m[2] === '#eval' ? `<span class="tk-kw">${m[2]}</span>` : esc(m[2]);
+    else out += esc(m[3]!);
+  }
+  if (ci >= 0) out += `<span class="tk-com">${esc(src.slice(ci))}</span>`;
+  return out || ' ';
+}
+
+export interface CodeRow { no?: string | number; html?: string; node?: Node; cls?: string; attrs?: Attrs }
+/** Read-only listing built from prepared rows (line number gutter + html or node content). */
+export function codeRows(rows: CodeRow[], label = 'code'): HTMLElement {
+  const wrap = h('div', { class: 'sim-code', role: 'region', 'aria-label': label, tabindex: 0 });
+  for (const r of rows) {
+    const tx = h('span', { class: 'tx', html: r.node ? undefined : r.html ?? ' ' }, r.node);
+    wrap.append(h('div', { class: `ln ${r.cls ?? ''}`, ...r.attrs }, h('span', { class: 'no' }, r.no === undefined ? '' : String(r.no)), tx));
+  }
+  return wrap;
+}
+
+/** Minimal inline markup for bilingual strings: `code`, **bold**, *italic*. Never uses innerHTML. */
+export function rich(text: string): (Node | string)[] {
+  const out: (Node | string)[] = [];
+  for (const part of text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/)) {
+    if (!part) continue;
+    if (part.startsWith('`')) out.push(h('code', {}, part.slice(1, -1)));
+    else if (part.startsWith('**')) out.push(h('strong', {}, part.slice(2, -2)));
+    else if (part.startsWith('*') && part.length > 2) out.push(h('em', {}, part.slice(1, -1)));
+    else out.push(part);
+  }
+  return out;
+}

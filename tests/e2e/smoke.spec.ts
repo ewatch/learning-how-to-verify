@@ -17,6 +17,11 @@ for (const lang of ['en', 'de'] as const) {
       expect(errs).toEqual([]);
     });
 
+    test('glossary terms on a practice page link to the glossary', async ({ page }) => {
+      await page.goto(`/${lang}/practices/mutation-tests/`);
+      await expect(page.locator('a.gloss[data-gloss="mutant"]').first()).toHaveAttribute('href', `/${lang}/glossary/#mutant`);
+    });
+
     test('language switch keeps the page', async ({ page }) => {
       await page.goto(`/${lang}/practices/mutation-tests/`);
       await page.locator('[data-lang-switch]').click();

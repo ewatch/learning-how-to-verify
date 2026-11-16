@@ -72,3 +72,37 @@
 .sim label.inline { display: inline-flex; gap: 6px; align-items: center; font-size: .92rem; }
 .sim-chart { width: 100%; height: auto; display: block; }
 .sim-chart text { font: 11px var(--font-body); fill: var(--ink-3); }
+
+/* tabs (formal verification) */
+.sim-tabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--rule-strong); margin-bottom: 12px; }
+.sim-tab { font: inherit; font-size: .92rem; padding: 7px 12px; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; background: none; color: var(--ink-2); cursor: pointer; margin-bottom: -1px; }
+.sim-tab[aria-selected='true'] { background: var(--card); color: var(--ink); font-weight: 600; border-color: var(--rule-strong); }
+.sim-tab:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+/* wp calculus */
+.sim-code .ln.spec { color: var(--ink-2); font-weight: 600; }
+.sim-code .ln.anno { color: var(--l-static); border-top: 1px dashed var(--rule-strong); border-bottom: 1px dashed var(--rule-strong); background: color-mix(in srgb, var(--l-static) 7%, transparent); }
+.sim-code .ln.anno[hidden] { display: none; }
+.sim-code .ln.anno.old { opacity: .6; }
+.sim-code mark { background: color-mix(in srgb, var(--warn) 32%, transparent); color: inherit; }
+.sim-formula { font-family: var(--font-mono); }
+.sim-steps { margin: 0; padding-left: 1.3em; max-height: 280px; overflow: auto; font-size: .9rem; }
+.sim-steps li { margin: 0 0 6px; }
+.sim-steps li.cur { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+
+/* loop invariants / Lean */
+.sim-code .ln.changed .tx { text-decoration: underline wavy var(--warn); text-underline-offset: 3px; }
+.sim-code .ln.err .tx { text-decoration: underline wavy var(--bad); text-underline-offset: 3px; }
+.sim-code .ln.step { cursor: pointer; }
+.sim-code .ln.step .no { color: var(--l-static); font-weight: 700; }
+.sim-code .ln.step:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.sim-obls { display: grid; gap: 8px; }
+.sim-iv-body { font: 12.5px/1.55 var(--font-mono); display: grid; gap: 8px; }
+.sim-iv-goal { border-left: 3px solid var(--rule-strong); padding-left: 8px; }
+.sim-iv-tgt { font-weight: 700; margin-top: 2px; }
+.sim-iv-msg { margin: 0; white-space: pre-wrap; }
+.sim-iv-msg.done { color: var(--ok); font-weight: 700; }
+.sim-iv-msg.err { color: var(--bad); }
+
+/* the `font` shorthand above resets font-variant: keep code ligature-free (>= stays >=) */
+.sim-code, .sim-log, .sim-textarea, .sim .cm-content { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'calt' 0; }

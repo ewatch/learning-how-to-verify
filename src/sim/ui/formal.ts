@@ -27,7 +27,7 @@ const T = {
   },
 };
 
-export function mount(root: HTMLElement, lang: Lang) {
+function mountModelCheck(root: HTMLElement, lang: Lang) {
   const t = T[lang];
   const S = { atomic: false, people: 2, run: 0 };
   const spec = h('pre', { tabindex: 0, class: 'sim-code', style: 'padding:8px 12px;max-height:320px' });
@@ -79,4 +79,50 @@ export function mount(root: HTMLElement, lang: Lang) {
     runBtn.disabled = false;
   }
   render();
+}
+
+const TABS = {
+  en: { label: 'Formal verification simulators', names: ['Model checking', 'wp calculus', 'Loop invariants (Dafny)', 'Lean 4 proof'] },
+  de: { label: 'Simulatoren zur formalen Verifikation', names: ['Model Checking', 'wp-Kalkül', 'Schleifeninvarianten (Dafny)', 'Lean-4-Beweis'] },
+};
+const LOADERS: ((el: HTMLElement, lang: Lang) => void | Promise<void>)[] = [
+  mountModelCheck,
+  async (el, lang) => (await import('./wp')).mount(el, lang),
+  async (el, lang) => (await import('./invariant')).mount(el, lang),
+  async (el, lang) => (await import('./lean')).mount(el, lang),
+];
+
+export function mount(root: HTMLElement, lang: Lang) {
+  const names = TABS[lang].names;
+  const uid = Math.random().toString(36).slice(2);
+  const mounted = new Set<number>();
+  const tabs: HTMLElement[] = [];
+  const panels: HTMLElement[] = [];
+  const list = h('div', { class: 'sim-tabs', role: 'tablist', 'aria-label': TABS[lang].label });
+
+  function select(i: number, focus = false) {
+    tabs.forEach((tab, k) => {
+      tab.setAttribute('aria-selected', String(k === i));
+      tab.tabIndex = k === i ? 0 : -1;
+      panels[k]!.hidden = k !== i;
+    });
+    if (focus) tabs[i]!.focus();
+    if (!mounted.has(i)) { mounted.add(i); void LOADERS[i]!(panels[i]!, lang); }
+  }
+  names.forEach((name, i) => {
+    const tab = h('button', {
+      class: 'sim-tab', type: 'button', role: 'tab', id: `${uid}-tab-${i}`, 'aria-controls': `${uid}-panel-${i}`, 'aria-selected': 'false', tabindex: -1,
+      onclick: () => select(i),
+      onkeydown: (ev: Event) => {
+        const k = (ev as KeyboardEvent).key;
+        const to = k === 'ArrowRight' ? (i + 1) % names.length : k === 'ArrowLeft' ? (i + names.length - 1) % names.length : k === 'Home' ? 0 : k === 'End' ? names.length - 1 : -1;
+        if (to >= 0) { ev.preventDefault(); select(to, true); }
+      },
+    }, name);
+    tabs.push(tab);
+    panels.push(h('div', { role: 'tabpanel', id: `${uid}-panel-${i}`, 'aria-labelledby': `${uid}-tab-${i}`, hidden: true }));
+    list.append(tab);
+  });
+  root.append(list, ...panels);
+  select(0);
 }

@@ -1,9 +1,15 @@
 import type { L } from './types';
 
-export interface Term { id: string; term: L; def: L; see?: string }
+export interface Term {
+  id: string; term: L; def: L; see?: string;
+  /** extra spellings that should link to this entry (plurals, synonyms), per language */
+  aliases?: { en: string[]; de: string[] };
+  /** false: never auto-link in running text (too generic); the glossary page still lists it */
+  autolink?: boolean;
+}
 const g = (id: string, ten: string, tde: string, en: string, de: string, see?: string): Term => ({ id, term: { en: ten, de: tde }, def: { en, de }, see });
 
-export const GLOSSARY: Term[] = [
+const BASE: Term[] = [
   g('oracle', 'Oracle', 'Orakel', 'Whatever decides whether an output is correct: an expected value, a rule, a second implementation, a human.', 'Das, was entscheidet, ob eine Ausgabe korrekt ist: ein Erwartungswert, eine Regel, eine zweite Implementierung, ein Mensch.', 'differential-testing'),
   g('invariant', 'Invariant', 'Invariante', 'A statement that must be true in every state, e.g. "no pet is reserved by two people".', 'Eine Aussage, die in jedem Zustand gelten muss, z. B. „kein Tier ist von zwei Personen reserviert“.', 'formal-verification'),
   g('property', 'Property', 'Eigenschaft (Property)', 'A rule that must hold for all inputs, checked with many generated inputs.', 'Eine Regel, die für alle Eingaben gelten muss, geprüft mit vielen erzeugten Eingaben.', 'property-based-tests'),
@@ -31,3 +37,38 @@ export const GLOSSARY: Term[] = [
   g('eval', 'Eval', 'Eval', 'A repeatable set of tasks with grading, used to measure a model or agent setup.', 'Ein wiederholbarer Aufgabensatz mit Bewertung, um ein Modell oder Agenten-Setup zu messen.', 'evals'),
   g('reward-hacking', 'Test gaming / reward hacking', 'Tests austricksen (Reward Hacking)', 'Meeting the measured goal (green tests) without meeting the real one (working code), e.g. by editing tests.', 'Das gemessene Ziel (grüne Tests) erreichen, ohne das eigentliche (funktionierender Code), z. B. durch Ändern der Tests.', 'test-integrity'),
 ];
+
+type Extra = { en?: string[]; de?: string[]; autolink?: boolean };
+const EXTRA: Record<string, Extra> = {
+  oracle: { en: ['oracle', 'oracles', 'test oracle'], de: ['Orakel', 'Test-Orakel'] },
+  invariant: { en: ['invariants'], de: ['Invarianten'] },
+  property: { autolink: false },
+  mutant: { en: ['mutants'], de: ['Mutanten'] },
+  'equivalent-mutant': { en: ['equivalent mutants'], de: ['äquivalente Mutanten', 'äquivalenten Mutanten'] },
+  'mutation-score': { en: ['mutation scores'], de: [] },
+  coverage: { en: ['code coverage', 'test coverage'], de: ['Coverage', 'Code Coverage', 'Testabdeckung'] },
+  corpus: { de: ['Corpus'] },
+  harness: { en: ['fuzz harness', 'fuzz harnesses', 'harness', 'fuzz target', 'fuzz targets'], de: ['Fuzz-Harness', 'Harness', 'Fuzz-Target', 'Fuzz-Targets'] },
+  precondition: { en: ['preconditions', 'postcondition', 'postconditions'], de: ['Vorbedingung', 'Vorbedingungen', 'Nachbedingung', 'Nachbedingungen'] },
+  'loop-invariant': { en: ['loop invariants'], de: ['Schleifeninvarianten'] },
+  'model-checking': { en: ['model checker', 'model checkers'], de: ['Model Checker'] },
+  interleaving: { en: ['interleavings'], de: ['Verschränkung', 'Verschränkungen', 'Interleavings'] },
+  counterexample: { en: ['counterexamples', 'counter-example'], de: ['Gegenbeispiele', 'Gegenbeispielen'] },
+  smt: { en: ['SMT solver', 'SMT solvers', 'SMT'], de: ['SMT-Solver', 'SMT'] },
+  flaky: { en: ['flaky test', 'flaky tests', 'flaky', 'flakiness'], de: ['wackeliger Test', 'wackelige Tests', 'flaky Test', 'flaky Tests', 'flaky'] },
+  'blast-radius': { de: ['Blast Radius'] },
+  slo: { en: ['SLOs'], de: ['SLOs'] },
+  p95: { en: ['p95', 'p99', 'p95/p99', 'p95 / p99'], de: ['p95', 'p99', 'p95/p99', 'p95 / p99'] },
+  sast: { en: ['SAST', 'DAST', 'SCA'], de: ['SAST', 'DAST', 'SCA'] },
+  sbom: { en: ['SBOMs'], de: ['SBOMs'] },
+  preprint: { en: ['preprints'], de: ['Preprints'] },
+  agent: { en: ['coding agent', 'coding agents'], de: ['Coding-Agent', 'Coding-Agenten', 'Coding-Agents'] },
+  eval: { en: ['evals'], de: ['Evals'] },
+  'reward-hacking': { en: ['reward hacking', 'test gaming'], de: ['Reward Hacking'] },
+};
+
+export const GLOSSARY: Term[] = BASE.map((t) => {
+  const x = EXTRA[t.id];
+  if (!x) return t;
+  return { ...t, aliases: { en: x.en ?? [], de: x.de ?? [] }, ...(x.autolink === false ? { autolink: false } : {}) };
+});

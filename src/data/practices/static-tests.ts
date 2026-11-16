@@ -408,6 +408,7 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
   },
   {
     id: 'regression-tests',
+    sim: 'regression',
     name: l('Regression tests', 'Regressionstests'),
     layer: 'static',
     phases: ['pre'],
@@ -505,6 +506,7 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data`,
   },
   {
     id: 'snapshot-tests',
+    sim: 'snapshot',
     name: l('Snapshot & characterization tests', 'Snapshot- & Charakterisierungstests'),
     layer: 'static',
     phases: ['pre'],
@@ -568,6 +570,7 @@ final class InvoiceTest extends TestCase
   },
   {
     id: 'contract-tests',
+    sim: 'contract',
     name: l('Contract tests', 'Contract-Tests'),
     layer: 'static',
     phases: ['pre'],

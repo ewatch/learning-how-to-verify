@@ -108,6 +108,7 @@ function owner(Reservation $reservation): string
   },
   {
     id: 'lint',
+    sim: 'lint',
     name: l('Lint tests', 'Linting'),
     layer: 'static',
     phases: ['pre'],
@@ -249,6 +250,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'security-scanning',
+    sim: 'secrets',
     name: l('Security scanning (SAST, SCA, secrets)', 'Security-Scans (SAST, SCA, Secrets)'),
     layer: 'static',
     phases: ['pre', 'deploy'],
@@ -386,6 +388,7 @@ jobs:
   },
   {
     id: 'tdd',
+    sim: 'tdd',
     name: l('TDD & spec-driven development', 'TDD & spezifikationsgetriebene Entwicklung'),
     layer: 'static',
     phases: ['pre'],
@@ -475,6 +478,7 @@ final class ReservationTest extends TestCase
   },
   {
     id: 'test-integrity',
+    sim: 'integrity',
     name: l('Test integrity', 'Testintegrität'),
     layer: 'static',
     phases: ['pre'],

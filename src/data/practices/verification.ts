@@ -82,6 +82,7 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
   },
   {
     id: 'contracts',
+    sim: 'dbc',
     name: l('Design by contract & assertions', 'Design by Contract & Assertions'),
     layer: 'verification',
     phases: ['pre', 'post'],

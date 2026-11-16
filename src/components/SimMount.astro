@@ -20,6 +20,14 @@ const { sim, lang } = Astro.props;
     formal: () => import('../sim/ui/formal'),
     canary: () => import('../sim/ui/canary'),
     flags: () => import('../sim/ui/flags'),
+    tdd: () => import('../sim/ui/tdd'),
+    regression: () => import('../sim/ui/regression'),
+    snapshot: () => import('../sim/ui/snapshot'),
+    contract: () => import('../sim/ui/contract'),
+    dbc: () => import('../sim/ui/dbc'),
+    lint: () => import('../sim/ui/lint'),
+    integrity: () => import('../sim/ui/integrity'),
+    secrets: () => import('../sim/ui/secrets'),
   };
   for (const el of document.querySelectorAll<HTMLElement>('[data-sim]')) {
     const load = loaders[el.dataset.sim!];

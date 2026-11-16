@@ -1,0 +1,10 @@
+.tdd-steps { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.tdd-steps li { margin: 0; padding: 4px 12px; border: 1px solid var(--rule-strong); border-radius: 999px; font-size: .85rem; font-weight: 700; color: var(--ink-3); }
+.tdd-steps li.red { color: var(--bad); border-color: var(--bad); }
+.tdd-steps li.green { color: var(--ok); border-color: var(--ok); }
+.tdd-steps li.cur { box-shadow: 0 0 0 2px var(--focus); }
+.tdd-lock { font-size: .78rem; font-weight: 700; color: var(--ink-3); border: 1px solid var(--rule-strong); border-radius: 4px; padding: 1px 6px; margin-left: 8px; }
+.tdd-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.tdd-results li { margin: 0; font-size: .88rem; }
+.tdd-results .msg { display: block; color: var(--ink-3); font: 12px var(--font-mono); margin-left: 2px; overflow-wrap: anywhere; }
+.tdd-edit { border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }

@@ -1,0 +1,15 @@
+.ig-gates { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); min-inline-size: 0; }
+.ig-gate { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--rule-strong); border-radius: 6px; padding: 8px 10px; background: var(--paper); cursor: pointer; }
+.ig-gate:has(input:checked) { border-color: var(--ink); background: var(--card); }
+.ig-gate input { margin-top: 3px; accent-color: var(--ink); }
+.ig-gate b { display: block; font-size: .9rem; }
+.ig-gate span { font-size: .8rem; color: var(--ink-3); }
+.ig-scroll { overflow-x: auto; }
+.ig-matrix th, .ig-matrix td { white-space: nowrap; }
+.ig-matrix td.c { text-align: center; }
+.ig-pick { font: inherit; background: none; border: 0; padding: 2px 0; text-align: left; cursor: pointer; color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
+.ig-pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ig-matrix tr.cur td { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.ig-badge { margin-left: 8px; font: 700 .68rem var(--font-body); padding: 0 6px; border-radius: 999px; color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 50%, transparent); white-space: nowrap; }
+.ig-tests { display: flex; gap: 8px; flex-wrap: wrap; font-size: .85rem; margin-top: 8px; }
+.ig-note { margin: 8px 0 0; font-size: .88rem; color: var(--ink-2); }

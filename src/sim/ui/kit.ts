@@ -92,16 +92,125 @@ export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)'
 
 export { rng } from '../engine/rng';
 
-/** A segmented control (radio group) */
-export function segmented<T extends string>(label: string, options: { value: T; label: string }[], value: T, onChange: (v: T) => void): HTMLElement {
+/** A segmented control (radio group). An option may carry a role tag (see `roleTag`). */
+export function segmented<T extends string>(label: string, options: { value: T; label: string; tag?: Node }[], value: T, onChange: (v: T) => void): HTMLElement {
   const name = `seg-${Math.random().toString(36).slice(2)}`;
   const g = h('fieldset', { class: 'sim-seg', 'aria-labelledby': `${name}-label` }, h('legend', { id: `${name}-label`, class: 'small muted' }, label));
   for (const o of options) {
     const id = `${name}-${o.value}`;
     const input = h('input', { type: 'radio', name, id, value: o.value, checked: o.value === value, onchange: () => onChange(o.value) });
-    g.append(input, h('label', { for: id }, o.label));
+    g.append(input, h('label', { for: id }, o.label, o.tag ? ' ' : null, o.tag));
   }
   return g;
+}
+
+/* ───────────────────────── Role tags and the result panel ─────────────────────────
+ *
+ * Shared pattern for every simulator. Reference implementation: `src/sim/ui/pbt.ts`
+ * with `pbtOutcome` / `fastCheckReport` in `src/sim/engine/pbt.ts`.
+ *
+ * 1. ROLE TAGS (before the run). Every option that changes the outcome shows what it IS,
+ *    not what will happen: `roleTag('bug', lang)`, `roleTag('correct', lang)`,
+ *    `roleTag('weak', lang)` … Pass the tag as `tag` to `segmented(...)`, or append it to a
+ *    button or card title. Kinds and texts: `TAGS` below. `tone` decides the outline colour;
+ *    the text always says the role, so colour is never the only signal.
+ *
+ * 2. ENGINE OUTCOME (logic). The engine exports a pure function that returns
+ *    `Outcome` from `src/sim/engine/outcome.ts`: `{ status, causeId, values }`.
+ *    It decides the verdict, classifies the cause and returns the numbers behind it
+ *    (e.g. the minimal counterexample). It also exports a formatter for the tool output
+ *    the agent would see (e.g. `fastCheckReport`). Both have unit tests in `tests/unit/`.
+ *
+ * 3. RESULT PANEL (rendering). Create once, show after every run:
+ *
+ *      const panel = resultPanel(lang);          // panel.el goes into the simulator
+ *      panel.show({
+ *        status: o.status,                       // 'pass' | 'fail' | 'warn' → icon ✓ ✗ !
+ *        verdict: '✗-less verdict with counts',  // e.g. 'The property fails after 3 of 200 carts'
+ *        why: ['One or two plain sentences.', …], // from causeId + values; `code`, **bold** allowed
+ *        agent: { tool: 'fast-check', output: fastCheckReport(r), use: 'What the agent can do with it.' },
+ *        next: 'One suggestion what to try.',
+ *      });
+ *      panel.clear();                            // hide when an option changes
+ *
+ *    All text comes from the simulator's own `T = { en, de }` table, keyed by `causeId`.
+ *    The panel is a `role="status"` live region with a heading (h3) and three sections
+ *    (h4: Why / What the agent gets / Next). It has the classes `sim-callout ok|bad|warn`,
+ *    so older selectors such as `.sim-callout.bad` keep working.
+ */
+
+export type TagKind = 'bug' | 'correct' | 'weak' | 'strong' | 'gate' | 'nogate' | 'blind' | 'guided'
+  | 'breaking' | 'compatible' | 'valid' | 'invalid' | 'cheat' | 'fix' | 'true' | 'false' | 'unprovable';
+
+export const TAGS: Record<TagKind, { en: string; de: string; tone: 'neg' | 'pos' }> = {
+  bug: { en: 'bug', de: 'Bug', tone: 'neg' },
+  correct: { en: 'correct', de: 'korrekt', tone: 'pos' },
+  weak: { en: 'weak tests', de: 'schwache Tests', tone: 'neg' },
+  strong: { en: 'strong tests', de: 'starke Tests', tone: 'pos' },
+  gate: { en: 'gate', de: 'Gate', tone: 'pos' },
+  nogate: { en: 'no gate', de: 'kein Gate', tone: 'neg' },
+  blind: { en: 'no feedback', de: 'ohne Feedback', tone: 'neg' },
+  guided: { en: 'coverage feedback', de: 'Coverage-Feedback', tone: 'pos' },
+  breaking: { en: 'breaking', de: 'Breaking', tone: 'neg' },
+  compatible: { en: 'compatible', de: 'kompatibel', tone: 'pos' },
+  valid: { en: 'valid input', de: 'gültige Eingabe', tone: 'pos' },
+  invalid: { en: 'invalid input', de: 'ungültige Eingabe', tone: 'neg' },
+  cheat: { en: 'cheat', de: 'Schummelei', tone: 'neg' },
+  fix: { en: 'real fix', de: 'echter Fix', tone: 'pos' },
+  true: { en: 'true claim', de: 'wahre Aussage', tone: 'pos' },
+  false: { en: 'false claim', de: 'falsche Aussage', tone: 'neg' },
+  unprovable: { en: 'correct, not provable', de: 'korrekt, nicht beweisbar', tone: 'neg' },
+};
+
+/** A small tag that names the role of an option: "bug", "correct", "weak tests" … */
+export function roleTag(kind: TagKind, lang: Lang): HTMLElement {
+  return h('span', { class: `sim-tag ${TAGS[kind].tone}`, 'data-tag': kind }, TAGS[kind][lang]);
+}
+
+export interface ResultView {
+  status: 'pass' | 'fail' | 'warn';
+  /** Verdict with counts, without icon: "The property fails after 3 of 200 carts". */
+  verdict: string;
+  /** One or two sentences (array = separate paragraphs). Supports `code`, **bold**, *italic*. */
+  why: string | string[];
+  /** The feedback the real tool gives an agent in a coding loop. */
+  agent?: { tool: string; output: string; use: string };
+  /** One suggestion what to try next. */
+  next?: string;
+}
+
+const RESULT_COPY = {
+  en: { why: 'Why', agent: 'What the agent gets', next: 'Next', example: (tool: string) => `Example of the ${tool} output format`, out: 'Tool output' },
+  de: { why: 'Warum', agent: 'Was der Agent bekommt', next: 'Als Nächstes', example: (tool: string) => `Beispiel für das Ausgabeformat von ${tool}`, out: 'Tool-Ausgabe' },
+};
+const ICON = { pass: '✓', fail: '✗', warn: '!' } as const;
+const TONE = { pass: 'ok', fail: 'bad', warn: 'warn' } as const;
+
+/** The shared result panel. See the comment block above. */
+export function resultPanel(lang: Lang): { el: HTMLElement; show: (v: ResultView) => void; clear: () => void } {
+  const c = RESULT_COPY[lang];
+  const id = `res-${Math.random().toString(36).slice(2)}`;
+  const el = h('div', { class: 'sim-result sim-callout', role: 'status', 'aria-labelledby': id, hidden: true });
+  const section = (title: string, ...kids: (Node | string)[]) => h('div', { class: 'sim-result-sec' }, h('h4', {}, title), ...kids);
+  return {
+    el,
+    show(v) {
+      const kids: Node[] = [h('h3', { id, class: 'sim-result-verdict' }, h('span', { class: 'sim-result-icon', 'aria-hidden': 'true' }, ICON[v.status]), h('span', {}, ...rich(v.verdict)))];
+      kids.push(section(c.why, ...(Array.isArray(v.why) ? v.why : [v.why]).map((p) => h('p', {}, ...rich(p)))));
+      if (v.agent) {
+        kids.push(section(c.agent,
+          h('p', { class: 'sim-result-src' }, c.example(v.agent.tool)),
+          h('pre', { class: 'sim-result-out', tabindex: 0, 'aria-label': `${c.out}: ${v.agent.tool}` }, v.agent.output),
+          h('p', {}, ...rich(v.agent.use))));
+      }
+      if (v.next) kids.push(section(c.next, h('p', {}, ...rich(v.next))));
+      el.className = `sim-result sim-callout ${TONE[v.status]}`;
+      el.setAttribute('data-status', v.status);
+      el.replaceChildren(...kids);
+      el.hidden = false;
+    },
+    clear() { el.hidden = true; el.replaceChildren(); el.removeAttribute('data-status'); },
+  };
 }
 
 export function card(title: string, ...kids: (Node | string)[]): HTMLElement {

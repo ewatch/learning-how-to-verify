@@ -2,10 +2,11 @@ import type { Locale, Practice } from '../data/types';
 import { LANGS, RATING_LABEL, FEEDBACK_LABEL, COST_LABEL } from '../data/taxonomy';
 import { SOURCE_BY_ID } from '../data/sources';
 import { PRACTICE_BY_ID } from '../data/practices';
+import { IN_USE } from '../data/in-use';
 import { TOOL_BY_ID } from '../data/tools';
 import type { Guide } from '../data/guides';
 import { UI } from '../i18n/ui';
-import { layerName, phaseNames } from './prompts';
+import { agentPrompt, layerName, phaseNames } from './prompts';
 import { SITE_URL } from './site';
 import { PART_BY_ID, PETSTORE_COPY } from '../data/petstore';
 
@@ -17,8 +18,9 @@ function cite(id: string): string {
 }
 
 /** Full practice page as Markdown, for LLMs and the Socratic prompt. */
-export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boolean } = {}): string {
+export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boolean; twin?: boolean } = {}): string {
   const out: string[] = [];
+  if (opts.twin) out.push(...practiceFrontmatter(p, loc), '');
   out.push(`# ${p.name[loc]}`, '');
   out.push(p.intro[loc], '');
   out.push(`**${T(loc, 'inOneSentence')}:** ${p.oneLiner[loc]}`, '');
@@ -37,6 +39,13 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
     out.push(`### ${T(loc, k)}: ${RATING_LABEL[e.rating][loc]}`);
     if (!e.findings.length) out.push(T(loc, 'evidenceNone'));
     for (const fi of e.findings) out.push(`- ${fi.text[loc]} [${cite(fi.src)}]`);
+    out.push('');
+  }
+  const inUse = IN_USE[p.id] ?? [];
+  if (inUse.length) {
+    const kind = { adoption: 'useAdoption', case: 'useCase', standard: 'useStandard', guidance: 'useGuidance' } as const;
+    out.push(`### ${T(loc, 'evidenceUse')}`, T(loc, 'evidenceUseNote'), '');
+    for (const fi of inUse) out.push(`- **${T(loc, kind[fi.kind])}:** ${fi.text[loc]} [${cite(fi.src)}]`);
     out.push('');
   }
   if (!opts.short) {
@@ -70,7 +79,37 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
   if (!opts.short && p.related.length) {
     out.push(`## ${T(loc, 'related')}`, ...p.related.map((id) => `- [${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`), '');
   }
+  if (opts.twin && !opts.short) {
+    // four backticks: the task itself contains headings, and may contain fenced code
+    out.push(`## ${loc === 'de' ? 'Aufgabe für den Agenten' : 'Agent task'}`, '', loc === 'de'
+      ? 'Fertige Aufgabe zum Einfügen in einen Coding-Agenten. Das Werkzeug passend zur Sprache des Projekts aus der Tabelle oben wählen.'
+      : "A ready-made task to paste into a coding agent. Pick the tool that fits the project's language from the table above.", '', '````markdown', agentPrompt(p, loc, 'any', true), '````', '');
+  }
   return out.join('\n');
+}
+
+/** Machine-readable header of a practice twin: lets an agent filter and route without parsing prose. Values are JSON strings, which are valid YAML. */
+export function practiceFrontmatter(p: Practice, loc: Locale): string[] {
+  const other: Locale = loc === 'en' ? 'de' : 'en';
+  const q = (x: string) => JSON.stringify(x);
+  const url = (l: Locale) => `${SITE_URL}/${l}/practices/${p.id}/`;
+  return [
+    '---',
+    `id: ${p.id}`,
+    `title: ${q(p.name[loc])}`,
+    `lang: ${loc}`,
+    `canonical: ${url(loc)}`,
+    `markdown: ${url(loc)}index.md`,
+    `alternate_${other}: ${url(other)}index.md`,
+    `layer: ${p.layer}`,
+    `phases: [${p.phases.join(', ')}]`,
+    `cost: ${COST_LABEL[p.cost].en}`,
+    `feedback: ${p.feedback}`,
+    `evidence_general: ${p.evidence.general.rating}`,
+    `evidence_ai: ${p.evidence.ai.rating}`,
+    `related: [${p.related.join(', ')}]`,
+    '---',
+  ];
 }
 
 export function guideMarkdown(g: Guide, loc: Locale): string {

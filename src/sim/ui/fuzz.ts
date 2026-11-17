@@ -1,5 +1,65 @@
-import { h, codeView, type Lang } from './kit';
-import { createFuzzer, step, PARSER_SOURCE, TOTAL_BRANCHES, type FuzzState } from '../engine/fuzz';
+import { h, codeView, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
+import { createFuzzer, step, fuzzOutcome, jazzerReport, PARSER_SOURCE, TOTAL_BRANCHES, type FuzzState, type FuzzOutcome } from '../engine/fuzz';
+
+type FV = FuzzOutcome['values'];
+const n = (x: number, lang: Lang) => x.toLocaleString(lang);
+const R = {
+  en: {
+    verdict: {
+      'guided-only': (v: FV, l: Lang) => `Crash found by the coverage-guided fuzzer after ${n(v.guided.crashAt!, l)} inputs. The blind fuzzer found none in ${n(v.blind.iterations, l)}`,
+      'blind-only': (v: FV, l: Lang) => `Crash found by the blind fuzzer after ${n(v.blind.crashAt!, l)} inputs`,
+      both: (v: FV, l: Lang) => `Crash found by both fuzzers: guided after ${n(v.guided.crashAt!, l)}, blind after ${n(v.blind.crashAt!, l)} inputs`,
+      none: (v: FV, l: Lang) => `No crash found in ${n(v.guided.iterations, l)} inputs`,
+    },
+    cause: (v: FV) => v.crash!.errorName === 'URIError'
+      ? `The minimal input \`${v.crash!.minimal}\` reaches \`decodeURIComponent\` on line ${v.line} with a lone \`%\`. That throws \`URIError\`, and the parser lets it escape: it only expects \`SearchSyntaxError\`.`
+      : `The minimal input \`${v.crash!.minimal}\` throws \`${v.crash!.error}\`. The parser does not handle this error.`,
+    how: {
+      'guided-only': (v: FV) => `The guided fuzzer kept ${v.guided.corpus} inputs that reached new code and changed those further. The blind fuzzer only changes the start example, so it reached ${v.blind.branches} of ${v.total} branches.`,
+      'blind-only': () => 'The blind fuzzer was lucky this time: it hit the right characters in one change.',
+      both: (v: FV) => `Both found it. The guided fuzzer reached ${v.guided.branches} of ${v.total} branches, the blind one ${v.blind.branches}.`,
+      none: (v: FV) => `The guided fuzzer reached ${v.guided.branches} of ${v.total} branches, the blind one ${v.blind.branches}. The crash needs \`price<\` or \`price>\` followed by \`%\`. No crash is not proof that there is no bug.`,
+    },
+    use: {
+      crash: 'The agent gets the exception, the line and a minimal crashing input. It can add the input as a regression test and handle the bad escape.',
+      none: 'The agent gets a run without a crash. It cannot tell if the code is safe or if the fuzzer did not get deep enough.',
+    },
+    next: { dictOn: 'Tick **Use a dictionary of keywords** and start again. Compare how fast the crash comes.', dictOff: 'Untick the dictionary and start again. Compare how fast the crash comes.', none: 'Click **Start both fuzzers** again, or tick the dictionary.' },
+  },
+  de: {
+    verdict: {
+      'guided-only': (v: FV, l: Lang) => `Absturz gefunden vom coverage-gelenkten Fuzzer nach ${n(v.guided.crashAt!, l)} Eingaben. Der blinde fand keinen in ${n(v.blind.iterations, l)}`,
+      'blind-only': (v: FV, l: Lang) => `Absturz gefunden vom blinden Fuzzer nach ${n(v.blind.crashAt!, l)} Eingaben`,
+      both: (v: FV, l: Lang) => `Absturz von beiden Fuzzern gefunden: gelenkt nach ${n(v.guided.crashAt!, l)}, blind nach ${n(v.blind.crashAt!, l)} Eingaben`,
+      none: (v: FV, l: Lang) => `Kein Absturz in ${n(v.guided.iterations, l)} Eingaben gefunden`,
+    },
+    cause: (v: FV) => v.crash!.errorName === 'URIError'
+      ? `Die minimale Eingabe \`${v.crash!.minimal}\` erreicht \`decodeURIComponent\` in Zeile ${v.line} mit einem einzelnen \`%\`. Das wirft \`URIError\`, und der Parser lässt den Fehler durch: Er erwartet nur \`SearchSyntaxError\`.`
+      : `Die minimale Eingabe \`${v.crash!.minimal}\` wirft \`${v.crash!.error}\`. Der Parser behandelt diesen Fehler nicht.`,
+    how: {
+      'guided-only': (v: FV) => `Der gelenkte Fuzzer behielt ${v.guided.corpus} Eingaben, die neuen Code erreichten, und änderte diese weiter. Der blinde ändert nur das Startbeispiel und erreichte so ${v.blind.branches} von ${v.total} Zweigen.`,
+      'blind-only': () => 'Der blinde Fuzzer hatte diesmal Glück: Er traf die richtigen Zeichen mit einer Änderung.',
+      both: (v: FV) => `Beide fanden ihn. Der gelenkte Fuzzer erreichte ${v.guided.branches} von ${v.total} Zweigen, der blinde ${v.blind.branches}.`,
+      none: (v: FV) => `Der gelenkte Fuzzer erreichte ${v.guided.branches} von ${v.total} Zweigen, der blinde ${v.blind.branches}. Der Absturz braucht \`price<\` oder \`price>\` gefolgt von \`%\`. Kein Absturz ist kein Beweis, dass es keinen Bug gibt.`,
+    },
+    use: {
+      crash: 'Der Agent bekommt die Exception, die Zeile und eine minimale Eingabe, die abstürzt. Er kann die Eingabe als Regressionstest ergänzen und das fehlerhafte Escape behandeln.',
+      none: 'Der Agent bekommt einen Lauf ohne Absturz. Er kann nicht unterscheiden, ob der Code sicher ist oder der Fuzzer nicht tief genug kam.',
+    },
+    next: { dictOn: '**Wörterbuch mit Schlüsselwörtern nutzen** ankreuzen und erneut starten. Vergleiche, wie schnell der Absturz kommt.', dictOff: 'Das Wörterbuch abwählen und erneut starten. Vergleiche, wie schnell der Absturz kommt.', none: 'Erneut **Beide Fuzzer starten** klicken, oder das Wörterbuch ankreuzen.' },
+  },
+};
+
+export function fuzzView(o: FuzzOutcome, lang: Lang): ResultView {
+  const r = R[lang], v = o.values, c = o.causeId;
+  return {
+    status: o.status,
+    verdict: r.verdict[c](v, lang),
+    why: c === 'none' ? [r.how.none(v)] : [r.cause(v), r.how[c](v)],
+    agent: { tool: 'Jazzer.js', output: jazzerReport(o), use: c === 'none' ? r.use.none : r.use.crash },
+    next: c === 'none' ? r.next.none : v.dictionary ? r.next.dictOff : r.next.dictOn,
+  };
+}
 
 const T = {
   en: {
@@ -30,21 +90,23 @@ export function mount(root: HTMLElement, lang: Lang) {
   const resetBtn = h('button', { class: 'btn ghost', type: 'button' }, t.reset);
   const dict = h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { useDict = (e.target as HTMLInputElement).checked; reset(); } }), t.dict);
   const chart = h('div');
-  const lesson = h('div', { class: 'sim-callout', hidden: true }, t.lesson);
+  const lesson = h('p', { class: 'sim-hint', hidden: true }, t.lesson);
+  const panel = resultPanel(lang);
 
-  const panel = (title: string) => {
+  const fuzzerCard = (title: string, tag: TagKind) => {
     const stats = h('div', { class: 'sim-row small' });
     const crash = h('div', { class: 'small muted' }, t.noCrash);
     const list = h('ul', { tabindex: 0, class: 'sim-log', style: 'max-height:160px' });
-    const el = h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, title), stats, crash, h('div', { class: 'small muted', style: 'margin-top:6px' }, t.newInputs), list);
+    const el = h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, h('span', {}, title, ' ', roleTag(tag, lang))), stats, crash, h('div', { class: 'small muted', style: 'margin-top:6px' }, t.newInputs), list);
     return { el, stats, crash, list };
   };
-  const pb = panel(t.blind), pg = panel(t.guided);
+  const pb = fuzzerCard(t.blind, 'blind'), pg = fuzzerCard(t.guided, 'guided');
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
     h('details', { class: 'disclose' }, h('summary', {}, t.parser), h('div', { class: 'body' }, codeView(PARSER_SOURCE))),
     h('div', { class: 'sim-row' }, startBtn, resetBtn, dict),
+    panel.el,
     h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, t.chart), chart),
     h('div', { class: 'sim-cols' }, pb.el, pg.el),
     lesson,
@@ -68,7 +130,7 @@ export function mount(root: HTMLElement, lang: Lang) {
     </svg>`;
   }
 
-  function renderPanel(p: ReturnType<typeof panel>, s: FuzzState) {
+  function renderPanel(p: ReturnType<typeof fuzzerCard>, s: FuzzState) {
     p.stats.replaceChildren(
       h('span', {}, h('b', {}, s.iterations.toLocaleString(lang)), ` ${t.its}`), ' · ',
       h('span', {}, h('b', {}, String(s.seen.size)), `/${TOTAL_BRANCHES} ${t.branches}`), ' · ',
@@ -86,7 +148,7 @@ export function mount(root: HTMLElement, lang: Lang) {
     A = createFuzzer('blind', seed, useDict); B = createFuzzer('guided', seed, useDict);
     pb.crash.className = 'small muted'; pb.crash.textContent = t.noCrash;
     pg.crash.className = 'small muted'; pg.crash.textContent = t.noCrash;
-    lesson.hidden = true;
+    lesson.hidden = true; panel.clear();
     renderPanel(pb, A); renderPanel(pg, B); drawChart();
   }
 
@@ -96,13 +158,14 @@ export function mount(root: HTMLElement, lang: Lang) {
     if (!B.crash && B.iterations < MAX_IT) step(B, 400);
     renderPanel(pb, A); renderPanel(pg, B); drawChart();
     const done = (A.crash || A.iterations >= MAX_IT) && (B.crash || B.iterations >= MAX_IT);
-    if (done || (B.crash && A.iterations >= Math.min(MAX_IT, B.crash.at * 3))) { running = false; startBtn.textContent = t.start; lesson.hidden = false; return; }
+    if (done || (B.crash && A.iterations >= Math.min(MAX_IT, B.crash.at * 3))) { running = false; startBtn.textContent = t.start; lesson.hidden = false; panel.show(fuzzView(fuzzOutcome(A, B), lang)); return; }
     requestAnimationFrame(tick);
   }
 
   startBtn.addEventListener('click', () => {
-    if (running) { running = false; startBtn.textContent = t.start; return; }
+    if (running) { running = false; startBtn.textContent = t.start; panel.show(fuzzView(fuzzOutcome(A, B), lang)); return; }
     if (A.crash || B.crash || A.iterations >= MAX_IT) reset();
+    panel.clear();
     running = true; startBtn.textContent = t.stop; requestAnimationFrame(tick);
   });
   resetBtn.addEventListener('click', reset);

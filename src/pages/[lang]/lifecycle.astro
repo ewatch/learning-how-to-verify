@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import type { Locale } from '../../data/types';
 import { PHASES } from '../../data/taxonomy';
 import { PRACTICES } from '../../data/practices';
-import { href, t } from '../../i18n/ui';
+import { href } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
@@ -17,14 +17,11 @@ const nCore = PRACTICES.filter((p) => p.core).length;
       <p class="eyebrow">{en ? 'Second view' : 'Zweite Ansicht'}</p>
       <h1>{en ? 'When does each check happen?' : 'Wann findet welche Prüfung statt?'}</h1>
       <p class="lede">{en
-        ? 'This map sorts the practices by the time when they run: before production, at deploy, at release and after release. Use it to find the checks for one stage of a change. There are bugs that appear only with real traffic, real data and real users. For this reason, the right-hand columns test in production, with care and with a small blast radius.'
-        : 'Diese Karte sortiert die Praktiken nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release. Sie hilft, die Prüfungen für eine Phase einer Änderung zu finden. Es gibt Fehler, die sich erst mit echtem Verkehr, echten Daten und echten Nutzern zeigen. Deshalb testen die rechten Spalten in Produktion, vorsichtig und mit kleinem Wirkungsradius.'}</p>
-      <p class="muted small">{en
-        ? 'After the overview by Cindy Sridharan (@copyconstruct), as shown by Lauren Tan (@poteto). Colour bars on the left show the funnel layer.'
-        : 'Nach der Übersicht von Cindy Sridharan (@copyconstruct), wie von Lauren Tan (@poteto) gezeigt. Farbbalken links zeigen die Trichterschicht.'}</p>
+        ? 'This map sorts the practices by when they run: before production, at deploy, at release and after release. Some bugs show up only with real traffic, data and users, so the right-hand columns test in production, with care and a small blast radius.'
+        : 'Diese Karte sortiert die Praktiken danach, wann sie laufen: vor der Produktion, beim Deploy, beim Release und nach dem Release. Manche Fehler zeigen sich erst mit echtem Verkehr, echten Daten und echten Nutzern. Darum testen die rechten Spalten in Produktion, vorsichtig und mit kleinem Wirkungsradius.'}</p>
       <ul class="key small">
-        <li><span class="core">{en ? 'core' : 'Kern'}</span> {en ? <>Core practice: one of {nCore} to start with. The <a href={href(lang, 'start/')}>Getting Started</a> tour covers most of them.</> : <>Kernpraktik: eine von {nCore} für den Anfang. Der Einstieg <a href={href(lang, 'start/')}>Erste Schritte</a> deckt die meisten ab.</>}</li>
-        <li><span class="added">{en ? 'added' : 'ergänzt'}</span> {en ? 'Not in the original overview; added on this site.' : 'Nicht in der ursprünglichen Übersicht; auf dieser Seite ergänzt.'}</li>
+        <li><strong>{en ? 'Bold' : 'Fett'}</strong> {en ? <>marks a core practice: one of {nCore} to start with. The <a href={href(lang, 'start/')}>Getting Started</a> tour covers most of them.</> : <>kennzeichnet eine Kernpraktik: eine von {nCore} für den Anfang. Der Einstieg <a href={href(lang, 'start/')}>Erste Schritte</a> deckt die meisten ab.</>}</li>
+        <li>{en ? 'The colour bar on the left of each name shows its funnel layer.' : 'Der Farbbalken links neben jedem Namen zeigt seine Trichterschicht.'}</li>
       </ul>
     </header>
 
@@ -41,7 +38,7 @@ const nCore = PRACTICES.filter((p) => p.core).length;
             <ul>
               {list.map((p) => (
                 <li class:list={{ 'is-core': p.core }} style={`--c: var(--l-${p.layer})`}>
-                  <a href={href(lang, `practices/${p.id}/`)}>{p.name[lang]}</a>{p.core && <span class="core" title={t(lang, 'corePractice')}>{en ? 'core' : 'Kern'}</span>}{!p.fromOverview && <span class="added" title={t(lang, 'addedHere')}>{en ? 'added' : 'ergänzt'}</span>}
+                  <a href={href(lang, `practices/${p.id}/`)}>{p.name[lang]}</a>
                 </li>
               ))}
             </ul>
@@ -69,12 +66,8 @@ const nCore = PRACTICES.filter((p) => p.core).length;
   li a { color: var(--ink); text-decoration: none; }
   li a:hover { text-decoration: underline; }
   li.is-core a { font-weight: 700; }
-  .core, .added { display: inline-block; margin-left: 6px; font: 600 var(--fs-xs)/1.45 var(--font-body); letter-spacing: .02em; border-radius: 3px; padding: 0 5px; vertical-align: 1px; white-space: nowrap; }
-  .core { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
-  .added { color: var(--ink-2); border: 1px dashed var(--rule-strong); font-weight: 500; }
   .key { list-style: none; padding: 0; margin: 10px 0 0; color: var(--ink-2); }
   .key li { padding: 0; border: 0; margin: 0 0 4px; }
   .key li::before { display: none; }
   .key a { color: var(--link); text-decoration: underline; }
-  .key .core, .key .added { margin: 0 6px 0 0; }
 </style>

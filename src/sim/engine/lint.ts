@@ -1,4 +1,5 @@
 /** Four tiny token-based lint rules with line/column. Tolerant: never throws on any input. */
+import type { Outcome } from './outcome';
 export type RuleId = 'no-math-random-in-domain' | 'no-floating-promise' | 'eqeqeq' | 'no-explicit-any';
 export const RULE_IDS: RuleId[] = ['no-math-random-in-domain', 'no-floating-promise', 'eqeqeq', 'no-explicit-any'];
 
@@ -103,3 +104,44 @@ export const PATCH_BEFORE = `export async function cancelReservation(repo: Repo,
   return pet;
 }`;
 export const PATCH_AFTER = PATCH_BEFORE.replace('  await repo.save(pet);', '  repo.save(pet);');
+
+/* ───── Outcome for the result panel (see src/sim/ui/kit.ts) ───── */
+
+export type LintCause = 'findings' | 'rules-off' | 'code-removed' | 'solved';
+export interface LintValues { count: number; rulesOn: number; rulesTotal: number; rulesOff: RuleId[]; first?: Finding; byRule: Partial<Record<RuleId, number>> }
+export type LintOutcome = Outcome<LintCause, LintValues>;
+
+/** Verdict, cause and numbers for the editor ("Fix the code"). Pure. */
+export function lintOutcome(src: string, enabled: Iterable<RuleId> = RULE_IDS): LintOutcome {
+  const on = new Set(enabled);
+  const fs = lint(src, on);
+  const byRule: Partial<Record<RuleId, number>> = {};
+  for (const f of fs) byRule[f.rule] = (byRule[f.rule] ?? 0) + 1;
+  const values: LintValues = { count: fs.length, rulesOn: on.size, rulesTotal: RULE_IDS.length, rulesOff: RULE_IDS.filter((r) => !on.has(r)), first: fs[0], byRule };
+  if (fs.length) return { status: 'fail', causeId: 'findings', values };
+  if (values.rulesOff.length) return { status: 'warn', causeId: 'rules-off', values: { ...values, count: lint(src).length } };
+  if (!isSolved(src)) return { status: 'warn', causeId: 'code-removed', values };
+  return { status: 'pass', causeId: 'solved', values };
+}
+
+/** CI mode: the agent's patch, checked by the rule as prose (nothing) and as lint. Pure. */
+export function ciOutcome(): Outcome<'gate-blocks', { finding: Finding }> {
+  return { status: 'pass', causeId: 'gate-blocks', values: { finding: lint(PATCH_AFTER, ['no-floating-promise'])[0] } };
+}
+
+const ESLINT: Record<RuleId, { name: string; msg: (f: Finding) => string }> = {
+  'no-math-random-in-domain': { name: 'local/no-math-random-in-domain', msg: () => 'Math.random() in domain code. Inject an id generator' },
+  'no-floating-promise': { name: '@typescript-eslint/no-floating-promises', msg: () => 'Promises must be awaited, end with a call to .catch, or be explicitly marked as ignored with the `void` operator' },
+  eqeqeq: { name: 'eqeqeq', msg: (f) => `Expected '${f.token}=' and instead saw '${f.token}'` },
+  'no-explicit-any': { name: '@typescript-eslint/no-explicit-any', msg: () => 'Unexpected any. Specify a different type' },
+};
+
+/** Findings in the format of the ESLint "stylish" formatter. */
+export function eslintReport(findings: Finding[], file = 'src/reserve.ts'): string {
+  if (!findings.length) return `$ npx eslint ${file}\n(no output, exit code 0)`;
+  const rows = findings.map((f) => [`${f.line}:${f.col}`, 'error', ESLINT[f.rule].msg(f), ESLINT[f.rule].name]);
+  const w0 = Math.max(...rows.map((r) => r[0].length));
+  const lines = rows.map((r) => `  ${r[0].padEnd(w0)}  ${r[1]}  ${r[2]}  ${r[3]}`);
+  const n = findings.length;
+  return [`$ npx eslint ${file}`, '', file, ...lines, '', `✖ ${n} problem${n === 1 ? '' : 's'} (${n} error${n === 1 ? '' : 's'}, 0 warnings)`].join('\n');
+}

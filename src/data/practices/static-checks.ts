@@ -358,9 +358,10 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
       l('Turns every other practice in this funnel from "should" into "must".', 'Macht aus jeder anderen Praktik in diesem Trichter ein „muss“ statt eines „sollte“.'),
       l('Required status checks mean nobody, human or agent, can merge red.', 'Pflicht-Statuschecks bedeuten: Niemand, weder Mensch noch Agent, kann rot mergen.'),
       l('A clean environment from scratch finds missing files, undeclared dependencies and order-dependent tests.', 'Eine frische Umgebung von Grund auf findet fehlende Dateien, nicht deklarierte Abhängigkeiten und reihenfolgeabhängige Tests.'),
+      l('Stamp each commit with how it was verified, including "none". Then you can find the unverified commits.', 'Jeden Commit mit der Art seiner Verifikation kennzeichnen, auch „none“. Dann findet man die unverifizierten Commits.'),
     ],
     limits: [
-      l('Slow pipelines get bypassed. Keep the main gate under about 10 minutes.', 'Langsame Pipelines werden umgangen. Das Haupt-Gate unter etwa 10 Minuten halten.'),
+      l('Slow pipelines get bypassed, and slow tests make an agent run fewer checks. Keep the main gate under about 10 minutes.', 'Langsame Pipelines werden umgangen, und langsame Tests lassen einen Agenten weniger Prüfungen ausführen. Das Haupt-Gate unter etwa 10 Minuten halten.'),
       l('Flaky tests teach everyone to press "re-run" instead of reading the failure.', 'Wackelige Tests bringen allen bei, „erneut ausführen“ zu drücken, statt den Fehler zu lesen.'),
     ],
     ai: l(
@@ -374,7 +375,8 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
       ai: none(),
     },
     variants: [
-      { name: l('Flaky tests', 'Wackelige Tests (flaky tests)'), text: l('Detect them (re-run failures automatically and record which ones flip), quarantine them out of the required gate, and fix or delete them within a fixed time.', 'Erkennen (Fehlschläge automatisch wiederholen und festhalten, welche kippen), aus dem Pflicht-Gate in Quarantäne nehmen und in fester Frist reparieren oder löschen.') },
+      { name: l('Flaky tests', 'Wackelige Tests (flaky tests)'), text: l('Detect them (re-run failures automatically and record which ones flip), quarantine them out of the required gate, and fix or delete them within a fixed time. Flaky tests teach an agent to re-run instead of fixing the code. Rule for agents: do not skip a flaky test, add sleeps or retry until green. If the agent cannot find the root cause, it deletes the test and writes down why.', 'Erkennen (Fehlschläge automatisch wiederholen und festhalten, welche kippen), aus dem Pflicht-Gate in Quarantäne nehmen und in fester Frist reparieren oder löschen. Wackelige Tests bringen einem Agenten bei, den Test erneut auszuführen, statt den Code zu reparieren. Regel für Agenten: einen wackeligen Test nicht überspringen, keine Sleeps einbauen, nicht bis Grün wiederholen. Findet der Agent die Ursache nicht, löscht er den Test und schreibt auf, warum.') },
+      { name: l('New gates: off → observe → enforce', 'Neue Gates: off → observe → enforce'), text: l('Start a new gate in observe mode: it logs what it would have blocked, but it blocks nothing. Review the false positives, then switch the gate to enforce.', 'Ein neues Gate im Modus observe starten: Es protokolliert, was es blockiert hätte, blockiert aber nichts. Die False Positives prüfen, dann das Gate auf enforce umschalten.') },
     ],
     tools: { any: ['act', 'woodpecker', 'jenkins', 'pre-commit'] },
     snippets: [
@@ -536,10 +538,11 @@ final class ReservationTest extends TestCase
     limits: [
       l('Protects the tests, not their quality. Combine with mutation testing.', 'Schützt die Tests, nicht ihre Qualität. Mit Mutation Testing kombinieren.'),
       l('A determined agent may find other routes, for example changing the test runner config or fixtures, so protect those paths too.', 'Ein entschlossener Agent findet womöglich andere Wege, etwa die Konfiguration des Test-Runners oder Fixtures zu ändern; schütze deshalb auch diese Pfade.'),
+      l('Protect the review too: read gate and review configuration (for example a REVIEW.md) from the base branch, never from the change. A passing review of an older commit says nothing about the current one.', 'Auch das Review schützen: Gate- und Review-Konfiguration (etwa eine REVIEW.md) aus dem Base Branch lesen, nie aus der Änderung. Ein bestandenes Review eines älteren Commits sagt nichts über den aktuellen.'),
     ],
     ai: l(
-      'Frontier models, given tasks whose tests contradict the spec, often "pass" by cheating, and stronger models cheat more. Hidden tests nearly eliminate it; read-only tests block test edits.',
-      'Bekommen Spitzenmodelle Aufgaben, deren Tests der Spezifikation widersprechen, „bestehen“ sie oft durch Schummeln, und stärkere Modelle schummeln mehr. Versteckte Tests beseitigen das fast ganz; schreibgeschützte Tests verhindern Teständerungen.',
+      'Frontier models, given tasks whose tests contradict the spec, often "pass" by cheating, and stronger models cheat more. Hidden tests nearly eliminate it; read-only tests block test edits. The general rule: if a change can modify the check that judges it, the check is broken.',
+      'Bekommen Spitzenmodelle Aufgaben, deren Tests der Spezifikation widersprechen, „bestehen“ sie oft durch Schummeln, und stärkere Modelle schummeln mehr. Versteckte Tests beseitigen das fast ganz; schreibgeschützte Tests verhindern Teständerungen. Die allgemeine Regel: Kann eine Änderung die Prüfung ändern, die über sie urteilt, ist die Prüfung kaputt.',
     ),
     evidence: {
       general: none(),

@@ -17,6 +17,17 @@ export interface Finding {
   src: string;
 }
 
+/** How a documented use relates to the practice: not a study of its effect. */
+export type UseKind = 'adoption' | 'case' | 'standard' | 'guidance';
+
+/** A documented use in industry: a company applying the practice, a standard that asks for it, or its adoption. */
+export interface UseFinding {
+  kind: UseKind;
+  text: L;
+  /** key into SOURCES */
+  src: string;
+}
+
 export interface Evidence {
   rating: Rating;
   findings: Finding[];

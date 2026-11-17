@@ -9,11 +9,19 @@ export const GET: APIRoute = () => {
   const out = [
     '# Learning how to verify',
     '',
-    '> How to verify software, especially when AI coding agents write it. 56 practices ordered along a funnel from cheap, automatic checks (codebase design, types, lint, tests) to expensive ones (formal verification, production practices, human review), with open-source tools per programming language, evidence ratings with sources, and ready-to-paste agent tasks. Available in English (/en/) and German (/de/).',
+    '> How to verify software, especially when AI coding agents write it. 56 practices ordered along a funnel from cheap, automatic checks (codebase design, types, lint, tests) to expensive ones (formal verification, production practices, human review), with open-source tools per programming language, evidence ratings with sources, and ready-to-paste agent tasks. Available in English (/en/) and German (/de/); the German index is at /de/llms.txt.',
     '',
-    'Every page has a Markdown version: append `index.md` to its URL. Each practice page contains: a short introduction with a concrete problem, a one-sentence definition, the bug class it catches, funnel layer and lifecycle phase, when it is worth it, limits, what changes when agents write the code, evidence (general / AI-specific), tools per language, example code, setup steps and a definition of done.',
+    'Every page has a Markdown version: append `index.md` to its URL. Practice pages start with a YAML header (id, layer, phases, cost, feedback, evidence, related, language twin). Each practice page contains: a short introduction with a concrete problem, a one-sentence definition, the bug class it catches, funnel layer and lifecycle phase, when it is worth it, limits, what changes when agents write the code, evidence (general / AI-specific), tools per language, example code, setup steps a definition of done and a ready-to-paste agent task.',
     '',
-    `Full text of all English practices in one file: ${SITE_URL}/llms-full.txt (German: ${SITE_URL}/llms-full-de.txt)`,
+    '## Which page for which question',
+    `- New to this: [Getting Started](${SITE_URL}/en/start/index.md)`,
+    `- A concrete problem in your own project: [Diagnose my project](${SITE_URL}/en/diagnose/index.md)`,
+    `- You know the kind of bug and need the check: the practice list below is ordered by funnel layer; [Lifecycle map](${SITE_URL}/en/lifecycle/index.md) orders it by phase`,
+    `- A tool for your language: [Tools by language](${SITE_URL}/en/stack/index.md)`,
+    `- A task to give your own agent: the last section of every practice page ("Agent task")`,
+    `- Filter or compare practices by cost, feedback time, evidence or tool: [practices.json](${SITE_URL}/practices.json); all pages are in [sitemap.xml](${SITE_URL}/sitemap.xml)`,
+    '',
+    `Full text of the practices, split by funnel layer (each section below links its file; German: replace \`/en/\` with \`/de/\`). All English practices in one large file (about 300 KB): ${SITE_URL}/llms-full.txt (German: ${SITE_URL}/llms-full-de.txt)`,
     '',
     '## Overview pages',
     `- [Home: the funnel with all practices](${SITE_URL}/en/index.md)`,
@@ -36,7 +44,7 @@ export const GET: APIRoute = () => {
     '',
   ];
   for (const layer of LAYERS) {
-    out.push(`## Practices: ${layer.name.en} (${layer.examples.en})`);
+    out.push(`## Practices: ${layer.name.en} (${layer.examples.en})`, `Full text of this layer: ${SITE_URL}/llms-full/en/${layer.id}.txt`);
     for (const p of PRACTICES.filter((x) => x.layer === layer.id)) out.push(`- [${p.name.en}](${SITE_URL}/en/practices/${p.id}/index.md): ${p.oneLiner.en}`);
     out.push('');
   }

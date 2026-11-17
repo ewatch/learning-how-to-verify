@@ -25,8 +25,8 @@ export const proseReview: Practice[] = [
       l('A short file read at the start of every task is the cheapest place to state the verify command.', 'Eine kurze Datei, die zu Beginn jeder Aufgabe gelesen wird, ist der günstigste Ort für den Verify-Befehl.'),
     ],
     limits: [
-      l('Nothing enforces it. Every rule that can be a lint rule, type or test should become one.', 'Nichts erzwingt sie. Jede Regel, die eine Lint-Regel, ein Typ oder ein Test sein kann, sollte eine werden.'),
-      l('Long rules files cost tokens on every task and can make agents explore more without succeeding more.', 'Lange Regeldateien kosten bei jeder Aufgabe Tokens und können Agenten mehr erkunden lassen, ohne dass sie öfter Erfolg haben.'),
+      l('Nothing enforces it. Every rule that can be a lint rule, type or test should become one. Prefer an enforced hook to a prose rule, for example a hook that runs the tests when the agent finishes.', 'Nichts erzwingt sie. Jede Regel, die eine Lint-Regel, ein Typ oder ein Test sein kann, sollte eine werden. Einen erzwungenen Hook einer Textregel vorziehen, etwa einen Hook, der die Tests ausführt, wenn der Agent fertig ist.'),
+      l('Long rules files cost tokens on every task and can make agents explore more without succeeding more. Rules files and checks only grow, so prune them on a fixed schedule.', 'Lange Regeldateien kosten bei jeder Aufgabe Tokens und können Agenten mehr erkunden lassen, ohne dass sie öfter Erfolg haben. Regeldateien und Prüfungen wachsen nur; sie deshalb in festem Rhythmus ausdünnen.'),
     ],
     ai: l(
       'This layer has the weakest evidence in the funnel. The best study so far found no gain in task success from context files and higher cost. Treat AGENTS.md as something to evaluate, not to assume helpful: keep it minimal and measure changes with evals.',
@@ -63,8 +63,8 @@ export const proseReview: Practice[] = [
         'Because it is the least reliable check: cheap to write, but only probabilistically followed and impossible to verify automatically. Everything above it either runs or proves.',
         'Weil sie die unzuverlässigste Prüfung ist: billig zu schreiben, aber nur mit Wahrscheinlichkeit befolgt und nicht automatisch prüfbar. Alles darüber läuft oder beweist.'),
       q('Predict: you add 30 new rules to AGENTS.md after one bad pull request. What may happen to the next tasks?', 'Vorhersage: Du ergänzt nach einem schlechten Pull Request 30 neue Regeln in der AGENTS.md. Was kann mit den nächsten Aufgaben passieren?',
-        'Important rules get lost among the others, cost rises and success may not. Measure with an eval; replace rules by checks wherever possible.',
-        'Wichtige Regeln gehen zwischen den anderen unter, die Kosten steigen, der Erfolg nicht unbedingt. Mit einer Eval messen; Regeln wo möglich durch Prüfungen ersetzen.'),
+        'Important rules get lost among the others, cost rises and success may not. Measure with an eval; replace rules by checks wherever possible. Turn a problem that the checks missed into a rule only if it occurs in at least two changes and a diff shows it.',
+        'Wichtige Regeln gehen zwischen den anderen unter, die Kosten steigen, der Erfolg nicht unbedingt. Mit einer Eval messen; Regeln wo möglich durch Prüfungen ersetzen. Ein Problem, das die Prüfungen übersehen haben, nur dann zur Regel machen, wenn es in mindestens zwei Änderungen auftritt und im Diff sichtbar ist.'),
     ],
     related: ['evals', 'lint', 'test-integrity', 'architecture'],
   },
@@ -103,6 +103,9 @@ export const proseReview: Practice[] = [
         f('metr2026', 'Maintainers would merge only about half of 296 test-passing agent PRs; their verdicts ran about 24 points below the automated grader.', 'Maintainer würden nur etwa die Hälfte von 296 testbestehenden Agenten-PRs mergen; ihr Urteil lag etwa 24 Punkte unter dem automatischen Bewerter.'),
         f('patchdiff2026', 'Test-based evaluation overstated agent resolution rates by about 6.2 points because 29.6% of passing patches behaved differently from the reference.', 'Testbasierte Bewertung überschätzte die Lösungsquote der Agenten um etwa 6,2 Punkte, weil sich 29,6 % der bestehenden Patches anders verhielten als die Referenz.')),
     },
+    variants: [
+      { name: l('Evals for your checks', 'Evals für die eigenen Prüfungen'), text: l('Evaluate your checks, not only your agent. Count reverted changes and changes that a maintainer rejected, and compare them with a set of clean changes of the same size. Measure recall separately at each stage: raw findings, after verification, final. Keep the tuning set apart from the test set. Stop tuning when the next gain would only fit the eval.', 'Die eigenen Prüfungen evaluieren, nicht nur den Agenten. Reverts und von Maintainern abgelehnte Änderungen zählen und mit einer gleich großen Menge sauberer Änderungen vergleichen. Den Recall je Stufe getrennt messen: rohe Funde, nach Verifikation, final. Tuning-Set und Test-Set getrennt halten. Das Tuning beenden, wenn der nächste Gewinn nur noch zur Eval passen würde.') },
+    ],
     tools: { any: ['inspect-ai', 'promptfoo', 'swe-bench'] },
     snippets: [{ lang: "any", file: "agent-eval.md",
       description: l("Run a small, fixed task set on clean checkouts before changing your agent setup. Compare the same tasks and held-out checks; log failures as well as successes. This is a protocol, not an automated scorer.",
@@ -176,7 +179,10 @@ Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note:
         f('revmate2024', 'In a live study, reviewers accepted only 8.1% (Mozilla) and 7.2% (Ubisoft) of LLM-generated review comments (preprint).', 'In einer Live-Studie übernahmen Reviewer nur 8,1 % (Mozilla) und 7,2 % (Ubisoft) der LLM-generierten Review-Kommentare (Preprint).'),
         f('siddiq2026', 'Security-related agent PRs on GitHub were reviewed far more slowly (median 3.92 h vs. 0.11 h) and merged less often (preprint).', 'Sicherheitsbezogene Agenten-PRs auf GitHub wurden viel langsamer reviewt (Median 3,92 h gegenüber 0,11 h) und seltener gemergt (Preprint).')),
     },
-    variants: [{ name: l('AI review / LLM-as-judge (first pass)', 'KI-Review / LLM-as-Judge (erster Durchgang)'), text: l('Let a model comment first against a written rubric; a human decides. Rubrics raise agreement a lot.', 'Ein Modell zuerst anhand einer schriftlichen Rubrik kommentieren lassen; ein Mensch entscheidet. Rubriken erhöhen die Übereinstimmung deutlich.') }],
+    variants: [
+      { name: l('AI review / LLM-as-judge (first pass)', 'KI-Review / LLM-as-Judge (erster Durchgang)'), text: l('Let a model comment first against a written rubric; a human decides. Rubrics raise agreement a lot. Do not add more reviewers; tune the one reviewer with a file of what to look for (REVIEW.md). Let each review round build on earlier rounds and past failures instead of checking everything again. Sort findings by severity: important, nit, or pre-existing (the author is not responsible).', 'Ein Modell zuerst anhand einer schriftlichen Rubrik kommentieren lassen; ein Mensch entscheidet. Rubriken erhöhen die Übereinstimmung deutlich. Keine weiteren Reviewer hinzufügen, sondern den einen Reviewer mit einer Datei abstimmen, die sagt, worauf er achten soll (REVIEW.md). Jede Review-Runde auf früheren Runden und vergangenen Fehlschlägen aufbauen lassen, statt alles neu zu prüfen. Funde nach Schwere sortieren: important, nit oder pre-existing (nicht vom Autor verursacht).') },
+      { name: l('Checklists selected by the diff', 'Checklisten, die der Diff auswählt'), text: l('Each item of a reliability checklist names the code it applies to, for example migrations or retries. Only the items that match what the diff touches are checked.', 'Jeder Punkt einer Zuverlässigkeits-Checkliste nennt den Code, für den er gilt, etwa Migrationen oder Retries. Nur die Punkte, die zu dem passen, was der Diff berührt, werden geprüft.') },
+    ],
     tools: { any: ['reviewdog', 'danger', 'gerrit'] },
     snippets: [{ lang: "any", file: "reservation-review.md",
       description: l("Give the agent this checklist and the diff, then have a human examine the findings. Require file/line evidence for each claim; a checklist is a review aid rather than proof.",

@@ -6,6 +6,8 @@ export default defineConfig({
   // Sub-path deployments (GitHub Pages project site): PUBLIC_BASE_PATH=/repo-name. Default is the domain root.
   base: process.env.PUBLIC_BASE_PATH || '/',
   trailingSlash: 'ignore',
+  // Class-based scoping is smaller than the default :where(.astro-x) selectors. It adds one class of specificity.
+  scopedStyleStrategy: 'class',
   build: { format: 'directory' },
   i18n: {
     locales: ['en', 'de'],

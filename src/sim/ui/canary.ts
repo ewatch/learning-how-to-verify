@@ -1,5 +1,86 @@
-import { h, segmented, sleep, reducedMotion, rng, type Lang } from './kit';
-import { STAGES, runStage, affected, type Bug, type StageResult } from '../engine/canary';
+import { h, segmented, sleep, reducedMotion, rng, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
+import { STAGES, runStage, canaryOutcome, canaryReport, type Bug, type StageResult, type CanaryOutcome } from '../engine/canary';
+
+type CV = CanaryOutcome['values'];
+const BUG_TAG: Record<Bug, TagKind> = { none: 'correct', errors: 'bug', silent: 'bug' };
+const p1 = (x: number | undefined, lang: Lang) => `${(x ?? 0).toFixed(1).replace('.', lang === 'de' ? ',' : '.')}${lang === 'de' ? ' %' : '%'}`;
+const n = (x: number, lang: Lang) => x.toLocaleString(lang);
+const R = {
+  en: {
+    verdict: {
+      'rollback-errors': (v: CV) => `Rolled back automatically at ${v.weight}%. The error rate of v2 crossed its limit`,
+      'rollback-business': (v: CV) => `Rolled back automatically at ${v.weight}%. The wrong-price rate of v2 crossed its limit`,
+      'false-alarm': (v: CV) => `Rolled back automatically at ${v.weight}%, but not because of a bug in v2`,
+      promoted: () => 'Promoted to 100%. Every analysis step passed',
+      'silent-missed': () => 'Promoted to 100%, but v2 has a silent bug',
+      missed: () => 'Promoted to 100%, but v2 has a bug',
+    } as Record<CanaryOutcome['causeId'], (v: CV) => string>,
+    why: {
+      'rollback-errors': (v: CV, l: Lang) => [`At ${v.weight}%, ${v.v2Hits} of ${v.v2Req} requests to v2 failed. That is an error rate of ${p1(v.v2Rate, l)}. The limit is ${p1(v.limit, l)}: v1 had ${p1(v.v1Rate, l)}, plus 1 point.`, `The rollout stopped at step ${v.stage} of ${STAGES.length}. ${n(v.affected, l)} requests hit the bug, not all users.`],
+      'rollback-business': (v: CV, l: Lang) => [`At ${v.weight}%, ${v.v2Hits} of ${v.v2Req} reservations on v2 had a wrong price. That is ${p1(v.v2Rate, l)}. The limit is ${p1(v.limit, l)}: v1 had ${p1(v.v1Rate, l)}, plus 1 point.`, `All of these requests returned status 200. Only the business metric shows the bug. ${n(v.affected, l)} requests hit it before the rollback.`],
+      'false-alarm': (v: CV, l: Lang) => [`At ${v.weight}%, only ${v.v2Req} requests reached v2. ${v.v2Hits} of them failed by chance: ${p1(v.v2Rate, l)}, above the limit of ${p1(v.limit, l)}.`, 'With few requests, one or two errors change the rate a lot. Real analyses set a minimum number of requests or measure more than once.'],
+      promoted: (v: CV, l: Lang) => [`v2 has no bug. Its error rate stayed below the limit at each step: ${v.stages.filter((s) => s.weight < 100).map((s) => `${s.weight}%: ${p1(s.v2Err, l)}`).join(', ')}.`, 'Each step compares v2 with v1 in the same time window.'],
+      'silent-missed': (v: CV, l: Lang) => [`v2 returned a wrong price on ${n(v.wrong, l)} of ${n(v.v2Total, l)} requests. Each of them had status 200, so the error rate of v2 stayed near the rate of v1.`, 'The analysis did not measure prices. A canary only finds what it measures.'],
+      missed: () => ['v2 has a bug, but no step crossed the limit. This is chance: with few requests per step, the rates vary.'],
+    } as Record<CanaryOutcome['causeId'], (v: CV, l: Lang) => string[]>,
+    use: {
+      'rollback-errors': 'The agent gets the step, the metric, the measured rate and the limit. It can reproduce the failing requests against v2 and fix the crash before the next rollout.',
+      'rollback-business': 'The agent gets the wrong-price rate, although every request was a success. It can compare v2 prices with v1 prices and find the wrong calculation.',
+      'false-alarm': 'The agent gets a failed step for a version without this bug. It must look at the request count before it changes code.',
+      promoted: 'The agent gets a promoted rollout. Promoted means "no watched metric crossed its limit", not "no bug".',
+      'silent-missed': 'The agent gets a promoted rollout and no signal. It cannot fix a bug that no metric shows.',
+      missed: 'The agent gets a promoted rollout. The bug ships, because no step crossed the limit.',
+    } as Record<CanaryOutcome['causeId'], string>,
+    next: {
+      'rollback-errors': 'Select **a silent bug** and start the rollout again.',
+      'rollback-business': 'Select **no bug** and start the rollout again.',
+      'false-alarm': 'Start the rollout again. Each run sends new random traffic.',
+      promoted: 'Select **a crash bug** and start the rollout again.',
+      'silent-missed': 'Switch on the business metric and start the rollout again.',
+      missed: 'Start the rollout again. Each run sends new random traffic.',
+    } as Record<CanaryOutcome['causeId'], string>,
+  },
+  de: {
+    verdict: {
+      'rollback-errors': (v: CV) => `Bei ${v.weight} % automatisch zurückgerollt. Die Fehlerrate von v2 hat ihre Grenze überschritten`,
+      'rollback-business': (v: CV) => `Bei ${v.weight} % automatisch zurückgerollt. Die Falschpreis-Rate von v2 hat ihre Grenze überschritten`,
+      'false-alarm': (v: CV) => `Bei ${v.weight} % automatisch zurückgerollt, aber nicht wegen eines Fehlers in v2`,
+      promoted: () => 'Auf 100 % ausgerollt. Jeder Analyseschritt hat bestanden',
+      'silent-missed': () => 'Auf 100 % ausgerollt, aber v2 hat einen stillen Fehler',
+      missed: () => 'Auf 100 % ausgerollt, aber v2 hat einen Fehler',
+    } as Record<CanaryOutcome['causeId'], (v: CV) => string>,
+    why: {
+      'rollback-errors': (v: CV, l: Lang) => [`Bei ${v.weight} % sind ${v.v2Hits} von ${v.v2Req} Anfragen an v2 gescheitert. Das ist eine Fehlerrate von ${p1(v.v2Rate, l)}. Die Grenze ist ${p1(v.limit, l)}: v1 hatte ${p1(v.v1Rate, l)}, plus 1 Punkt.`, `Der Rollout stoppte bei Schritt ${v.stage} von ${STAGES.length}. ${n(v.affected, l)} Anfragen trafen den Fehler, nicht alle Nutzer.`],
+      'rollback-business': (v: CV, l: Lang) => [`Bei ${v.weight} % hatten ${v.v2Hits} von ${v.v2Req} Reservierungen auf v2 einen falschen Preis. Das sind ${p1(v.v2Rate, l)}. Die Grenze ist ${p1(v.limit, l)}: v1 hatte ${p1(v.v1Rate, l)}, plus 1 Punkt.`, `Alle diese Anfragen lieferten Status 200. Nur die Geschäftsmetrik zeigt den Fehler. ${n(v.affected, l)} Anfragen trafen ihn vor dem Rollback.`],
+      'false-alarm': (v: CV, l: Lang) => [`Bei ${v.weight} % erreichten nur ${v.v2Req} Anfragen v2. ${v.v2Hits} davon scheiterten zufällig: ${p1(v.v2Rate, l)}, über der Grenze von ${p1(v.limit, l)}.`, 'Bei wenigen Anfragen ändern ein oder zwei Fehler die Rate stark. Echte Analysen setzen eine Mindestzahl an Anfragen oder messen mehrmals.'],
+      promoted: (v: CV, l: Lang) => [`v2 hat keinen Fehler. Die Fehlerrate blieb in jedem Schritt unter der Grenze: ${v.stages.filter((s) => s.weight < 100).map((s) => `${s.weight} %: ${p1(s.v2Err, l)}`).join(', ')}.`, 'Jeder Schritt vergleicht v2 mit v1 im selben Zeitfenster.'],
+      'silent-missed': (v: CV, l: Lang) => [`v2 lieferte bei ${n(v.wrong, l)} von ${n(v.v2Total, l)} Anfragen einen falschen Preis. Jede davon hatte Status 200, darum blieb die Fehlerrate von v2 nahe bei der von v1.`, 'Die Analyse hat keine Preise gemessen. Ein Canary findet nur, was er misst.'],
+      missed: () => ['v2 hat einen Fehler, aber kein Schritt hat die Grenze überschritten. Das ist Zufall: Bei wenigen Anfragen pro Schritt schwanken die Raten.'],
+    } as Record<CanaryOutcome['causeId'], (v: CV, l: Lang) => string[]>,
+    use: {
+      'rollback-errors': 'Der Agent bekommt den Schritt, die Metrik, die gemessene Rate und die Grenze. Er kann die scheiternden Anfragen gegen v2 reproduzieren und den Absturz vor dem nächsten Rollout beheben.',
+      'rollback-business': 'Der Agent bekommt die Falschpreis-Rate, obwohl jede Anfrage erfolgreich war. Er kann die Preise von v2 mit denen von v1 vergleichen und die falsche Berechnung finden.',
+      'false-alarm': 'Der Agent bekommt einen gescheiterten Schritt für eine Version ohne diesen Fehler. Er muss die Zahl der Anfragen prüfen, bevor er Code ändert.',
+      promoted: 'Der Agent bekommt einen erfolgreichen Rollout. Erfolgreich heißt „keine beobachtete Metrik hat ihre Grenze überschritten“, nicht „kein Fehler“.',
+      'silent-missed': 'Der Agent bekommt einen erfolgreichen Rollout und kein Signal. Er kann keinen Fehler beheben, den keine Metrik zeigt.',
+      missed: 'Der Agent bekommt einen erfolgreichen Rollout. Der Fehler wird ausgeliefert, weil kein Schritt die Grenze überschritten hat.',
+    } as Record<CanaryOutcome['causeId'], string>,
+    next: {
+      'rollback-errors': 'Bei „Version 2 hat …“ **einen stillen Fehler** wählen und den Rollout erneut starten.',
+      'rollback-business': 'Bei „Version 2 hat …“ **keinen Fehler** wählen und den Rollout erneut starten.',
+      'false-alarm': 'Den Rollout erneut starten. Jeder Lauf schickt neuen zufälligen Verkehr.',
+      promoted: 'Bei „Version 2 hat …“ **einen Absturzfehler** wählen und den Rollout erneut starten.',
+      'silent-missed': 'Die Geschäftsmetrik einschalten und den Rollout erneut starten.',
+      missed: 'Den Rollout erneut starten. Jeder Lauf schickt neuen zufälligen Verkehr.',
+    } as Record<CanaryOutcome['causeId'], string>,
+  },
+};
+
+/** Map the engine outcome to panel text. */
+export function canaryView(o: CanaryOutcome, report: string, lang: Lang): ResultView {
+  const r = R[lang], c = o.causeId;
+  return { status: o.status, verdict: r.verdict[c](o.values), why: r.why[c](o.values, lang), agent: { tool: lang === 'en' ? 'canary analysis (neutral format)' : 'Canary-Analyse (neutrales Format)', output: report, use: r.use[c] }, next: r.next[c] };
+}
 
 const T = {
   en: {
@@ -8,10 +89,7 @@ const T = {
     biz: 'Analysis also watches a business metric: share of reservations with the correct price',
     start: 'Start rollout', users: 'users', stage: 'Stage', err: 'errors', wrong: 'wrong price', decision: 'Decision',
     promote: 'continue', rollback: 'roll back', reasons: { errors: 'v2 error rate above v1 + 1%', business: 'v2 wrong-price rate above v1 + 1%' },
-    resultOk: 'Promoted to 100%.', resultRollback: (w: number) => `Rolled back automatically at ${w}%.`,
-    affected: (n: number) => `${n.toLocaleString('en')} requests hit the bug before the rollout ended.`,
     notMeasured: 'not measured',
-    silentMiss: 'The silent bug reached everyone: every request returned status 200, so the error-rate check saw nothing wrong. A canary is only as good as what it measures.',
     chart: 'Traffic diagram: requests go from users to v1 or v2; the share for v2 grows with each stage. Requests that hit the bug are coloured. The table below lists each stage.',
   },
   de: {
@@ -20,10 +98,7 @@ const T = {
     biz: 'Analyse beobachtet auch eine Geschäftsmetrik: Anteil der Reservierungen mit korrektem Preis',
     start: 'Rollout starten', users: 'Nutzer', stage: 'Stufe', err: 'Fehler', wrong: 'falscher Preis', decision: 'Entscheidung',
     promote: 'weiter', rollback: 'zurückrollen', reasons: { errors: 'Fehlerrate v2 über v1 + 1 %', business: 'Falschpreis-Rate v2 über v1 + 1 %' },
-    resultOk: 'Auf 100 % ausgerollt.', resultRollback: (w: number) => `Bei ${w} % automatisch zurückgerollt.`,
-    affected: (n: number) => `${n.toLocaleString('de')} Anfragen trafen den Fehler, bevor der Rollout endete.`,
     notMeasured: 'nicht gemessen',
-    silentMiss: 'Der stille Fehler erreichte alle: Jede Anfrage lieferte Status 200, also sah die Fehlerraten-Prüfung nichts. Ein Canary ist nur so gut wie das, was er misst.',
     chart: 'Verkehrsdiagramm: Anfragen gehen von den Nutzern an v1 oder v2; der Anteil für v2 wächst mit jeder Stufe. Anfragen, die den Fehler treffen, sind farbig. Die Tabelle darunter listet jede Stufe.',
   },
 };
@@ -38,17 +113,17 @@ export function mount(root: HTMLElement, lang: Lang) {
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', t.chart);
   const tbody = h('tbody');
-  const result = h('div', { class: 'sim-callout', hidden: true });
+  const panel = resultPanel(lang);
   const startBtn = h('button', { class: 'btn', type: 'button', onclick: () => start() }, t.start);
 
   root.append(h('div', { class: 'sim' },
     h('p', { class: 'sim-intro' }, t.intro),
-    h('div', { class: 'sim-row' }, segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b] })), S.bug, (v) => { S.bug = v; reset(); })),
-    h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { S.biz = (e.target as HTMLInputElement).checked; reset(); } }), t.biz),
+    h('div', { class: 'sim-row' }, segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b], tag: roleTag(BUG_TAG[b], lang) })), S.bug, (v) => { S.bug = v; reset(); })),
+    h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { S.biz = (e.target as HTMLInputElement).checked; reset(); } }), t.biz, ' ', roleTag('gate', lang)),
     h('div', { class: 'sim-row' }, startBtn),
     h('div', { class: 'sim-card' }, svg),
     h('table', { class: 'sim-table' }, h('thead', {}, h('tr', {}, h('th', {}, t.stage), h('th', {}, 'v1'), h('th', {}, 'v2'), h('th', {}, t.decision))), tbody),
-    result,
+    panel.el,
   ));
 
   type Dot = { x: number; lane: 1 | 2; bad: boolean; el: SVGCircleElement };
@@ -100,7 +175,7 @@ export function mount(root: HTMLElement, lang: Lang) {
       h('td', {}, s.decision === 'rollback' ? h('span', { class: 'sim-pill bad' }, `↩ ${t.rollback}`) : h('span', { class: 'sim-pill ok' }, `→ ${t.promote}`), s.reason ? h('div', { class: 'sim-hint' }, t.reasons[s.reason]) : ''));
   }
 
-  function reset() { S.run++; cancelAnimationFrame(anim); dots = []; weight = 0; tbody.replaceChildren(); result.hidden = true; frame(); startBtn.disabled = false; }
+  function reset() { S.run++; cancelAnimationFrame(anim); dots = []; weight = 0; tbody.replaceChildren(); panel.clear(); frame(); startBtn.disabled = false; }
 
   async function start() {
     reset();
@@ -120,11 +195,8 @@ export function mount(root: HTMLElement, lang: Lang) {
     }
     if (!reducedMotion()) await sleep(900);
     cancelAnimationFrame(anim); dots = []; frame();
-    const last = stages.at(-1)!;
-    const rolled = last.decision === 'rollback';
-    result.hidden = false;
-    result.className = `sim-callout ${rolled ? 'ok' : S.bug === 'none' ? 'ok' : 'bad'}`;
-    result.replaceChildren(h('p', {}, h('strong', {}, rolled ? t.resultRollback(last.weight) : t.resultOk)), S.bug !== 'none' ? h('p', {}, t.affected(affected(stages))) : '', !rolled && S.bug === 'silent' ? h('p', {}, t.silentMiss) : '');
+    const opts = { bug: S.bug, businessMetric: S.biz };
+    panel.show(canaryView(canaryOutcome(opts, stages), canaryReport(opts, stages), lang));
     startBtn.disabled = false;
   }
   frame();

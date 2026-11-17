@@ -8,30 +8,33 @@ interface Props { p: Practice; lang: Locale; socratic: string }
 const { p, lang, socratic } = Astro.props;
 const hasAnyTools = Object.values(p.tools).some((x) => x?.length);
 const firstSnippet = p.snippets?.[0];
+// every tool and example is language-independent: one panel, no tab bar, no per-language notice
+const single = LANGS.every((lg) => !p.tools[lg.id]?.length) && (p.snippets ?? []).every((x) => x.lang === 'any');
+const shown = single ? LANGS.slice(0, 1) : LANGS;
 ---
-<div class="langtabs" data-langtabs>
-  <div class="tabs" role="tablist" aria-label={t(lang, 'yourLanguage')}>
+<div class="langtabs" data-langtabs data-single={single ? '' : undefined}>
+  {!single && <div class="tabs" role="tablist" aria-label={t(lang, 'yourLanguage')}>
     {LANGS.map((lg, i) => (
       <button role="tab" type="button" id={`tab-${lg.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-lang={lg.id}>{lg.short}</button>
     ))}
-  </div>
-  {LANGS.map((lg, li) => {
+  </div>}
+  {shown.map((lg, li) => {
     const { own, any } = toolsFor(p, lg.id);
     const snippets = (p.snippets ?? []).filter((s) => s.lang === lg.id || s.lang === 'any');
     const fallback = snippets.length === 0 && firstSnippet ? (p.snippets ?? []).filter((s) => s.lang === firstSnippet.lang) : [];
     const promptId = `prompt-${p.id}-${lg.id}`;
     return (
       <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel" hidden={li === 0 ? undefined : 'until-found'}>
-        <h3 class="visually-hidden">{lg.name}</h3>
+        {!single && <h3 class="visually-hidden">{lg.name}</h3>}
         {!hasAnyTools && <p class="muted">{t(lang, 'noTools')}</p>}
-        {hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
+        {!single && hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
         {(own.length > 0 || any.length > 0) && (
           <div class="table-wrap" role="region" aria-label={`${t(lang, 'tools')}: ${lg.name}`} tabindex="0">
             <table class="tools">
               <thead><tr><th scope="col">{t(lang, 'tools')}</th><th scope="col">{t(lang, 'license')}</th><th scope="col">{t(lang, 'repo')}</th></tr></thead>
               <tbody>
                 {own.map((x) => <tr><th scope="row"><a href={x.url} rel="noopener">{x.name}</a></th><td data-label={t(lang, 'license')}><code>{x.license}</code></td><td data-label={t(lang, 'repo')}><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
-                {any.map((x) => <tr class="anyrow"><th scope="row"><a href={x.url} rel="noopener">{x.name}</a> <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span></th><td data-label={t(lang, 'license')}><code>{x.license}</code></td><td data-label={t(lang, 'repo')}><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
+                {any.map((x) => <tr class="anyrow"><th scope="row"><a href={x.url} rel="noopener">{x.name}</a> {!single && <span class="muted small">({t(lang, 'anyLanguage').toLowerCase()})</span>}</th><td data-label={t(lang, 'license')}><code>{x.license}</code></td><td data-label={t(lang, 'repo')}><a href={x.repo} rel="noopener" class="muted small">{t(lang, 'source')}</a></td></tr>)}
               </tbody>
             </table>
           </div>
@@ -56,12 +59,10 @@ const firstSnippet = p.snippets?.[0];
               <button type="button" class="btn" data-copy={promptId} command="--copy" commandfor={promptId}>{t(lang, 'copyTask')}</button>
               <p class="muted small">{t(lang, 'copyTaskHint')}</p>
             </div>
-            <div class="act">
-              <button type="button" class="btn ghost" data-copy="socratic" command="--copy" commandfor="socratic" data-proglang>{t(lang, 'copyTutor')}</button>
-              <p class="muted small">{t(lang, 'copyTutorHint')}</p>
-            </div>
           </div>
-          <details class="more preview"><summary>{t(lang, 'previewTask')}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id)}</pre></details>
+          <details class="more preview"><summary>{t(lang, 'previewTask')}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id, single)}</pre>
+            <div class="act tutor"><button type="button" class="btn ghost" data-copy="socratic" command="--copy" commandfor="socratic" data-proglang>{t(lang, 'copyTutor')}</button><p class="muted small">{t(lang, 'copyTutorHint')}</p></div>
+          </details>
         </div>
       </section>
     );
@@ -95,10 +96,11 @@ const firstSnippet = p.snippets?.[0];
   .act { display: grid; gap: 4px; align-content: start; justify-items: start; }
   .act p { margin: 0; max-width: 30rem; }
   .preview { margin-top: 10px; }
+  .tutor { margin-top: 12px; }
   .preview pre { margin-top: 8px; white-space: pre-wrap; font-size: var(--fs-code); }
 </style>
 <script>
-  for (const root of document.querySelectorAll<HTMLElement>('[data-langtabs]')) {
+  for (const root of document.querySelectorAll<HTMLElement>('[data-langtabs]:not([data-single])')) {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
     const select = (id: string, save = true, reveal = true) => {

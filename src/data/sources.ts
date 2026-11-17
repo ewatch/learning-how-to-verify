@@ -75,6 +75,23 @@ export const SOURCES: Source[] = [
   s('frommgen2024', 'Frömmgen et al.', 'Resolving Code Review Comments with Machine Learning', 'ICSE-SEIP', 2024, 'https://research.google/pubs/resolving-code-review-comments-with-machine-learning/'),
   s('dora2024', 'DORA / Google Cloud', '2024 Accelerate State of DevOps Report', 'Industry report', 2024, 'https://cloud.google.com/blog/products/devops-sre/announcing-the-2024-dora-report'),
   s('becker2025', 'Becker et al. (METR)', 'Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity', 'arXiv', 2025, 'https://arxiv.org/abs/2507.09089', true),
+  // Industry sources for "In practice". Each was read on its publisher page; none is a study of an effect.
+  s('sre2017testing', 'Perry, Luebbe', 'Testing for Reliability (chapter 17 of the Site Reliability Engineering book)', 'Google SRE book, O\'Reilly', 2017, 'https://sre.google/sre-book/testing-reliability/'),
+  s('sre2018canary', 'Warner, Davidovič', 'Canarying Releases (chapter 16 of the Site Reliability Workbook)', 'Google SRE Workbook, O\'Reilly', 2018, 'https://sre.google/workbook/canarying-releases/'),
+  s('swe2020overview', 'Bender', 'Testing Overview (chapter 11 of Software Engineering at Google)', 'O\'Reilly', 2020, 'https://abseil.io/resources/swe-book/html/ch11.html'),
+  s('swe2020larger', 'Graves', 'Larger Testing (chapter 14 of Software Engineering at Google)', 'O\'Reilly', 2020, 'https://abseil.io/resources/swe-book/html/ch14.html'),
+  s('toth2016', 'Toth', 'Scientist: Measure Twice, Cut Once', 'GitHub Blog', 2016, 'https://github.blog/engineering/infrastructure/scientist/'),
+  s('owasp2021a04', 'OWASP', 'A04:2021 Insecure Design', 'OWASP Top 10', 2021, 'https://owasp.org/Top10/A04_2021-Insecure_Design/'),
+  s('agentsmd2026', 'AGENTS.md project', 'AGENTS.md: a simple, open format for guiding coding agents', 'agents.md website', 2026, 'https://agents.md/'),
+  s('cncfotel2026', 'CNCF', 'OpenTelemetry (project page)', 'Cloud Native Computing Foundation', 2026, 'https://www.cncf.io/projects/opentelemetry/'),
+  s('sre2017oncall', 'Spadaccini', 'Being On-Call (chapter 11 of the Site Reliability Engineering book)', 'Google SRE book, O\'Reilly', 2017, 'https://sre.google/sre-book/being-on-call/'),
+  s('sre2017monitoring', 'Ewaschuk', 'Monitoring Distributed Systems (chapter 6 of the Site Reliability Engineering book)', 'Google SRE book, O\'Reilly', 2017, 'https://sre.google/sre-book/monitoring-distributed-systems/'),
+  s('thoughtworks2016cdc', 'Thoughtworks', 'Consumer-driven contract testing', 'Thoughtworks Technology Radar', 2016, 'https://www.thoughtworks.com/radar/techniques/consumer-driven-contract-testing'),
+  s('cncfopenfeature2023', 'CNCF', 'OpenFeature (project page)', 'Cloud Native Computing Foundation', 2023, 'https://www.cncf.io/projects/openfeature/'),
+  s('ossfuzz2023', 'Google', 'OSS-Fuzz documentation (Trophies)', 'OSS-Fuzz', 2023, 'https://google.github.io/oss-fuzz/'),
+  s('chromiumasan2026', 'Chromium project', 'AddressSanitizer (ASan)', 'Chromium Docs', 2026, 'https://chromium.googlesource.com/chromium/src/+/main/docs/asan.md'),
+  s('stateofjs2024testing', 'State of JavaScript survey', 'State of JavaScript 2024: Testing', 'State of JavaScript', 2024, 'https://2024.stateofjs.com/en-US/libraries/testing/'),
+  s('nist800115', 'Scarfone, Souppaya, Cody, Orebaugh', 'Technical Guide to Information Security Testing and Assessment', 'NIST SP 800-115', 2008, 'https://csrc.nist.gov/pubs/sp/800/115/final'),
 ];
 
 export const SOURCE_BY_ID = new Map(SOURCES.map((x) => [x.id, x]));

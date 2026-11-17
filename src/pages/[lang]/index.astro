@@ -46,6 +46,7 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
     <section class="ways">
       <h2>{en ? 'Other ways in' : 'Andere Einstiege'}</h2>
       <div class="grid cols-2">
+        <a class="way card" href={href(lang, 'diagnose/')}><strong>{en ? 'Diagnose my project →' : 'Mein Projekt diagnostizieren →'}</strong><span>{en ? 'Pick the problem you have. You get a first check, an exercise and a task for your agent.' : 'Das eigene Problem wählen und einen ersten Check, eine Übung und eine Aufgabe für den Agenten bekommen.'}</span></a>
         <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{en ? 'The same practices, sorted by the time when they run: before production, at deploy, at release and after release.' : 'Dieselben Praktiken, sortiert nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release.'}</span></a>
         <a class="way card" href={href(lang, 'stack/')}><strong>{'Tech Stack →'}</strong><span>{en ? 'Select your programming language. You see each practice with the open-source tools for that language.' : 'Programmiersprache wählen und jede Praktik mit den passenden Open-Source-Werkzeugen sehen.'}</span></a>
         <a class="way card" href={href(lang, 'petstore/')}><strong>{PETSTORE_COPY.open[lang]} →</strong><span>{PETSTORE_COPY.homeWay[lang]}</span></a>
@@ -81,6 +82,9 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
   .map > h2 { margin-bottom: 8px; }
   .intro { color: var(--ink-2); max-width: 42rem; margin-bottom: 22px; }
   .ways { margin-top: 56px; }
+  /* four doors: two by two, never three plus one */
+  .ways .grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 640px) { .ways .grid { grid-template-columns: 1fr; } }
   .way { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink); }
   .way span { color: var(--ink-2); font-size: var(--fs-ui); }
   .way:hover { border-color: var(--rule-strong); }

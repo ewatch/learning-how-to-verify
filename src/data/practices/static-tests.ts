@@ -30,8 +30,8 @@ export const staticTests: Practice[] = [
       l('Green unit tests say nothing about whether the units work together.', 'Grüne Unit-Tests sagen nichts darüber, ob die Einheiten zusammenspielen.'),
     ],
     ai: l(
-      'Tests are the strongest feedback signal for agents, by a wide margin. But a test the agent wrote to match its own code proves little; check test quality with mutation testing.',
-      'Tests sind mit großem Abstand das stärkste Feedback für Agenten. Ein Test, den der Agent passend zu seinem Code schrieb, beweist aber wenig; die Testqualität mit Mutation Testing prüfen.',
+      'Tests are the best-supported feedback signal for agents so far. But a test the agent wrote to match its own code proves little; check test quality with mutation testing.',
+      'Tests sind bisher das am besten belegte Feedback für Agenten. Ein Test, den der Agent passend zu seinem Code schrieb, beweist aber wenig; die Testqualität mit Mutation Testing prüfen.',
     ),
     evidence: {
       general: ev('strong', f('yuan2014', '92% of catastrophic failures in five distributed systems came from wrong handling of non-fatal errors; 58% could have been caught by simple tests of the error-handling code.', '92 % der katastrophalen Ausfälle in fünf verteilten Systemen kamen von falscher Behandlung nicht fataler Fehler; 58 % wären mit einfachen Tests der Fehlerbehandlung aufgefallen.')),
@@ -349,12 +349,16 @@ test('competing reservations leave exactly one owner', async () => {
     worth: [
       l('The only test that sees what the user sees.', 'Der einzige Test, der sieht, was der Nutzer sieht.'), l('A handful of critical journeys (search, reserve, pay) gives a lot of confidence.', 'Eine Handvoll kritischer Abläufe (suchen, reservieren, bezahlen) gibt viel Sicherheit.'),
       l('Run against a deployed build, so they also catch configuration and migration mistakes.', 'Laufen gegen einen deployten Build und finden so auch Konfigurations- und Migrationsfehler.'),
+      l('A feature list written from the user\'s view (paths, selectors, expected results) guides the agent and is the rubric that grades its result.', 'Eine Feature-Liste aus Nutzersicht (Pfade, Selektoren, erwartete Ergebnisse) leitet den Agenten und ist die Rubrik, die sein Ergebnis bewertet.'),
     ],
     limits: [
       l('Slow, brittle and imprecise; keep the number small and push detail down to cheaper tests.', 'Langsam, brüchig und unpräzise; wenige halten und Details in billigere Tests verlagern.'),
       l('A failure tells you that a journey broke, not where; traces and screenshots are needed to debug it.', 'Ein Fehlschlag sagt, dass eine Strecke kaputt ist, nicht wo; zum Debuggen braucht man Traces und Screenshots.'),
     ],
-    ai: l('Agents can make every unit test pass while the assembled app is broken. One end-to-end run of the main journey catches that, and Playwright traces give the agent a readable failure.', 'Agenten können jeden Unit-Test grün machen, während die zusammengesetzte App kaputt ist. Ein End-to-End-Lauf des Hauptablaufs fängt das, und Playwright-Traces geben dem Agenten einen lesbaren Fehler.'),
+    ai: l(
+      'Agents can pass every unit test and still break the feature, so an end-to-end run is the check that is hardest for them to fool. The feature works or it does not, and that gives the agent a clear "done". Give the agent hands and eyes on the running system: a driver for the browser (Playwright, CDP), a mobile app or a desktop app, or an API harness. Playwright traces give the agent a readable failure. The limits above stay true: keep the suite small, and let the agent run it before it reports done.',
+      'Agenten können jeden Unit-Test bestehen und das Feature trotzdem kaputt machen; ein End-to-End-Lauf ist deshalb die Prüfung, die sie am schwersten täuschen können. Das Feature funktioniert oder nicht, und das gibt dem Agenten ein klares „fertig“. Dem Agenten Hände und Augen am laufenden System geben: einen Driver für den Browser (Playwright, CDP), eine Mobile- oder Desktop-App oder ein API-Harness. Playwright-Traces geben dem Agenten einen lesbaren Fehler. Die Grenzen oben gelten weiter: Die Suite klein halten und den Agenten sie ausführen lassen, bevor er „fertig“ meldet.',
+    ),
     evidence: { general: none(), ai: ev('weak', f('metr2026', 'Indirect evidence: METR had maintainers review 296 agent PRs; roughly half of test-passing SWE-bench Verified PRs would not be merged after adjusting for noise in maintainer decisions. This shows limits of benchmark tests, not the effect of adding E2E tests.', 'Indirekte Evidenz: Bei METR reviewten Maintainer 296 Agenten-PRs; nach Bereinigung um Schwankungen der Maintainer-Entscheidungen würde etwa die Hälfte der testbestehenden SWE-bench-Verified-PRs nicht gemergt. Das zeigt Grenzen der Benchmark-Tests, nicht die Wirkung zusätzlicher E2E-Tests.')) },
     tools: { php: ['codeception'], js: ['playwright', 'cypress'], python: ['playwright'], java: ['playwright'], dotnet: ['playwright'] },
     snippets: [{ lang: 'js', file: 'reserve.spec.ts', code: `import { test, expect } from '@playwright/test';
@@ -523,7 +527,10 @@ test('regression: a rejected reservation preserves the first owner', () => {
       l('Proves only that it is alive, not that it is right.', 'Beweist nur, dass es lebt, nicht dass es stimmt.'),
       l('If they grow into a full regression suite they stop being fast, and people start skipping them.', 'Wachsen sie zu einer vollen Regressionssuite, sind sie nicht mehr schnell, und man beginnt, sie zu überspringen.'),
     ],
-    ai: l('Cheap insurance against an agent change that breaks startup (a renamed env variable, a missing import).', 'Billige Versicherung gegen eine Agentenänderung, die den Start zerbricht (umbenannte Umgebungsvariable, fehlender Import).'),
+    ai: l(
+      'Cheap insurance against an agent change that breaks startup (a renamed env variable, a missing import). A `verify` skill or script that boots, drives and inspects the app is the agent\'s smoke test before every commit. Keep it fast and reliable, so the agent runs it every time.',
+      'Billige Versicherung gegen eine Agentenänderung, die den Start zerbricht (umbenannte Umgebungsvariable, fehlender Import). Ein `verify`-Skill oder -Skript, das die App startet, bedient und prüft, ist der Smoke-Test des Agenten vor jedem Commit. Es schnell und zuverlässig halten, damit der Agent es jedes Mal ausführt.',
+    ),
     evidence: { general: none(), ai: none() },
     tools: { php: ['codeception'], js: ['playwright', 'vitest'], any: ['k6', 'hyperfine'] },
     snippets: [{ lang: 'any', file: 'smoke.sh', code: `#!/usr/bin/env sh

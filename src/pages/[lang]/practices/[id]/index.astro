@@ -9,6 +9,7 @@ import PracticeCard from '../../../../components/PracticeCard.astro';
 import CardKey from '../../../../components/CardKey.astro';
 import type { Locale, Practice } from '../../../../data/types';
 import { PRACTICES, PRACTICE_BY_ID } from '../../../../data/practices';
+import { IN_USE } from '../../../../data/in-use';
 import { GUIDE_BY_ID } from '../../../../data/guides';
 import { LAYERS } from '../../../../data/taxonomy';
 import { t, href } from '../../../../i18n/ui';
@@ -30,13 +31,6 @@ const idx = PRACTICES.indexOf(p);
 const prev = PRACTICES[idx - 1], next = PRACTICES[idx + 1];
 const socratic = socraticPrompt(p, lang, 'js', practiceMarkdown(p, lang)).replace('JavaScript / TypeScript', '__PROGLANG__');
 const gl = glosser(lang); // first occurrence of each glossary term per page
-const firstSentence = (s: string): [string, string] => {
-  const m = s.match(/^(.+?[\p{L}\p{N})`%]{3}[.!?])\s+(?=[\p{Lu}`])([\s\S]+)$/u);
-  return m ? [m[1], m[2]] : [s, ''];
-};
-const [aiHead, aiRest] = firstSentence(p.ai[lang]);
-const worthShown = p.worth.slice(0, 3), worthMore = p.worth.slice(3);
-const limitsShown = p.limits.slice(0, 2), limitsMore = p.limits.slice(2);
 const thinkMore = p.think.slice(1);
 // phones only: the petstore sentence of the strip, shown under the first heading
 const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.domain.what[lang])}`;
@@ -58,11 +52,19 @@ const num = () => String(++n).padStart(2, '0');
       <h1>{p.name[lang]}</h1>
       <p class="intro" set:html={gl(p.intro[lang])} />
       <dl class="def">
-        <div><dt>{t(lang, 'inOneSentence')}:</dt> <dd set:html={gl(p.oneLiner[lang])} /></div>
-        <div><dt>{t(lang, 'catches')}:</dt> <dd set:html={gl(p.catches[lang])} /></div>
+        <div><dt>{t(lang, 'inOneSentence')}</dt><dd set:html={gl(p.oneLiner[lang])} /></div>
+        <div><dt>{t(lang, 'catches')}</dt><dd set:html={gl(p.catches[lang])} /></div>
       </dl>
       <WhereItSits p={p} lang={lang} />
     </header>
+
+    <nav class="toc" aria-label={t(lang, 'onThisPage')}>
+      <a href={p.sim ? '#try' : p.viz ? '#see' : '#worth'}>{p.sim ? t(lang, 'tryIt') : p.viz ? t(lang, 'seeIt') : t(lang, 'strengthsLimits')}</a>
+      {(p.sim || p.viz) && <a href="#worth">{t(lang, 'strengthsLimits')}</a>}
+      <a href="#evidence">{t(lang, 'evidence')}</a>
+      <a href="#setup">{t(lang, 'setUp')}</a>
+      <a href="#deeper">{t(lang, 'goDeeper')}</a>
+    </nav>
 
     {!p.sim && p.viz && (
       <section class="layer-section" id="see"><h2><span class="num">{num()}</span>{t(lang, 'seeIt')}</h2>
@@ -79,37 +81,23 @@ const num = () => String(++n).padStart(2, '0');
       </section>
     )}
 
-    <section class="layer-section" id="worth"><h2><span class="num">{num()}</span>{t(lang, 'worthIt')}</h2>
+    <section class="layer-section" id="worth"><h2><span class="num">{num()}</span>{t(lang, 'strengthsLimits')}</h2>
       <div class="grid cols-2">
-        <div>
-          <ul class="checks">{worthShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
-          {worthMore.length > 0 && (
-            <details class="more"><summary>{worthMore.length} {t(lang, 'moreN')}</summary>
-              <ul class="checks">{worthMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
-            </details>
-          )}
-        </div>
-        <div><h3>{t(lang, 'limits')}</h3>
-          <ul class="limits">{limitsShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
-          {limitsMore.length > 0 && (
-            <details class="more"><summary>{limitsMore.length} {t(lang, 'moreN')}</summary>
-              <ul class="limits">{limitsMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
-            </details>
-          )}
-        </div>
+        <div><h3>{t(lang, 'strengths')}</h3><ul class="checks">{p.worth.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
+        <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
       </div>
       <aside class="ai" aria-labelledby="ai-h">
         <p class="ai-label" id="ai-h"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="11" rx="2" /><path d="M12 4v4M9 13h.01M15 13h.01M9 16h6" /></svg>{t(lang, 'withAgents')}</p>
-        <p class="ai-text" set:html={gl(aiHead)} />
-        {aiRest && <details class="more"><summary>{t(lang, 'moreText')}</summary><p class="ai-text" set:html={gl(aiRest)} /></details>}
+        <p class="ai-text" set:html={gl(p.ai[lang])} />
       </aside>
-      <div class="ev-block">
-        <h3>{t(lang, 'evidence')}</h3>
-        <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} />
-      </div>
     </section>
 
-    <section class="layer-section" id="your-language"><h2><span class="num">{num()}</span>{t(lang, 'yourLanguage')}</h2>
+    <section class="layer-section" id="evidence"><h2><span class="num">{num()}</span>{t(lang, 'evidence')}</h2>
+      <p class="muted small lead">{t(lang, 'evidenceLead')}</p>
+      <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} inUse={IN_USE[p.id]} gl={gl} />
+    </section>
+
+    <section class="layer-section" id="setup"><h2><span class="num">{num()}</span>{t(lang, 'setUp')}</h2>
       <LangTabs p={p} lang={lang} socratic={socratic} />
     </section>
 
@@ -182,10 +170,14 @@ const num = () => String(++n).padStart(2, '0');
   .head > :not(.strip) { max-width: 58rem; }
   /* why first (a concrete problem), then the definition and the bug class as a compact block */
   .head .intro { max-width: 42rem; margin: 0 0 12px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
-  .def { margin: 0 0 14px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); }
-  .def > div + div { margin-top: 2px; }
-  .def dt { display: inline; font-weight: 700; color: var(--ink); }
-  .def dd { display: inline; margin: 0; }
+  /* the two definitions: small label above, same pattern as the facts strip below */
+  .def { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 14px 40px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); max-width: 58rem; }
+  .def dt { margin-bottom: 3px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--ink-3); }
+  .def dd { margin: 0; color: var(--ink); }
+  .toc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin: 4px 0 8px; padding: 10px 0; font-size: var(--fs-sm); border-block: 1px solid var(--rule); }
+  .toc a { color: var(--ink-2); text-decoration: none; padding-block: 2px; }
+  .toc a:hover, .toc a:focus-visible { color: var(--ink); text-decoration: underline; }
+  .lead { margin: -6px 0 14px; }
   .head h1 { border-left: 6px solid var(--c); padding-left: 14px; margin-left: -20px; }
   @media (max-width: 760px) { .head h1 { margin-left: 0; } }
   /* phones: keep "Try it" / "See it" on the first screen */
@@ -194,7 +186,8 @@ const num = () => String(++n).padStart(2, '0');
     .head .eyebrow { display: none; }
     .head h1 { margin-bottom: 10px; }
     .head .intro { font-size: var(--fs-ui); line-height: 1.5; margin-bottom: 10px; }
-    .def { font-size: var(--fs-sm); line-height: 1.45; margin-bottom: 12px; }
+    .def { font-size: var(--fs-sm); line-height: 1.45; gap: 10px; }
+    .toc { gap: 4px 16px; padding-block: 8px; }
     .head { padding-bottom: 12px; }
   }
   .ps-what-m { display: none; margin: -4px 0 6px; color: var(--ink-2); }
@@ -209,13 +202,11 @@ const num = () => String(++n).padStart(2, '0');
   .variants { margin: 0 0 20px; }
   .variants dt { font-weight: 700; margin-top: 8px; }
   .variants dd { margin: 2px 0 0; color: var(--ink-2); }
-  .ev-block { margin-top: 26px; }
-  .ev-block h3 { margin-bottom: 8px; }
   .origin { margin: 26px 0 0; }
   .think { display: grid; gap: 8px; margin-bottom: 20px; }
   .think .disclose > summary { font-weight: 600; }
   /* below the fold: skip layout/paint until near the viewport (still found by Ctrl+F, anchors keep working) */
-  #your-language, #deeper { content-visibility: auto; contain-intrinsic-size: auto none auto 42rem; }
+  #evidence, #setup, #deeper { content-visibility: auto; contain-intrinsic-size: auto none auto 42rem; }
   .pager a { display: inline-flex; flex-direction: column; gap: 2px; padding-block: 6px; }
   .pager .nx { text-align: end; align-items: flex-end; margin-inline-start: auto; }
   .pager a { text-decoration: none; }

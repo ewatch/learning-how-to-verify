@@ -1,4 +1,5 @@
 import { significant, tokenize, matchClose, loadSuite, type Lang, type TestResult } from './jsrun';
+import type { Outcome } from './outcome';
 
 export type MutantKind = 'rel-boundary' | 'rel-negate' | 'eq' | 'arith' | 'logic' | 'update' | 'num' | 'str' | 'bool' | 'if-true' | 'if-false' | 'ret' | 'del';
 
@@ -94,4 +95,100 @@ export function mutationScore(results: MutantResult[], equivalent: Set<number> =
   if (!counted.length) return null;
   const killed = counted.filter((r) => r.status === 'killed' || r.status === 'timeout').length;
   return (100 * killed) / counted.length;
+}
+
+/* ───── Outcome for the result panel (see src/sim/ui/kit.ts) ───── */
+
+export type MutationCause = 'no-tests' | 'tests-fail' | 'survivors' | 'equivalent-left' | 'all-killed';
+export interface MutationValues {
+  killed: number; timeouts: number; survived: number; invalid: number; equivalent: number;
+  /** mutants that count for the score (not invalid, not marked equivalent) */
+  counted: number;
+  score: number | null;
+  coverage: number;
+  tests: number;
+  /** first unmarked survivor */
+  first?: { id: number; line: number; kind: MutantKind; desc: string };
+  /** tests-fail: the failing test on the original code */
+  failing?: { name: string; msg: string };
+}
+export type MutationOutcome = Outcome<MutationCause, MutationValues>;
+
+export interface MutationRun {
+  results: MutantResult[];
+  /** ids the reader marked as equivalent */
+  marked: Set<number>;
+  /** ids that are known to be equivalent (no test can kill them) */
+  knownEquivalent: Set<number>;
+  coverage: number;
+  tests: number;
+  /** set when the run stopped before mutation: no tests, or a test fails on the original */
+  error?: { kind: 'no-tests' } | { kind: 'tests-fail'; name: string; msg: string };
+}
+
+/** Verdict, cause and numbers of one mutation run. Pure. */
+export function mutationOutcome(run: MutationRun): MutationOutcome {
+  const rs = run.results;
+  const surv = rs.filter((r) => r.status === 'survived' && !run.marked.has(r.mutant.id));
+  const values: MutationValues = {
+    killed: rs.filter((r) => r.status === 'killed').length,
+    timeouts: rs.filter((r) => r.status === 'timeout').length,
+    survived: surv.length,
+    invalid: rs.filter((r) => r.status === 'invalid').length,
+    equivalent: rs.filter((r) => r.status === 'survived' && run.marked.has(r.mutant.id)).length,
+    counted: rs.filter((r) => r.status !== 'invalid' && !(r.status === 'survived' && run.marked.has(r.mutant.id))).length,
+    score: mutationScore(rs, run.marked),
+    coverage: run.coverage,
+    tests: run.tests,
+  };
+  if (run.error?.kind === 'no-tests') return { status: 'fail', causeId: 'no-tests', values };
+  if (run.error?.kind === 'tests-fail') return { status: 'fail', causeId: 'tests-fail', values: { ...values, failing: { name: run.error.name, msg: run.error.msg } } };
+  if (!surv.length) return { status: 'pass', causeId: 'all-killed', values };
+  const real = surv.filter((r) => !run.knownEquivalent.has(r.mutant.id));
+  const pick = (real[0] ?? surv[0]).mutant;
+  const first = { id: pick.id, line: pick.line + 1, kind: pick.kind, desc: pick.desc };
+  return real.length ? { status: 'fail', causeId: 'survivors', values: { ...values, first } } : { status: 'warn', causeId: 'equivalent-left', values: { ...values, first } };
+}
+
+/**
+ * StrykerJS mutator name for each mutant kind. Only real StrykerJS mutators are named.
+ * Kinds without a StrykerJS equivalent get a neutral label (see `strykerMutator`).
+ */
+const STRYKER_NAME: Partial<Record<MutantKind, string>> = {
+  'rel-boundary': 'EqualityOperator', 'rel-negate': 'EqualityOperator', eq: 'EqualityOperator', arith: 'ArithmeticOperator',
+  logic: 'LogicalOperator', update: 'UpdateOperator', str: 'StringLiteral', bool: 'BooleanLiteral',
+  'if-true': 'ConditionalExpression', 'if-false': 'ConditionalExpression',
+};
+const NEUTRAL: Partial<Record<MutantKind, string>> = {
+  num: 'numeric change', ret: 'return value replaced by null', del: 'statement removed',
+};
+
+/** The mutator label in a Stryker-style report line. `+=` / `-=` are StrykerJS AssignmentOperator mutants. */
+export function strykerMutator(m: Pick<Mutant, 'kind' | 'desc'>): string {
+  if (m.kind === 'arith' && /^[-+*/%]=/.test(m.desc)) return 'AssignmentOperator';
+  return STRYKER_NAME[m.kind] ?? `(${NEUTRAL[m.kind] ?? m.kind}, not a StrykerJS mutator)`;
+}
+
+/** Survivors and score in the format of the Stryker clear-text reporter (at most `max` survivors). */
+export function strykerReport(src: string, run: MutationRun, file = 'src/code.js', max = 2): string {
+  const lines = src.split('\n');
+  const surv = run.results.filter((r) => r.status === 'survived' && !run.marked.has(r.mutant.id));
+  const out: string[] = [];
+  for (const r of surv.slice(0, max)) {
+    const before = lines[r.mutant.line] ?? '';
+    const after = r.mutant.code.split('\n')[r.mutant.line] ?? '';
+    let col = 0;
+    while (col < before.length && before[col] === after[col]) col++;
+    // report the start of the changed token, as Stryker does (">= → >" starts at ">", not at "=")
+    const tok = r.mutant.desc.split(' → ')[0];
+    const start = before.lastIndexOf(tok, col);
+    if (start >= 0 && start + tok.length >= col) col = start;
+    out.push(`[Survived] ${strykerMutator(r.mutant)}`, `${file}:${r.mutant.line + 1}:${col + 1}`, `-   ${before.trim()}`, `+   ${after.trim()}`, 'Tests ran:', ...r.results.map((t) => `    ${t.name}`), '');
+  }
+  if (surv.length > max) out.push(`… ${surv.length - max} more survived`, '');
+  const sc = mutationScore(run.results, run.marked);
+  const killed = run.results.filter((r) => r.status === 'killed').length;
+  const timeout = run.results.filter((r) => r.status === 'timeout').length;
+  out.push(`Mutation score: ${sc === null ? 'n/a' : sc.toFixed(2)} % (killed ${killed}, timeout ${timeout}, survived ${surv.length})`);
+  return out.join('\n');
 }

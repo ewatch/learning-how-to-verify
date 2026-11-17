@@ -4,6 +4,7 @@
  * matched character is a new branch, so coverage guidance can "learn" its way in.
  */
 import { rng } from './rng';
+import type { Outcome } from './outcome';
 
 export class SearchSyntaxError extends Error {}
 
@@ -136,4 +137,59 @@ export function step(st: FuzzState, n: number): boolean {
   }
   st.history.push({ it: st.iterations, cov: st.seen.size });
   return Boolean(st.crash);
+}
+
+/* ───── Outcome for the result panel (see src/sim/ui/kit.ts) ───── */
+
+export type FuzzCause = 'guided-only' | 'blind-only' | 'both' | 'none';
+export interface FuzzSide { iterations: number; branches: number; corpus: number; crashAt: number | null }
+export interface FuzzValues {
+  total: number;
+  blind: FuzzSide;
+  guided: FuzzSide;
+  dictionary: boolean;
+  /** the first crash found (guided first, as it is the one the tool would report) */
+  crash?: { by: 'guided' | 'blind'; input: string; minimal: string; error: string; errorName: string; at: number };
+  /** line in PARSER_SOURCE (1-based) that throws */
+  line: number;
+}
+export type FuzzOutcome = Outcome<FuzzCause, FuzzValues>;
+
+/** Line of the bug in the parser as shown (1-based). */
+export const BUG_LINE = PARSER_SOURCE.split('\n').findIndex((l) => l.includes('decodeURIComponent')) + 1;
+
+const side = (s: FuzzState): FuzzSide => ({ iterations: s.iterations, branches: s.seen.size, corpus: s.corpus.length, crashAt: s.crash?.at ?? null });
+
+/** Verdict, cause and numbers after both fuzzers stopped. Pure. */
+export function fuzzOutcome(blind: FuzzState, guided: FuzzState): FuzzOutcome {
+  const values: FuzzValues = { total: TOTAL_BRANCHES, blind: side(blind), guided: side(guided), dictionary: guided.useDict, line: BUG_LINE };
+  const src = guided.crash ? { by: 'guided' as const, c: guided.crash } : blind.crash ? { by: 'blind' as const, c: blind.crash } : null;
+  // the shown parser has a known bug, so "no crash" is a warning, not a pass
+  if (!src) return { status: 'warn', causeId: 'none', values };
+  const crash = { by: src.by, input: src.c.input, minimal: src.c.minimal, error: src.c.error, errorName: src.c.error.split(':')[0], at: src.c.at };
+  const causeId: FuzzCause = guided.crash && blind.crash ? 'both' : guided.crash ? 'guided-only' : 'blind-only';
+  return { status: 'fail', causeId, values: { ...values, crash } };
+}
+
+/** A crash report in the format of Jazzer.js (libFuzzer based). */
+export function jazzerReport(o: FuzzOutcome): string {
+  const c = o.values.crash;
+  if (!c) return `#${o.values.guided.iterations}\tDONE   cov: ${o.values.guided.branches} corp: ${o.values.guided.corpus}\nDone ${o.values.guided.iterations} runs: no crash found`;
+  const msg = c.error.slice(c.errorName.length + 2);
+  return [
+    `==fuzz== Uncaught Exception: ${c.errorName}: ${msg}`,
+    `    at decodeURIComponent (<anonymous>)`,
+    `    at parseSearch (search.js:${o.values.line})`,
+    `MS: crash after ${c.at} runs`,
+    `Crashing input: ${JSON.stringify(c.input)}`,
+    `Minimized input: ${JSON.stringify(c.minimal)}`,
+    `Test unit written to ./crash-${hash(c.minimal)}`,
+  ].join('\n');
+}
+
+/** Small stable hex id for the crash file name (FNV-1a). */
+function hash(s: string): string {
+  let x = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 0x01000193) >>> 0; }
+  return x.toString(16).padStart(8, '0');
 }

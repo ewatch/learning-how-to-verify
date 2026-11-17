@@ -116,3 +116,31 @@
 
 /* the `font` shorthand above resets font-variant: keep code ligature-free (>= stays >=) */
 .sim-code, .sim-log, .sim-textarea, .sim .cm-content { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'calt' 0; }
+
+/* role tags: what an option IS (bug, correct, weak tests …), shown before a run */
+.sim-tag { display: inline-block; font: 600 var(--fs-xs)/1.25 var(--font-body); letter-spacing: .02em; padding: 0 6px; border-radius: 4px; border: 1px solid; white-space: nowrap; vertical-align: .08em; text-transform: none; }
+.sim-tag.neg { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 55%, transparent); }
+.sim-tag.pos { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
+.sim-seg input:checked + label .sim-tag, .btn:not(.ghost) .sim-tag, .btn.ghost[aria-pressed='true'] .sim-tag { color: inherit; border-color: currentColor; }
+
+/* the shared result panel (see resultPanel in kit.ts) */
+.sim-result { display: grid; gap: 10px; padding: 12px 14px; }
+.sim-result.warn { border-color: var(--warn); }
+.sim-result[hidden] { display: none; }
+.sim-result h3.sim-result-verdict { margin: 0; display: flex; gap: 8px; align-items: baseline; font: 700 var(--fs-ui)/1.35 var(--font-body); color: var(--ink); }
+.sim-result-icon { flex: none; display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; color: var(--paper); background: var(--ink-3); font-size: .9em; line-height: 1; }
+.sim-result.ok .sim-result-icon { background: var(--ok); }
+.sim-result.bad .sim-result-icon { background: var(--bad); }
+.sim-result.warn .sim-result-icon { background: var(--warn); }
+.sim-result-sec { min-width: 0; }
+.sim-result h4 { margin: 0 0 2px; font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.sim-result p { margin: 0 0 .35em; }
+.sim-result p:last-child { margin: 0; }
+.sim-result code { font-size: var(--fs-code); overflow-wrap: anywhere; }
+.sim-result-src { font-size: var(--fs-xs); color: var(--ink-3); }
+.sim-result-out { font: var(--fs-code)/1.5 var(--font-mono); font-variant-ligatures: none; background: var(--code-bg); color: var(--code-ink); border-radius: 5px; padding: 8px 10px; margin: 2px 0 6px; overflow-x: auto; white-space: pre; max-width: 100%; }
+.sim-result-out:focus-visible { outline: 2px solid var(--focus); }
+.sim-log li.min { background: color-mix(in srgb, var(--bad) 12%, transparent); border-radius: 3px; padding: 0 4px; }
+@media (max-width: 40rem) { .sim-result-out { white-space: pre-wrap; overflow-wrap: anywhere; } }
+/* `hidden` must win over layout classes such as .grid (the lint mode switch relied on it) */
+.sim [hidden] { display: none !important; }

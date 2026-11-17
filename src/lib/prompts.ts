@@ -22,9 +22,13 @@ export function snippetFor(p: Practice, lang: LangId) {
 const pageUrl = (p: Practice, loc: Locale) => `${SITE_URL}/${loc}/practices/${p.id}/`;
 
 /** "Copy for your agent": an instruction, not marketing. Always in the page language. */
-export function agentPrompt(p: Practice, loc: Locale, lang: LangId): string {
+export function agentPrompt(p: Practice, loc: Locale, lang: LangId, allLanguages = false): string {
   const { own, any } = toolsFor(p, lang);
-  const tools = [...own, ...any];
+  // Markdown twin: no language chosen, so list the tools of every language and let the agent match the project
+  const tools = allLanguages
+    ? [...new Map(Object.values(p.tools).flat().map((id) => [id, TOOL_BY_ID.get(id)!])).values()]
+    : [...own, ...any];
+  const stack = allLanguages ? (loc === 'de' ? 'wie im Projekt vorhanden' : 'as used in the project') : langName(lang);
   const de = loc === 'de';
   const toolLine = tools.length
     ? tools.map((x) => `${x.name} (${x.license}, ${x.url})`).join('; ')
@@ -33,8 +37,8 @@ export function agentPrompt(p: Practice, loc: Locale, lang: LangId): string {
     de ? `# Aufgabe: ${p.name.de} in diesem Repository einrichten` : `# Task: set up ${p.name.en} in this repository`,
     '',
     de ? `Kontext: ${p.oneLiner.de} Es findet: ${p.catches.de}.` : `Context: ${p.oneLiner.en} It catches: ${p.catches.en}.`,
-    de ? `Sprache/Stack: ${langName(lang)}. Bevorzugte Open-Source-Werkzeuge: ${toolLine}. Nimm das, was zum vorhandenen Setup passt; frag nach, bevor du ein neues Framework einführst.`
-       : `Language/stack: ${langName(lang)}. Preferred open-source tools: ${toolLine}. Use whichever fits the existing setup; ask before introducing a new framework.`,
+    de ? `Sprache/Stack: ${stack}. Bevorzugte Open-Source-Werkzeuge: ${toolLine}. Nimm das, was zum vorhandenen Setup passt; frag nach, bevor du ein neues Framework einführst.`
+       : `Language/stack: ${stack}. Preferred open-source tools: ${toolLine}. Use whichever fits the existing setup; ask before introducing a new framework.`,
     '',
     de ? '## Schritte' : '## Steps',
     ...p.steps.map((s, i) => `${i + 1}. ${s[loc]}`),

@@ -1,4 +1,5 @@
 // Snapshot-test exercise: a recorded invoice snapshot, five agent changes, line diffs and scoring.
+import type { Outcome } from './outcome';
 export type Bi = { en: string; de: string };
 export interface Adoption { pet: string; species: string; feeCents: number; voucherPercent: number; date: string }
 
@@ -80,4 +81,61 @@ export function score(decisions: Record<string, Verdict | undefined>, changes: C
     return { id: c.id, decided: d !== undefined, correct: d !== undefined && (d === 'approve') === c.intended };
   });
   return { results, correct: results.filter((r) => r.correct).length, decided: results.filter((r) => r.decided).length, total: changes.length };
+}
+
+/* ───── Outcome for the result panel (see src/sim/ui/kit.ts) ───── */
+
+export type SnapshotCause =
+  | 'all-correct' // every bug rejected, every wanted change approved
+  | 'approved-bug' // at least one bug was approved: the snapshot now records the wrong output
+  | 'rejected-wanted' // only wanted changes were rejected: no bug ships, but wanted work is lost
+  | 'auto-updated'; // the agent re-recorded every snapshot: all tests green, the bugs ship
+
+export interface SnapshotValues {
+  correct: number;
+  total: number;
+  approvedBugs: string[];
+  rejectedWanted: string[];
+  /** bugs that end up in the recorded snapshot */
+  shipped: string[];
+  /** the change the explanation is about, with the lines it removes from / adds to the snapshot */
+  focus?: { id: string; index: number; removed: string[]; added: string[] };
+}
+export type SnapshotOutcome = Outcome<SnapshotCause, SnapshotValues>;
+
+export function changedLines(c: Change): { removed: string[]; added: string[] } {
+  const d = diffFor(c);
+  return { removed: d.filter((l) => l.op === 'del').map((l) => l.text), added: d.filter((l) => l.op === 'add').map((l) => l.text) };
+}
+const focusOn = (c: Change) => ({ id: c.id, index: CHANGES.indexOf(c), ...changedLines(c) });
+
+/** Result once every change is decided, or at once when the agent updates snapshots itself. Null while decisions are open. */
+export function snapshotOutcome(decisions: Record<string, Verdict | undefined>, auto: boolean, changes: Change[] = CHANGES): SnapshotOutcome | null {
+  const bugs = changes.filter((c) => !c.intended);
+  if (auto) {
+    return { status: 'warn', causeId: 'auto-updated', values: { correct: 0, total: changes.length, approvedBugs: [], rejectedWanted: [], shipped: bugs.map((c) => c.id), focus: bugs[0] && focusOn(bugs[0]) } };
+  }
+  const s = score(decisions, changes);
+  if (s.decided < s.total) return null;
+  const approvedBugs = bugs.filter((c) => decisions[c.id] === 'approve');
+  const rejectedWanted = changes.filter((c) => c.intended && decisions[c.id] === 'reject');
+  const values: SnapshotValues = { correct: s.correct, total: s.total, approvedBugs: approvedBugs.map((c) => c.id), rejectedWanted: rejectedWanted.map((c) => c.id), shipped: approvedBugs.map((c) => c.id) };
+  if (approvedBugs.length) return { status: 'fail', causeId: 'approved-bug', values: { ...values, focus: focusOn(approvedBugs[0]) } };
+  if (rejectedWanted.length) return { status: 'fail', causeId: 'rejected-wanted', values: { ...values, focus: focusOn(rejectedWanted[0]) } };
+  return { status: 'pass', causeId: 'all-correct', values: { ...values, focus: bugs[0] && focusOn(bugs[0]) } };
+}
+
+const TEST = 'renderInvoice > matches the recorded invoice';
+
+/** A Vitest snapshot mismatch for one change, as the agent sees it before anyone decides. */
+export function vitestSnapshotReport(c: Change): string {
+  const d = diffFor(c);
+  const last = d.length - 1;
+  const body = d.map((l, i) => `${l.op === 'del' ? '-' : l.op === 'add' ? '+' : ' '} ${i === 0 ? '"' : ''}${l.text}${i === last ? '"' : ''}`);
+  return [` FAIL  invoice.test.ts > ${TEST}`, `Error: Snapshot \`${TEST} 1\` mismatched`, '', '- Expected', '+ Received', '', ...body].join('\n');
+}
+
+/** What the agent sees after it re-recorded the snapshots itself (vitest -u). */
+export function vitestUpdatedReport(n: number): string {
+  return ['$ vitest run -u', ` ✓ invoice.test.ts (${n} tests)`, '', ` Snapshots  ${n} updated`, ' Test Files  1 passed (1)', `      Tests  ${n} passed (${n})`].join('\n');
 }

@@ -1,19 +1,23 @@
 ---
-import type { Evidence, Locale } from '../data/types';
+import type { Evidence, Locale, UseFinding } from '../data/types';
 import { RATING_LABEL } from '../data/taxonomy';
 import { SOURCE_BY_ID } from '../data/sources';
 import { t } from '../i18n/ui';
-interface Props { general: Evidence; ai: Evidence; lang: Locale }
-const { general, ai, lang } = Astro.props;
+interface Props { general: Evidence; ai: Evidence; lang: Locale; inUse?: UseFinding[]; gl?: (text: string) => string }
+const { general, ai, lang, inUse = [], gl = (x: string) => x } = Astro.props;
+const kindKey = { adoption: 'useAdoption', case: 'useCase', standard: 'useStandard', guidance: 'useGuidance' } as const;
 const n = { strong: 3, moderate: 2, weak: 1, none: 0 } as const;
 const rows = [['evidenceGeneral', general], ['evidenceAi', ai]] as const;
-const count = general.findings.length + ai.findings.length;
+const count = general.findings.length + ai.findings.length + inUse.length;
 ---
 <div class="evidence">
   <div class="meters">
     {rows.map(([k, e]) => (
-      <p class="rating"><span class="lbl">{t(lang, k)}</span> <span class="meter" data-n={n[e.rating]} aria-hidden="true"><i /><i /><i /></span> <strong>{e.findings.length === 0 && e.rating === 'none' ? t(lang, 'noStudy') : RATING_LABEL[e.rating][lang]}</strong></p>
+      <p class="rating"><span class="lbl">{t(lang, k)}</span>{e.findings.length === 0 && e.rating === 'none'
+        ? <strong class="none">{t(lang, 'noStudy')}</strong>
+        : <><span class="meter" data-n={n[e.rating]} aria-hidden="true"><i /><i /><i /></span> <strong>{RATING_LABEL[e.rating][lang]}</strong></>}</p>
     ))}
+    {inUse.length > 0 && <p class="rating"><span class="lbl">{t(lang, 'evidenceUse')}</span><strong class="use">{t(lang, 'useLead')} · {inUse.length} {t(lang, inUse.length === 1 ? 'useOne' : 'useMany')}</strong></p>}
   </div>
   <details class="disclose">
     <summary>{t(lang, 'sourcesFindings')} ({count})</summary>
@@ -27,7 +31,7 @@ const count = general.findings.length + ai.findings.length;
                 const s = SOURCE_BY_ID.get(fi.src)!;
                 return (
                   <li>
-                    {fi.text[lang]}{' '}
+                    <span set:html={gl(fi.text[lang])} />{' '}
                     <a class="src" href={s.url} rel="noopener">{s.authors.split(',')[0]}{s.authors.includes(',') ? ' et al.' : ''}, {s.venue} {s.year}</a>
                     {s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}
                   </li>
@@ -37,12 +41,32 @@ const count = general.findings.length + ai.findings.length;
           )}
         </div>
       ))}
+      {inUse.length > 0 && (
+        <div class="ev">
+          <p class="eyebrow">{t(lang, 'evidenceUse')}</p>
+          <p class="muted small">{t(lang, 'evidenceUseNote')}</p>
+          <ul>
+            {inUse.map((fi) => {
+              const s = SOURCE_BY_ID.get(fi.src)!;
+              return (
+                <li>
+                  <span class="badge">{t(lang, kindKey[fi.kind])}</span> <span set:html={gl(fi.text[lang])} />{' '}
+                  <a class="src" href={s.url} rel="noopener">{s.authors.split(',')[0]}{s.authors.includes(',') ? ' et al.' : ''}, {s.venue} {s.year}</a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   </details>
 </div>
 <style>
-  .meters { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 10px; }
-  .rating { margin: 0; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  /* three rows, three aligned columns: what, how strong, verdict */
+  .meters { display: grid; grid-template-columns: max-content max-content 1fr; gap: 8px 14px; align-items: center; margin-bottom: 14px; }
+  .rating { display: contents; }
+  .rating > strong:nth-child(2) { grid-column: 2 / -1; }
+  .rating > strong.none { color: var(--ink-3); font-weight: 500; }
   .lbl { color: var(--ink-3); font-size: var(--fs-sm); }
   .ev ul { padding-left: 1.1em; margin: 0; font-size: var(--fs-ui); }
   .ev li { margin-bottom: .6em; }

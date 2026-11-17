@@ -21,15 +21,15 @@ export const staticDeep: Practice[] = [
     worth: [
       l('One property replaces dozens of examples and finds the ones you did not think of.', 'Eine Eigenschaft ersetzt Dutzende Beispiele und findet die, an die man nicht dachte.'),
       l('Shrinking turns a random failure into a minimal, readable counterexample.', 'Shrinking macht aus einem zufälligen Fehlschlag ein minimales, lesbares Gegenbeispiel.'),
-      l('Typical properties: round-trip (`parse(print(x)) = x`), invariants (sum of shares = total), model comparison (fast code = simple code).', 'Typische Eigenschaften: Round-Trip (`parse(print(x)) = x`), Invarianten (Summe der Anteile = Gesamt), Modellvergleich (schneller Code = einfacher Code).'),
+      l('Typical properties: round-trip (`parse(print(x)) = x`), invariants (sum of shares = total), idempotency (`f(f(x)) = f(x)`), equivalence or model comparison (optimised code gives the same result as simple, correct code).', 'Typische Eigenschaften: Round-Trip (`parse(print(x)) = x`), Invarianten (Summe der Anteile = Gesamt), Idempotenz (`f(f(x)) = f(x)`), Äquivalenz oder Modellvergleich (optimierter Code liefert dasselbe Ergebnis wie einfacher, korrekter Code).'),
     ],
     limits: [
       l('Finding good properties takes practice; writing generators for complex data takes effort.', 'Gute Eigenschaften zu finden braucht Übung; Generatoren für komplexe Daten kosten Aufwand.'),
       l('Random search, not proof: a rare bug may not be hit in 100 runs.', 'Zufallssuche, kein Beweis: Ein seltener Fehler wird in 100 Läufen vielleicht nicht getroffen.'),
     ],
     ai: l(
-      'Properties solve the "agent wrote both code and expected values" problem: you do not need the right answer, only a rule the answer must obey. Shrunk counterexamples are excellent feedback for an agent.',
-      'Eigenschaften lösen das Problem „der Agent schrieb Code und Erwartungswerte“: Man braucht nicht die richtige Antwort, nur eine Regel, der sie gehorchen muss. Geschrumpfte Gegenbeispiele sind ausgezeichnetes Feedback für einen Agenten.',
+      'Properties solve the "agent wrote both code and expected values" problem: you do not need the right answer, only a rule the answer must obey. Shrunk counterexamples are excellent feedback for an agent. Generated inputs also do not share the blind spots of the agent that wrote the code.',
+      'Eigenschaften lösen das Problem „der Agent schrieb Code und Erwartungswerte“: Man braucht nicht die richtige Antwort, nur eine Regel, der sie gehorchen muss. Geschrumpfte Gegenbeispiele sind ausgezeichnetes Feedback für einen Agenten. Erzeugte Eingaben teilen außerdem nicht die blinden Flecken des Agenten, der den Code schrieb.',
     ),
     evidence: {
       general: ev('weak',
@@ -349,8 +349,8 @@ export default defineConfig({
     ),
     cost: 1,
     feedback: 'seconds',
-    worth: [l('An oracle for free: you do not need to know the right answer, only that the two should agree.', 'Ein Orakel umsonst: Man muss die richtige Antwort nicht kennen, nur dass beide übereinstimmen sollen.'), l('Combines naturally with generated inputs (PBT, fuzzing).', 'Verbindet sich natürlich mit erzeugten Eingaben (PBT, Fuzzing).'), l('Bridges proofs and code: compare a verified Dafny model against the production TypeScript.', 'Überbrückt Beweis und Code: ein verifiziertes Dafny-Modell gegen das produktive TypeScript vergleichen.')],
-    limits: [l('If both implementations share a bug, they agree on it.', 'Teilen beide Implementierungen einen Fehler, stimmen sie darin überein.'), l('Intended differences need an explicit allow-list.', 'Gewollte Unterschiede brauchen eine ausdrückliche Ausnahmeliste.')],
+    worth: [l('An oracle for free: you do not need to know the right answer, only that the two should agree.', 'Ein Orakel umsonst: Man muss die richtige Antwort nicht kennen, nur dass beide übereinstimmen sollen.'), l('Combines naturally with generated inputs (PBT, fuzzing). A sample of real production traffic is a second good input source.', 'Verbindet sich natürlich mit erzeugten Eingaben (PBT, Fuzzing). Eine Stichprobe echten Produktions-Traffics ist eine zweite gute Eingabequelle.'), l('Bridges proofs and code: compare a verified Dafny model against the production TypeScript.', 'Überbrückt Beweis und Code: ein verifiziertes Dafny-Modell gegen das produktive TypeScript vergleichen.')],
+    limits: [l('If both implementations share a bug, they agree on it.', 'Teilen beide Implementierungen einen Fehler, stimmen sie darin überein.'), l('Differences that do not matter (whitespace, order, timestamps) give false alarms, so normalise them before you compare. Intended differences need an explicit allow-list, with a reason for each entry.', 'Unwichtige Unterschiede (Leerzeichen, Reihenfolge, Zeitstempel) erzeugen Fehlalarme; sie deshalb vor dem Vergleich normalisieren. Gewollte Unterschiede brauchen eine ausdrückliche Ausnahmeliste (Allow-List) mit Begründung je Eintrag.')],
     ai: l('The best check for "rewrite this module" tasks: keep the old implementation, run both on thousands of inputs, and the agent gets a concrete counterexample for every behavioural change.', 'Die beste Prüfung für „schreib dieses Modul neu“: Die alte Implementierung behalten, beide auf Tausenden Eingaben laufen lassen, und der Agent bekommt für jede Verhaltensänderung ein konkretes Gegenbeispiel.'),
     evidence: {
       general: ev('strong', f('csmith2011', 'Differential testing of C compilers found more than 325 previously unknown bugs in GCC and LLVM; CompCert\'s verified middle-end was the only part where no wrong-code bugs were found.', 'Differential Testing von C-Compilern fand über 325 unbekannte Fehler in GCC und LLVM; die verifizierte Mittelschicht von CompCert war der einzige Teil ohne Fehlübersetzungen.')),

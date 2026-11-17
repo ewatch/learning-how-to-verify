@@ -5,9 +5,14 @@
  * Stored format (key PROGRESS_KEY):
  * - version 1 (before the tour bar): a JSON array of opened step ids, e.g. ["funnel","lint"].
  * - version 2: {"v":2,"opened":[…],"done":[…],"active":true,"collapsed":false}.
+ *   Optional, written only when true: "chosen" (the reader set "collapsed" with the arrow) and
+ *   "reveal" (show the task once on the next step page, after a begin/continue/next action).
  * parseTour reads both, so readers keep their progress; serializeTour always writes version 2.
  */
 export const PROGRESS_KEY = 'lhtv:start-tour';
+
+/** Media query for "phone": narrow window or touch screen. There the tour bar starts as the one-line strip. */
+export const PHONE_QUERY = '(max-width: 35rem), (pointer: coarse)';
 
 /** Reads a stored value; unknown ids and malformed input are ignored. */
 export function parseProgress(raw: string | null | undefined, ids: readonly string[]): Set<string> {
@@ -47,6 +52,10 @@ export interface TourState {
   active: boolean;
   /** the bar shows as a one-line strip */
   collapsed: boolean;
+  /** the reader chose `collapsed` with the arrow; without a choice phones show the strip */
+  chosen?: boolean;
+  /** show the task expanded once on the next step page (set by begin/continue/next) */
+  reveal?: boolean;
 }
 
 export const emptyTour = (): TourState => ({ opened: new Set(), done: new Set(), active: false, collapsed: false });
@@ -65,14 +74,43 @@ export function parseTour(raw: string | null | undefined, ids: readonly string[]
   const done = idSet(v.done, ids);
   const opened = idSet(v.opened, ids);
   for (const id of done) opened.add(id);
-  return { opened, done, active: v.active === true, collapsed: v.collapsed === true };
+  return {
+    opened, done, active: v.active === true, collapsed: v.collapsed === true,
+    ...(v.chosen === true && { chosen: true }), ...(v.reveal === true && { reveal: true }),
+  };
 }
 
 /** Writes version 2, ids in tour order, so the stored value is stable. */
 export function serializeTour(state: TourState, ids: readonly string[]): string {
   const ordered = (set: ReadonlySet<string>) => ids.filter((id) => set.has(id));
-  return JSON.stringify({ v: 2, opened: ordered(new Set([...state.opened, ...state.done])), done: ordered(state.done), active: state.active, collapsed: state.collapsed });
+  return JSON.stringify({ v: 2, opened: ordered(new Set([...state.opened, ...state.done])), done: ordered(state.done), active: state.active, collapsed: state.collapsed,
+    ...(state.chosen === true && { chosen: true }), ...(state.reveal === true && { reveal: true }) });
 }
+
+/**
+ * Whether the tour bar shows as the one-line strip on this page. `phone`: narrow window or coarse pointer.
+ * Once after a begin/continue/next action the task shows expanded; otherwise the reader's choice counts,
+ * and without a choice phones show the strip and wider screens the stored flag (default: expanded).
+ * The inline script in src/components/TourBar.astro repeats this rule before first paint.
+ */
+export function barCollapsed(state: TourState, phone: boolean): boolean {
+  if (state.reveal === true) return false;
+  if (state.chosen === true || !phone) return state.collapsed;
+  return true;
+}
+
+/** Returns a copy with the reader's arrow choice stored. */
+export const chooseCollapsed = (state: TourState, collapsed: boolean): TourState => ({ ...state, collapsed, chosen: true });
+
+/** Returns a copy without the one-time reveal (the step page has shown the task). */
+export function consumeReveal(state: TourState): TourState {
+  const copy = { ...state };
+  delete copy.reveal;
+  return copy;
+}
+
+/** Returns a copy that shows the task once on the next step page. */
+export const revealNext = (state: TourState): TourState => ({ ...state, reveal: true });
 
 /** Index of the first step that is not done, or -1 when every step is done. */
 export const firstNotDone = (state: TourState, ids: readonly string[]): number => nextStep(state.done, ids);
@@ -90,7 +128,7 @@ export function stepStatuses(state: TourState, ids: readonly string[]): StepStat
 
 /** Returns a copy with the step opened and the tour active (the reader entered a step from the start page). */
 export function enterStep(state: TourState, id: string): TourState {
-  return { ...state, opened: new Set([...state.opened, id]), active: true };
+  return { ...state, opened: new Set([...state.opened, id]), active: true, reveal: true };
 }
 
 /** Returns a copy with the step opened (the reader is on its page). */

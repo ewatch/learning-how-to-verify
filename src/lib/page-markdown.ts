@@ -10,6 +10,7 @@ import { SITE_URL } from './site';
 import { t } from '../i18n/ui';
 import { PARTS, PART_BY_ID, PETSTORE_COPY, KIND_ORDER } from '../data/petstore';
 import { practicesFor } from './petstore';
+import { featureOf } from '../data/petstore-features';
 
 const link = (loc: Locale, id: string) => `[${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`;
 
@@ -18,17 +19,19 @@ const coreTag = (loc: Locale) => (loc === 'en' ? ' *(core)*' : ' *(Kern)*');
 /** The petstore page as Markdown: every part with its description, signature, rules and the practices that check it. */
 export function petstoreMarkdown(loc: Locale): string {
   const C = PETSTORE_COPY;
-  const out = [`# ${C.title[loc]}`, '', C.intro[loc], '', `> ${C.story[loc]}`, ''];
+  const out = [`# ${C.title[loc]}`, '', C.intro[loc], '', `> ${C.story[loc]}`, '', `${C.gherkinText[loc]} ${C.gherkinRun[loc]}`, ''];
   out.push(loc === 'en'
     ? 'The system parts sit in three zones: before the code runs (agent setup, tests and CI, config and packages), the running petstore (browser UI, REST API, domain code, database, payment and mail) and production (deploy and rollout, monitoring). Data, operations and rules live in the domain code.'
     : 'Die Systemteile liegen in drei Zonen: bevor der Code läuft (Agent-Setup, Tests und CI, Config und Pakete), der laufende Petstore (Browser-UI, REST-API, Domain-Code, Datenbank, Payment und Mail) und Production (Deploy und Rollout, Monitoring). Daten, Operationen und Regeln liegen im Domain-Code.', '');
   for (const kind of KIND_ORDER) {
-    out.push(`## ${C.kind[kind][loc]}`, '');
+    out.push(`## ${C.kindHeading[kind][loc]}`, '');
     for (const p of PARTS.filter((x) => x.kind === kind)) {
       out.push(`### ${p.name[loc]}`, '', p.text[loc], '');
       if (p.zone) out.push(`- Zone: ${C.zone[p.zone][loc]}`);
       if (p.sig) out.push(`- \`${p.sig}\``);
       if (p.rules?.length) out.push(`- ${C.rulesLabel[loc]}: ${p.rules.map((r) => PART_BY_ID.get(r)!.name[loc]).join(', ')}`);
+      const f = featureOf(p.id);
+      if (f) out.push('', `${C.scenarios[loc]} (\`${f.file}\`):`, '', '```gherkin', f.text[loc], '```', '');
       const ps = practicesFor(p.id);
       out.push(`- ${C.usedBy[loc]}: ${ps.length ? '' : C.usedByNone[loc]}`);
       for (const x of ps) out.push(`  - ${link(loc, x.id)}: ${x.domain.what[loc]}`);

@@ -8,7 +8,7 @@ import type { Locale } from '../data/types';
 import { START_TOUR, TOUR_BAR as B, tourStepPath } from '../data/start';
 import { PRACTICE_BY_ID } from '../data/practices';
 import { href } from '../i18n/ui';
-import { stepForPath, fill, PROGRESS_KEY } from '../lib/start-progress';
+import { stepForPath, fill, PROGRESS_KEY, PHONE_QUERY } from '../lib/start-progress';
 
 interface Props { lang: Locale; path: string }
 const { lang, path } = Astro.props;
@@ -33,47 +33,50 @@ const states = { done: B.done[lang], opened: B.opened[lang], current: B.current[
     data-exited={B.exited[lang]} data-expand={B.expand[lang]} data-collapse={B.collapse[lang]}>
     <div class="tour-inner">
       <div class="tour-head">
-        <p class="tour-where"><span class="tour-name">{B.name[lang]}</span> <strong class="tour-count">{fill(B.stepOf[lang], { n: index + 1, total })}</strong><span class="tour-sep" aria-hidden="true"> · </span><span class="tour-title">{here.name}</span></p>
-        <a class="btn tour-next tour-next-short" href={nextUrl} data-tour-done>{last ? B.finishShort[lang] : B.nextShort[lang]} <span aria-hidden="true">→</span></a>
-        <button type="button" class="tour-icon" data-tour-toggle aria-expanded="true" aria-controls="tour-detail"><svg class="chev" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l5 5 5-5" /></svg><span class="visually-hidden" data-tour-toggle-label>{B.collapse[lang]}</span></button>
+        <p class="tour-where" data-tour-where><span class="tour-name">{B.name[lang]}</span> <strong class="tour-count">{fill(B.stepOf[lang], { n: index + 1, total })}</strong><span class="tour-sep" aria-hidden="true"> · </span><span class="tour-title">{here.name}</span></p>
+        <button type="button" class="tour-icon tour-toggle" data-tour-toggle aria-expanded="true" aria-controls="tour-body" title={B.collapse[lang]}><svg class="chev" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l5 5 5-5" /></svg><span class="visually-hidden" data-tour-toggle-label>{B.collapse[lang]}</span></button>
         <button type="button" class="tour-icon tour-exit" data-tour-exit aria-label={B.exit[lang]} title={B.exit[lang]}><span aria-hidden="true">✕</span></button>
       </div>
-      <nav class="tour-steps" aria-label={B.steps[lang]}>
-        <ol>
-          {steps.map((s) => (
-            <li><a href={s.url} data-tour-dot={s.id} aria-current={s.n === index + 1 ? 'step' : undefined}><span class="dot" aria-hidden="true">{s.n}</span><span class="visually-hidden">{fill(B.stepOf[lang], { n: s.n, total })}: {s.name} (<span data-dot-state></span>)</span></a></li>
-          ))}
-        </ol>
-        <a class="tour-overview" href={href(lang, 'start/')}>{B.overview[lang]}</a>
-      </nav>
-      <div class="tour-detail" id="tour-detail">
-        <p class="tour-task">{step.task[lang]}</p>
-        <p class="tour-when"><strong>{B.doneWhen[lang]}</strong> {step.doneWhen[lang]}</p>
-      </div>
-      <div class="tour-actions">
-        <a class="btn ghost" href={`#${step.target}`} data-tour-go>{B.go[lang]} <span aria-hidden="true">↓</span></a>
-        <a class="btn tour-next" href={nextUrl} data-tour-done><span class="long">{last ? B.finish[lang] : B.next[lang]}</span><span class="short">{last ? B.finishShort[lang] : B.nextShort[lang]}</span> <span aria-hidden="true">→</span></a>
+      <div class="tour-body" id="tour-body">
+        <nav class="tour-steps" aria-label={B.steps[lang]}>
+          <ol>
+            {steps.map((s) => (
+              <li><a href={s.url} data-tour-dot={s.id} aria-current={s.n === index + 1 ? 'step' : undefined}><span class="dot" aria-hidden="true">{s.n}</span><span class="visually-hidden">{fill(B.stepOf[lang], { n: s.n, total })}: {s.name} (<span data-dot-state></span>)</span></a></li>
+            ))}
+          </ol>
+          <a class="tour-overview" href={href(lang, 'start/')}>{B.overview[lang]}</a>
+        </nav>
+        <div class="tour-detail">
+          <p class="tour-task">{step.task[lang]}</p>
+          <p class="tour-when"><strong>{B.doneWhen[lang]}</strong> {step.doneWhen[lang]}</p>
+        </div>
+        <div class="tour-actions">
+          <a class="btn ghost" href={`#${step.target}`} data-tour-go>{B.go[lang]} <span aria-hidden="true">↓</span></a>
+          <a class="btn tour-next" href={nextUrl} data-tour-done><span class="long">{last ? B.finish[lang] : B.next[lang]}</span><span class="short">{last ? B.finishShort[lang] : B.nextShort[lang]}</span> <span aria-hidden="true">→</span></a>
+        </div>
       </div>
     </div>
   </aside>
 )}
 {step && <p class="visually-hidden" role="status" data-tour-live></p>}
 {step && (
-  <script is:inline define:vars={{ key: PROGRESS_KEY }}>
+  <script is:inline define:vars={{ key: PROGRESS_KEY, phoneQuery: PHONE_QUERY }}>
     // Before first paint: show the bar in its stored form, so it does not flash in after the page script loads.
+    // Same rule as barCollapsed() in src/lib/start-progress.ts.
     try {
       const v = JSON.parse(localStorage.getItem(key));
       const bar = document.querySelector('[data-tour-bar]');
       if (bar && v && !Array.isArray(v) && v.active === true) {
         bar.hidden = false;
-        bar.toggleAttribute('data-collapsed', v.collapsed === true);
+        const phone = matchMedia(phoneQuery).matches;
+        bar.toggleAttribute('data-collapsed', v.reveal === true ? false : v.chosen === true || !phone ? v.collapsed === true : true);
         document.documentElement.classList.add('has-tour-bar');
       }
     } catch {}
   </script>
 )}
 <script>
-  import { PROGRESS_KEY, parseTour, serializeTour, markOpened, markDone, fill, type TourState } from '../lib/start-progress';
+  import { PROGRESS_KEY, PHONE_QUERY, parseTour, serializeTour, markOpened, markDone, barCollapsed, chooseCollapsed, consumeReveal, revealNext, fill, type TourState } from '../lib/start-progress';
   const bar = document.querySelector<HTMLElement>('[data-tour-bar]');
   if (bar) {
     const ids = bar.dataset.ids!.split(' ');
@@ -86,6 +89,9 @@ const states = { done: B.done[lang], opened: B.opened[lang], current: B.current[
     const read = (): TourState => { try { return parseTour(localStorage.getItem(PROGRESS_KEY), ids); } catch { return parseTour(null, ids); } };
     const write = (s: TourState) => { try { localStorage.setItem(PROGRESS_KEY, serializeTour(s, ids)); } catch { /* storage unavailable: the bar still works on this page */ } };
     let state = read();
+    const phone = () => matchMedia(PHONE_QUERY).matches;
+    // This page's view: the strip or the expanded task. Stored choices live in `state`.
+    let collapsed = barCollapsed(state, phone());
 
     // Keeps the footer reachable and anchors clear of the bar.
     const sizer = new ResizeObserver(() => root.style.setProperty('--tour-bar-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`));
@@ -97,9 +103,11 @@ const states = { done: B.done[lang], opened: B.opened[lang], current: B.current[
       root.classList.toggle('has-tour-bar', show);
       if (!show) { sizer.disconnect(); root.style.removeProperty('--tour-bar-h'); return; }
       sizer.observe(bar);
-      bar.toggleAttribute('data-collapsed', state.collapsed);
-      toggle.setAttribute('aria-expanded', String(!state.collapsed));
-      bar.querySelector('[data-tour-toggle-label]')!.textContent = state.collapsed ? bar.dataset.expand! : bar.dataset.collapse!;
+      bar.toggleAttribute('data-collapsed', collapsed);
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      const label = collapsed ? bar.dataset.expand! : bar.dataset.collapse!;
+      bar.querySelector('[data-tour-toggle-label]')!.textContent = label;
+      toggle.title = label;
       bar.querySelectorAll<HTMLAnchorElement>('[data-tour-dot]').forEach((a, i) => {
         const s = state.done.has(ids[i]) ? 'done' : i === index ? 'current' : state.opened.has(ids[i]) ? 'opened' : 'open';
         a.dataset.state = s;
@@ -110,24 +118,28 @@ const states = { done: B.done[lang], opened: B.opened[lang], current: B.current[
     const update = (next: TourState) => { state = next; write(state); render(); };
 
     if (state.active) {
-      update(markOpened(state, id));
+      // The one-time reveal is used up by this page: later pages follow the reader's choice again.
+      update(consumeReveal(markOpened(state, id)));
       // One polite announcement per page: where the reader is in the tour.
       setTimeout(() => announce(`${bar.querySelector('.tour-count')!.textContent}: ${bar.querySelector('.tour-title')!.textContent}`), 600);
     } else render();
 
-    toggle.addEventListener('click', () => update({ ...state, collapsed: !state.collapsed }));
+    const setCollapsed = (value: boolean) => { collapsed = value; update(chooseCollapsed(state, value)); };
+    toggle.addEventListener('click', () => setCollapsed(!collapsed));
+    // The strip's text expands it too (pointer convenience; the arrow is the keyboard control).
+    bar.querySelector('[data-tour-where]')!.addEventListener('click', () => { if (collapsed) setCollapsed(false); });
     bar.querySelector('[data-tour-exit]')!.addEventListener('click', () => {
       update({ ...state, active: false });
       announce(bar.dataset.exited!);
     });
-    const done = () => { state = markDone(read(), id, ids); write(state); announce(fill(bar.dataset.marked!, { n: index + 1 })); };
+    const done = () => { state = revealNext(markDone(read(), id, ids)); write(state); announce(fill(bar.dataset.marked!, { n: index + 1 })); };
     bar.querySelectorAll('[data-tour-done]').forEach((a) => { a.addEventListener('click', done); a.addEventListener('auxclick', done); });
     bar.querySelector('[data-tour-go]')!.addEventListener('click', () => {
       // On a phone the expanded bar would cover the exercise: show it as a strip.
-      if (matchMedia('(max-width: 44rem)').matches && !state.collapsed) update({ ...state, collapsed: true });
+      if (phone() && !collapsed) { collapsed = true; update(state.chosen ? { ...state, collapsed: true } : state); }
     });
     // Back/forward cache and other tabs: show the current state.
-    addEventListener('pageshow', (e) => { if (e.persisted) { state = read(); render(); } });
-    addEventListener('storage', (e) => { if (e.key === PROGRESS_KEY || e.key === null) { state = read(); render(); } });
+    addEventListener('pageshow', (e) => { if (e.persisted) { state = read(); collapsed = barCollapsed(state, phone()); render(); } });
+    addEventListener('storage', (e) => { if (e.key === PROGRESS_KEY || e.key === null) { state = read(); if (state.chosen) collapsed = state.collapsed; render(); } });
   }
 </script>

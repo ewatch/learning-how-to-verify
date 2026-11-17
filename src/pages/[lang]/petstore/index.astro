@@ -1,10 +1,13 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import PartChip from '../../../components/PartChip.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
 import type { Locale } from '../../../data/types';
 import { PARTS, PART_BY_ID, PETSTORE_COPY as C, KIND_ORDER, ZONE_ORDER, partAnchor, type PartId, type DomainPart } from '../../../data/petstore';
+import { featureOf } from '../../../data/petstore-features';
+import { PRACTICE_BY_ID } from '../../../data/practices';
 import { LAYERS } from '../../../data/taxonomy';
-import { href, t } from '../../../i18n/ui';
+import { href } from '../../../i18n/ui';
 import type { Practice } from '../../../data/types';
 import { inline } from '../../../lib/inline';
 import { langPaths } from '../../../lib/paths';
@@ -15,9 +18,9 @@ const of = (kind: DomainPart['kind']) => PARTS.filter((p) => p.kind === kind);
 const count = (id: PartId) => practicesFor(id).length;
 const sys = (id: PartId) => PART_BY_ID.get(id)!;
 const zoneParts = (z: string) => PARTS.filter((p) => p.zone === z);
-/** practices listed before the "more" disclosure */
-const SHOWN = 6;
 const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[lang];
+const checkedBy = (n: number) => (n === 1 ? C.checkedByOne[lang] : C.checkedBy[lang].replace('{n}', String(n)));
+const acceptance = PRACTICE_BY_ID.get('acceptance-tests')!;
 ---
 <Base lang={lang} path="petstore/" md={`/${lang}/petstore/index.md`} title={C.title[lang]} description={C.description[lang]}>
   <div class="wrap">
@@ -25,17 +28,18 @@ const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[la
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
       <p class="story">{C.story[lang]}</p>
+      <p class="howto"><strong>{C.howToLabel[lang]}:</strong> {C.howTo[lang]}</p>
     </header>
 
-    <!-- the map: three zones; the running petstore in the middle holds the domain code with data, operations and rules -->
+    <!-- the picture: three zones; the running petstore in the middle holds the domain code with data, operations and rules -->
     <figure class="map" aria-label={C.mapLabel[lang]}>
       {ZONE_ORDER.map((z) => (
         <section class={`zone z-${z}`} aria-labelledby={`zone-${z}`}>
-          <h2 class="zone-h" id={`zone-${z}`}>{C.zone[z][lang]}</h2>
+          <p class="zone-h" id={`zone-${z}`}>{C.zone[z][lang]}</p>
           {z !== 'run' ? (
             <ul class="sys-list">
               {zoneParts(z).map((p) => (
-                <li><a class="sys" href={`#${partAnchor(p.id)}`}><strong>{p.name[lang]}</strong><span class="n" title={C.count[lang]}>{count(p.id)}</span><span class="sys-t" set:html={inline(p.text[lang])} /></a></li>
+                <li><a class="sys" href={`#${partAnchor(p.id)}`}><strong>{p.name[lang]}</strong><span class="n" title={C.count[lang]}>{count(p.id)}</span></a></li>
               ))}
             </ul>
           ) : (
@@ -46,7 +50,7 @@ const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[la
                 ))}
                 <li class="domain">
                   <a class="sys dom-h" href={`#${partAnchor('domain')}`}><strong>{sys('domain').name[lang]}</strong><span class="n" title={C.count[lang]}>{count('domain')}</span></a>
-                  {(['data', 'operation', 'rule'] as const).map((k) => (
+                  {(['operation', 'rule', 'data'] as const).map((k) => (
                     <div class={`dom-row r-${k}`}>
                       <span class="dom-k">{C.kind[k][lang]}</span>
                       <span class="dom-chips">{of(k).map((p) => <PartChip id={p.id} lang={lang} local count={count(p.id)} />)}</span>
@@ -63,28 +67,47 @@ const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[la
       <figcaption class="small muted">{C.mapHint[lang]}</figcaption>
     </figure>
 
-    <h2 class="parts-h">{C.partsTitle[lang]}</h2>
+    <!-- a text index of all parts, in page order -->
+    <nav class="index" aria-labelledby="index-h">
+      <h2 id="index-h" class="index-h">{C.indexTitle[lang]}</h2>
+      <dl>
+        {KIND_ORDER.map((kind) => (
+          <div class="index-row">
+            <dt><a href={`#kind-${kind}`}>{C.kind[kind][lang]}</a></dt>
+            <dd>{of(kind).map((p) => <PartChip id={p.id} lang={lang} local />)}</dd>
+          </div>
+        ))}
+      </dl>
+    </nav>
+
+    <aside class="gherkin-note" aria-labelledby="gherkin-h">
+      <h2 id="gherkin-h">{C.gherkinTitle[lang]}</h2>
+      <p set:html={inline(C.gherkinText[lang])} />
+      <p>{C.gherkinRun[lang]} <a href={href(lang, 'glossary/#gherkin')}>{C.gherkinGlossary[lang]}</a> · <a href={href(lang, `practices/${acceptance.id}/`)}>{acceptance.name[lang]}</a></p>
+    </aside>
+
     {KIND_ORDER.map((kind) => (
-      <section class="kind" aria-labelledby={`kind-${kind}`}>
-        <h3 id={`kind-${kind}`} class="eyebrow">{C.kind[kind][lang]}</h3>
+      <section class={`kind kind-${kind}`} aria-labelledby={`kind-${kind}`}>
+        <h2 id={`kind-${kind}`} tabindex="-1">{C.kindHeading[kind][lang]}</h2>
         <div class="parts">
           {of(kind).map((p) => {
             const ps = practicesFor(p.id);
             const ops = p.kind === 'rule' ? operationsFor(p.id) : [];
+            const feat = featureOf(p.id);
             return (
-              <article class={`part k-${p.kind}`} id={partAnchor(p.id)} tabindex="-1">
-                <h4>{p.name[lang]}{p.zone && <span class="zone-tag">{C.zone[p.zone][lang]}</span>}</h4>
+              <article class={`part k-${p.kind}`} id={partAnchor(p.id)} tabindex="-1" aria-labelledby={`${partAnchor(p.id)}-h`}>
+                <h3 id={`${partAnchor(p.id)}-h`}>{p.name[lang]}{p.zone && <span class="zone-tag">{C.zone[p.zone][lang]}</span>}</h3>
                 <p set:html={inline(p.text[lang])} />
-                {p.sig && <p class="sig"><code>{p.sig}</code></p>}
+                {p.sig && p.kind !== 'operation' && <p class="sig"><code>{p.sig}</code></p>}
                 {p.rules?.length ? <p class="rel"><span>{C.rulesLabel[lang]}:</span> {p.rules.map((r) => <PartChip id={r} lang={lang} local />)}</p> : null}
                 {ops.length ? <p class="rel"><span>{C.kind.operation[lang]}:</span> {ops.map((o) => <PartChip id={o.id} lang={lang} local />)}</p> : null}
-                <p class="used-h">{C.usedBy[lang]} ({ps.length})</p>
+                {feat && <div class="feature"><CodeBlock code={feat.text[lang]} file={feat.file} lang={lang} id={`feature-${p.id}`} /></div>}
                 {ps.length ? (
-                  <ul class="used">{ps.slice(0, SHOWN).map((x) => <li style={`--c: var(--l-${x.layer})`}><a href={href(lang, `practices/${x.id}/`)} title={layerName(x)}>{x.name[lang]}</a><span class="what" set:html={inline(x.domain.what[lang])} /></li>)}</ul>
+                  <details class="checks">
+                    <summary>{checkedBy(ps.length)}</summary>
+                    <ul class="used">{ps.map((x) => <li style={`--c: var(--l-${x.layer})`}><a href={href(lang, `practices/${x.id}/`)} title={layerName(x)}>{x.name[lang]}</a><span class="what" set:html={inline(x.domain.what[lang])} /></li>)}</ul>
+                  </details>
                 ) : <p class="small muted">{C.usedByNone[lang]}</p>}
-                {ps.length > SHOWN && (
-                  <details class="more"><summary>{ps.length - SHOWN} {t(lang, 'moreN')}</summary><ul class="used">{ps.slice(SHOWN).map((x) => <li style={`--c: var(--l-${x.layer})`}><a href={href(lang, `practices/${x.id}/`)} title={layerName(x)}>{x.name[lang]}</a><span class="what" set:html={inline(x.domain.what[lang])} /></li>)}</ul></details>
-                )}
               </article>
             );
           })}
@@ -95,22 +118,22 @@ const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[la
 </Base>
 
 <style>
-  .ps-head { max-width: 46rem; padding-bottom: 8px; }
-  .story { display: flex; gap: 10px; align-items: baseline; margin: 0 0 22px; padding: 8px 12px; border-left: 4px solid var(--warn); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; font-size: var(--fs-ui); }
-  .rex { flex: none; }
+  .ps-head { max-width: 46rem; padding-bottom: 4px; }
+  .story { margin: 0 0 12px; padding: 8px 12px; border-left: 4px solid var(--warn); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; font-size: var(--fs-ui); }
+  .howto { margin: 0 0 20px; font-size: var(--fs-ui); color: var(--ink-2); }
 
-  /* map: three zones side by side on wide screens, stacked on phones */
-  .map { margin: 0 0 40px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr); align-items: stretch; }
+  /* picture: three zones side by side on wide screens, stacked on phones */
+  .map { margin: 0 0 20px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr); align-items: stretch; }
   .map figcaption { grid-column: 1 / -1; }
   @media (max-width: 900px) { .map { grid-template-columns: minmax(0, 1fr); } }
   .zone { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-2); padding: 10px 12px 12px; min-width: 0; }
   .z-run { background: var(--card); border-color: var(--rule-strong); }
   .zone-h { font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
   .sys-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  @media (max-width: 900px) { .z-build .sys-list, .z-prod .sys-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); } }
   .sys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 7px 10px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--card); color: var(--ink); text-decoration: none; font-size: var(--fs-ui); }
   .sys:hover strong { text-decoration: underline; }
   .sys .n { margin-inline-start: auto; font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
-  .sys-t { flex-basis: 100%; font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.4; }
   .run { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
   @media (max-width: 560px) { .run { grid-template-columns: minmax(0, 1fr); } }
   .stack { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
@@ -130,26 +153,45 @@ const layerName = (x: Practice) => LAYERS.find((l) => l.id === x.layer)!.name[la
   .dom-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   @media (max-width: 560px) { .dom-row { grid-template-columns: minmax(0, 1fr); } }
 
-  /* details */
-  .parts-h { margin-top: 8px; }
-  .kind { margin: 18px 0 30px; }
-  .parts { display: grid; gap: 12px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+  /* index: one row per kind */
+  .index { margin: 0 0 24px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card); }
+  .index-h { font-size: var(--fs-ui); margin: 0 0 6px; }
+  .index dl { margin: 0; display: grid; gap: 6px; }
+  .index-row { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 4px 10px; align-items: baseline; }
+  .index dt { font-size: var(--fs-sm); font-weight: 600; }
+  .index dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  @media (max-width: 560px) { .index-row { grid-template-columns: minmax(0, 1fr); } }
+
+  .gherkin-note { max-width: 46rem; margin: 0 0 8px; }
+  .gherkin-note h2 { font-size: var(--fs-lg); margin: 0 0 4px; }
+  .gherkin-note p { margin: 0 0 6px; font-size: var(--fs-ui); }
+
+  /* cards */
+  .kind { margin: 26px 0 30px; }
+  .kind > h2 { scroll-margin-top: 5rem; }
+  .parts { display: grid; gap: 12px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  /* cards with scenarios differ in height: columns pack them without empty rows */
+  .kind-operation .parts, .kind-rule .parts { display: block; columns: 2 440px; column-gap: 12px; }
+  .kind-operation .part, .kind-rule .part { break-inside: avoid; margin-bottom: 12px; }
   .part { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; scroll-margin-top: 5rem; min-width: 0; }
+  @media (max-width: 560px) { .part { padding: 12px; } }
   .part.k-rule { border-left: 4px solid var(--warn); }
   .part.k-operation { border-left: 4px solid var(--link); }
   .part.k-data { border-style: dashed; }
   .part:target, .part:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
-  .part h4 { font-size: var(--fs-lg); margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .part h3 { font-size: var(--fs-lg); margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
   .zone-tag { font: 400 var(--fs-xs)/1.2 var(--font-body); color: var(--ink-3); }
   .part p { margin: 0 0 8px; font-size: var(--fs-ui); }
   .sig code { font-size: var(--fs-code); overflow-wrap: anywhere; }
   .rel { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
   .rel > span { color: var(--ink-3); font-size: var(--fs-sm); }
-  .used-h { font-weight: 700; font-size: var(--fs-sm) !important; margin: 10px 0 4px !important; }
-  .used { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: var(--fs-sm); }
+  /* features wrap instead of scrolling sideways; the copied text keeps its lines */
+  .feature :global(.codeblock) { margin: 8px 0 10px; }
+  .feature :global(pre) { white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; }
+  .checks { font-size: var(--fs-sm); }
+  .checks summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+  .used { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
   .used li { padding-left: 10px; border-left: 3px solid var(--c); }
   .used a { font-weight: 600; }
   .used .what { display: block; color: var(--ink-2); line-height: 1.4; }
-  .part .more { margin-top: 6px; font-size: var(--fs-sm); }
-  .part .more .used { margin-top: 6px; }
 </style>

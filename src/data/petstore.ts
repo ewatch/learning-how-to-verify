@@ -116,7 +116,8 @@ export const systemOf = (id: PartId): SystemId => {
   return p.kind === 'system' ? (p.id as SystemId) : 'domain';
 };
 
-export const KIND_ORDER: PartKind[] = ['data', 'operation', 'rule', 'system'];
+/** Page order: what the petstore does and what must hold come first. */
+export const KIND_ORDER: PartKind[] = ['operation', 'rule', 'data', 'system'];
 export const ZONE_ORDER: Zone[] = ['build', 'run', 'prod'];
 
 /** Anchor on the petstore page. */
@@ -124,8 +125,26 @@ export const partAnchor = (id: PartId) => `part-${id}`;
 
 export const PETSTORE_COPY = {
   title: l('The petstore example', 'Das Petstore-Beispiel'),
-  description: l('The running example of this site in one picture: data, operations, rules and the parts of the running system, with the practices that check each part.', 'Das durchgehende Beispiel dieser Seite in einem Bild: Daten, Operationen, Regeln und die Teile des laufenden Systems, mit den Praktiken, die jeden Teil prüfen.'),
-  intro: l('All exercises and diagrams on this site use one petstore. People reserve pets there and adopt them for a fee. Select a part to see which practices check it.', 'Alle Übungen und Diagramme dieser Seite nutzen einen Petstore. Dort reservieren Menschen Tiere und adoptieren sie gegen eine Gebühr. Einen Teil wählen, um die Praktiken zu sehen, die ihn prüfen.'),
+  description: l('The running example of this site: operations, rules, data and system parts, the expected behaviour as Gherkin scenarios and the practices that check each part.', 'Das durchgehende Beispiel dieser Seite: Operationen, Regeln, Daten und Systemteile, das erwartete Verhalten als Gherkin-Szenarien und die Praktiken, die jeden Teil prüfen.'),
+  intro: l('All exercises and diagrams on this site use one petstore. People reserve pets there and adopt them for a fee.', 'Alle Übungen und Diagramme dieser Seite nutzen einen Petstore. Dort reservieren Menschen Tiere und adoptieren sie gegen eine Gebühr.'),
+  howTo: l('Select a part in the picture or in the list. Its card shows the expected behaviour and the practices that check the part.', 'Einen Teil im Bild oder in der Liste wählen. Seine Karte zeigt das erwartete Verhalten und die Praktiken, die den Teil prüfen.'),
+  howToLabel: l('How to use this page', 'So nutzt du diese Seite'),
+  indexTitle: l('Find a part', 'Einen Teil finden'),
+  /** section headings: they say what follows */
+  kindHeading: {
+    operation: l('Operations: what the petstore does', 'Operationen: was der Petstore tut'),
+    rule: l('Rules: what must always be true', 'Regeln: was immer gelten muss'),
+    data: l('Data: what the petstore stores', 'Daten: was der Petstore speichert'),
+    system: l('System parts: where the code is built, runs and is checked', 'Systemteile: wo der Code gebaut wird, läuft und geprüft wird'),
+  } as Record<PartKind, L>,
+  gherkinTitle: l('How to read the scenarios', 'So liest du die Szenarien'),
+  gherkinText: l('Each operation and each rule shows its expected behaviour as scenarios in Gherkin. `Given` is the start state, `When` is the action, `Then` is the expected result.', 'Jede Operation und jede Regel zeigt ihr erwartetes Verhalten als Szenarien in Gherkin. `Angenommen` (Given) ist der Startzustand, `Wenn` (When) die Aktion, `Dann` (Then) das erwartete Ergebnis.'),
+  gherkinRun: l('A BDD tool such as Cucumber runs the scenarios as acceptance tests. You write the step code that connects each step to the petstore.', 'Ein BDD-Tool wie Cucumber führt die Szenarien als Akzeptanztests aus. Den Step-Code, der jeden Schritt mit dem Petstore verbindet, schreibst du selbst.'),
+  gherkinGlossary: l('Gherkin in the glossary', 'Gherkin im Glossar'),
+  checkedBy: l('Checked by {n} practices', 'Von {n} Praktiken geprüft'),
+  checkedByOne: l('Checked by 1 practice', 'Von 1 Praktik geprüft'),
+  /** Markdown twin */
+  scenarios: l('Scenarios', 'Szenarien'),
   story: l('Anna reserves Rex. Then Ben tries to reserve Rex, and the petstore must reject him.', 'Anna reserviert Rex. Danach will Ben Rex reservieren, und der Petstore muss ihn ablehnen.'),
   mapLabel: l('Map of the petstore: build, the running system and production', 'Übersicht des Petstores: Bauen, laufendes System und Production'),
   zone: {
@@ -145,7 +164,7 @@ export const PETSTORE_COPY = {
     rule: l('Rule', 'Regel'),
     system: l('System part', 'Systemteil'),
   } as Record<PartKind, L>,
-  mapHint: l('The numbers show how many practices check each part. Select a part to see the details.', 'Die Zahlen zeigen, wie viele Praktiken einen Teil prüfen. Einen Teil wählen, um die Details zu sehen.'),
+  mapHint: l('The numbers show how many practices check each part.', 'Die Zahlen zeigen, wie viele Praktiken einen Teil prüfen.'),
   count: l('Number of practices that check this part', 'Anzahl der Praktiken, die diesen Teil prüfen'),
   rulesLabel: l('Rules', 'Regeln'),
   usedBy: l('Practices that check this part', 'Praktiken, die diesen Teil prüfen'),

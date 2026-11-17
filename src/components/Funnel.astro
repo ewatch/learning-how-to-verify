@@ -55,7 +55,7 @@ const split = (list: Practice[]) => {
     <div class="prompt" data-funnel-prompt hidden>
       <p class="eyebrow">{en ? 'Five layers' : 'Fünf Schichten'}</p>
       <h2>{en ? 'Choose a layer' : 'Eine Schicht wählen'}</h2>
-      <p>{en ? 'Click a band of the funnel, or a layer below, to see its practices. Top layers are cheap and fast; the bottom ones need people and time.' : 'Ein Band im Trichter oder eine Schicht unten anklicken, um ihre Praktiken zu sehen. Oben ist es billig und schnell; unten braucht es Menschen und Zeit.'}</p>
+      <p>{en ? 'To see the practices of a layer, click its band in the funnel or its name below. The top layers are cheap and fast. The bottom layers need people and time.' : 'Um die Praktiken einer Schicht zu sehen, ihr Band im Trichter oder ihren Namen unten anklicken. Die oberen Schichten sind billig und schnell. Die unteren brauchen Menschen und Zeit.'}</p>
       <ol class="layers">
         {bands.map(({ layer, i, count }) => (
           <li style={`--c: var(--l-${layer.id})`}>

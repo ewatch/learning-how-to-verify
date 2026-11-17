@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Funnel from '../../components/Funnel.astro';
 import type { Locale } from '../../data/types';
 import { href } from '../../i18n/ui';
+import { BASE } from '../../lib/site';
 import { PRACTICES } from '../../data/practices';
 import { langPaths } from '../../lib/paths';
 import { START_TOUR } from '../../data/start';
@@ -15,19 +16,19 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
 ---
 <Base lang={lang} path="" md={`/${lang}/index.md`} nav="funnel"
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
-  description={en ? `How to verify software, especially when AI agents write it: ${n} practices along a funnel from cheap to expensive, with tools per language and runnable examples.` : `Wie man Software verifiziert, besonders wenn KI-Agenten sie schreiben: ${n} Praktiken entlang eines Trichters von billig nach teuer, mit Werkzeugen pro Sprache und ausführbaren Beispielen.`}>
+  description={en ? `How to verify software, especially when coding agents write it. ${n} practices along a funnel from cheap to expensive, with tools for each language and exercises in the browser.` : `Wie man Software verifiziert, besonders wenn Coding-Agenten sie schreiben. ${n} Praktiken entlang eines Trichters von billig nach teuer, mit Werkzeugen pro Sprache und Übungen im Browser.`}>
   <div class="wrap">
     <section class="hero">
       <p class="eyebrow">{en ? `${n} practices · ${sims} simulators in your browser · English & Deutsch` : `${n} Praktiken · ${sims} Simulatoren im Browser · Deutsch & English`}</p>
       <h1>{en ? <>Catch it early.<br />Catch it cheap.</> : <>Früh finden.<br />Billig finden.</>}</h1>
       <p class="lede">
         {en
-          ? 'For developers who let AI agents write code and need to know that the code is right: which checks catch which bugs, from cheap and automatic to slow and human, with tools for your language and exercises that run in your browser.'
-          : 'Für Entwicklerinnen und Entwickler, die KI-Agenten Code schreiben lassen und wissen müssen, ob er stimmt: welche Prüfungen welche Fehler finden, von billig und automatisch bis langsam und menschlich, mit Werkzeugen für die eigene Sprache und Übungen im Browser.'}
+          ? 'This site is for developers who let coding agents write code. It shows which checks catch which bugs, from cheap automatic checks to slow human review. Each practice lists open-source tools and shows an exercise or an animated diagram.'
+          : 'Diese Seite ist für Entwicklerinnen und Entwickler, die Coding-Agenten Code schreiben lassen. Sie zeigt, welche Prüfungen welche Fehler finden, von billigen automatischen Prüfungen bis zum langsamen menschlichen Review. Jede Praktik nennt Open-Source-Werkzeuge und zeigt eine Übung oder ein animiertes Diagramm.'}
       </p>
       <div class="cta">
         <a class="btn primary" href={href(lang, 'start/')}>{en ? `Start here: ${steps} steps` : `Hier starten: ${steps} Schritte`} <span aria-hidden="true">→</span></a>
-        <a class="secondary" href="#funnel">{en ? 'Or browse the whole map' : 'Oder die ganze Übersicht ansehen'} <span aria-hidden="true">↓</span></a>
+        <a class="secondary" href="#funnel">{en ? 'Or see the whole map' : 'Oder die ganze Übersicht ansehen'} <span aria-hidden="true">↓</span></a>
       </div>
     </section>
 
@@ -35,8 +36,8 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
       <h2 id="funnel-title">{en ? 'The map: a funnel from cheap to expensive' : 'Die Übersicht: ein Trichter von billig nach teuer'}</h2>
       <p class="intro">
         {en
-          ? 'Every bug is caught somewhere. The higher up it is caught, the cheaper and faster the fix, and the less a human has to look at.'
-          : 'Jeder Fehler wird irgendwo gefunden. Je weiter oben, desto billiger und schneller die Korrektur, und desto weniger muss ein Mensch ansehen.'}
+          ? 'Each layer of the funnel can catch a bug. If a higher layer catches the bug, the fix is cheaper and faster, and a person has less to review.'
+          : 'Jede Schicht des Trichters kann einen Fehler finden. Findet ihn eine höhere Schicht, ist die Korrektur billiger und schneller, und ein Mensch muss weniger prüfen.'}
       </p>
       <Funnel lang={lang} />
     </section>
@@ -44,8 +45,8 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
     <section class="ways">
       <h2>{en ? 'Other ways in' : 'Andere Einstiege'}</h2>
       <div class="grid cols-2">
-        <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{en ? 'The same practices by when they happen: before production, deploy, release, after release.' : 'Dieselben Praktiken danach, wann sie stattfinden: vor der Produktion, Deploy, Release, danach.'}</span></a>
-        <a class="way card" href={href(lang, 'stack/')}><strong>{en ? 'My stack →' : 'Mein Stack →'}</strong><span>{en ? 'Pick your language and see every practice with open-source tools for it.' : 'Sprache wählen und jede Praktik mit passenden Open-Source-Werkzeugen sehen.'}</span></a>
+        <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{en ? 'The same practices, sorted by the time when they run: before production, at deploy, at release and after release.' : 'Dieselben Praktiken, sortiert nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release.'}</span></a>
+        <a class="way card" href={href(lang, 'stack/')}><strong>{en ? 'My stack →' : 'Mein Stack →'}</strong><span>{en ? 'Select your programming language. You see each practice with the open-source tools for that language.' : 'Programmiersprache wählen und jede Praktik mit den passenden Open-Source-Werkzeugen sehen.'}</span></a>
       </div>
     </section>
 
@@ -53,15 +54,15 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
       <h2>{en ? 'How sure are we?' : 'Wie sicher ist das?'}</h2>
       <p>
         {en
-          ? 'The funnel is a practitioner rule of thumb, not a proven law. Evidence is strongest in the middle layers (tests as feedback for agents, mutation testing, fuzzing, formal methods), mixed for prose such as AGENTS.md, and missing for the claim that a well-designed codebase makes agents more successful. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
-          : 'Der Trichter ist eine Faustregel aus der Praxis, kein bewiesenes Gesetz. Am stärksten ist die Evidenz in den mittleren Schichten (Tests als Feedback für Agenten, Mutation Testing, Fuzzing, formale Methoden), gemischt für Prosa wie AGENTS.md, und sie fehlt für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.'}
+          ? 'The funnel is a rule of thumb from practice, not a proven law. The evidence is strongest for the middle layers: tests as feedback for agents, mutation testing, fuzzing and formal methods. For prose such as AGENTS.md, the evidence is mixed. For the claim that a well-designed codebase makes agents more successful, we found no evidence. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
+          : 'Der Trichter ist eine Faustregel aus der Praxis, kein bewiesenes Gesetz. Am stärksten ist die Evidenz für die mittleren Schichten: Tests als Feedback für Agenten, Mutation Testing, Fuzzing und formale Methoden. Für Prosa wie AGENTS.md ist die Evidenz gemischt. Für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht, haben wir keine Evidenz gefunden. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.'}
       </p>
       <p><a href={href(lang, 'why-layers/')}>{en ? 'Why one layer is not enough with agents →' : 'Warum eine Schicht bei Agenten nicht reicht →'}</a></p>
     </aside>
 
     <aside class="agents" aria-label={en ? 'For coding agents' : 'Für Coding-Agenten'}>
       <p class="eyebrow">{en ? 'For coding agents' : 'Für Coding-Agenten'}</p>
-      <p>{en ? <>Point your agent at <a href="/llms.txt"><code>/llms.txt</code></a>. Every page also exists as Markdown (append <code>index.md</code>), and every practice has a "Copy for your agent" task with steps and a definition of done.</> : <>Den Agenten auf <a href="/llms.txt"><code>/llms.txt</code></a> verweisen. Jede Seite gibt es auch als Markdown (<code>index.md</code> anhängen), und jede Praktik hat eine Aufgabe „Für deinen Agenten kopieren“ mit Schritten und einer Definition von „fertig“.</>}</p>
+      <p>{en ? <>Give your agent the file <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>. Each page is also available as Markdown: add <code>index.md</code> to its URL. Each practice has a task for a coding agent, with steps and a definition of done.</> : <>Dem Agenten die Datei <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a> geben. Jede Seite gibt es auch als Markdown: <code>index.md</code> an ihre URL anhängen. Jede Praktik hat eine Aufgabe für einen Coding-Agenten, mit Schritten und einer Definition von „fertig“.</>}</p>
     </aside>
   </div>
 </Base>

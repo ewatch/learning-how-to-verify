@@ -27,7 +27,7 @@ Inclusion rule for new practices: widely recognised **and** catches a distinct b
 
 ## Practice page template (progressive disclosure)
 
-1. **In one sentence** — what, and which bug it catches; under it a one-line "where it sits" strip (funnel layer, lifecycle phases, cost, feedback speed). Not a numbered section.
+1. **Introduction** — 2–3 short sentences with a concrete problem (field `intro`), then **In one sentence** — what, and which bug it catches; under it a one-line "where it sits" strip (funnel layer, lifecycle phases, cost, feedback speed). Not a numbered section.
 2. **Try it / See it** — in-browser simulator on the shared example, or one visual/animation. First numbered section, visible on the first screen.
 3. **Worth it / limits / evidence** — 3–5 bullets; evidence block with two ratings (general SE, with AI agents: strong / moderate / weak / none found), one plain sentence per finding + citation; "none found" stays visible; preprints badged.
 4. **Your language** — tabs (selection persists): tools, minimal snippet.
@@ -46,6 +46,12 @@ Human pages minimise reading; visual and interactive guidance comes first. The M
 - Evidence is shown as two compact meters; the findings and citations open on request.
 - Code notes appear on the marked lines (badge → note) and in the walkthrough, not as a list under the code.
 - New explanations are a visual, animation or interaction first, a sentence second.
+
+## Wording (decided 2026-11-17)
+
+Introductions and UI text follow the writing rules of ASD-STE100 Simplified Technical English: short sentences (instructions ≤ 20 words, descriptions ≤ 25), active voice, simple tenses, one word for one meaning, no idioms or contractions. German uses the same plain style. The site makes no claim of STE conformance. Deeper practice content, guides and glossary keep their wording.
+
+Term list: *check* = any step that can reject a change; *test* = code that runs examples and compares results; *bug* = wrong code; *failure* = a failed check or run; *mistake* = a wrong action by a person or an agent; *simulator* = the tool, *exercise* = the reader's task in it; *coding agent* at first mention, then *agent*.
 
 ## Getting-started guides (per tool)
 
@@ -85,7 +91,7 @@ Revised 2026-11-16 after a UI review.
 
 ## Repo, hosting, legal
 
-- Private GitHub repo `ewatch/learning-how-to-verify`; Cloudflare Pages on `*.pages.dev` (ideally behind Cloudflare Access) until a domain is chosen.
+- Public GitHub repo `ewatch/learning-how-to-verify`; first public version on GitHub Pages at `https://ewatch.github.io/learning-how-to-verify/` (workflow `.github/workflows/pages.yml`, base path from `PUBLIC_BASE_PATH`). Decided 2026-11-17; replaces the earlier plan of a private repo on Cloudflare Pages.
 - License at public launch: MIT (code), CC BY 4.0 (content).
 - Impressum + privacy page when a public domain exists.
 

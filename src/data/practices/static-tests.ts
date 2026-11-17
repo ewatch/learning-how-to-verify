@@ -13,6 +13,10 @@ export const staticTests: Practice[] = [
     core: true,
     oneLiner: l('Check one small piece of code in isolation with concrete inputs and expected outputs.', 'Ein kleines Stück Code isoliert mit konkreten Eingaben und erwarteten Ausgaben prüfen.'),
     catches: l('wrong logic in a function: off-by-one, wrong branch, mishandled error case', 'falsche Logik in einer Funktion: um eins daneben, falscher Zweig, schlecht behandelter Fehlerfall'),
+    intro: l(
+      'The adoption fee has four rules: dog 120 €, cat 80 €, half price from 8 years, 20 € more under 1 year. An agent changes one line, and seniors pay the full price. A unit test for each rule shows the bug in seconds.',
+      'Die Adoptionsgebühr hat vier Regeln: Hund 120 €, Katze 80 €, ab 8 Jahren halber Preis, unter 1 Jahr 20 € mehr. Ein Agent ändert eine Zeile, und Senioren zahlen den vollen Preis. Ein Unit-Test pro Regel zeigt den Fehler in Sekunden.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -120,8 +124,12 @@ final class FeeTest extends TestCase
     layer: 'static',
     phases: ['pre'],
     fromOverview: true,
-    oneLiner: l('Check that a feature does what the requirement says, through its public interface, without caring how it is built.', 'Prüfen, dass eine Funktion über ihre öffentliche Schnittstelle tut, was die Anforderung sagt, egal wie sie gebaut ist.'),
+    oneLiner: l('Check through its public interface that a feature does what the requirement says, independent of its internal design.', 'Prüfen, dass eine Funktion über ihre öffentliche Schnittstelle tut, was die Anforderung sagt, egal wie sie gebaut ist.'),
     catches: l('features that are implemented but do the wrong thing for the user', 'Funktionen, die zwar umgesetzt sind, für den Nutzer aber das Falsche tun'),
+    intro: l(
+      'An agent rewrites the reservation module, and all its unit tests change with it. You cannot tell if a customer can still reserve a pet. A functional test uses only the public interface, so it stays valid through the rewrite.',
+      'Ein Agent schreibt das Reservierungsmodul neu, und alle Unit-Tests ändern sich mit. Du kannst nicht erkennen, ob ein Kunde noch ein Tier reservieren kann. Ein funktionaler Test nutzt nur die öffentliche Schnittstelle und bleibt deshalb über den Umbau gültig.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -190,6 +198,10 @@ test('a second person cannot take a reserved pet', () => {
     fromOverview: true,
     oneLiner: l('Test one component (a service, a UI component, a module) with its real internals but faked neighbours.', 'Eine Komponente (Dienst, UI-Komponente, Modul) mit echtem Innenleben, aber gefälschten Nachbarn testen.'),
     catches: l('wiring mistakes inside a component: wrong configuration, missing dependency injection, broken rendering', 'Verdrahtungsfehler innerhalb einer Komponente: falsche Konfiguration, fehlende Abhängigkeit, kaputtes Rendering'),
+    intro: l(
+      'Each function of the reservation service passes its unit tests. But the agent forgot to register the service, so the app cannot use it. A component test starts the assembled service and shows the missing connection.',
+      'Jede Funktion des Reservierungsservice besteht ihre Unit-Tests. Aber der Agent hat vergessen, den Service zu registrieren, also kann die App ihn nicht nutzen. Ein Komponententest startet den zusammengebauten Service und zeigt die fehlende Verbindung.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -250,6 +262,10 @@ test('sends the chosen pet, not a hard-coded one', () => {
     fromOverview: true,
     oneLiner: l('Check that components work together with their real dependencies: database, queue, other services.', 'Prüfen, dass Komponenten mit ihren echten Abhängigkeiten zusammenarbeiten: Datenbank, Queue, andere Dienste.'),
     catches: l('mismatched assumptions between parts: SQL that the real database rejects, wrong serialization, transactions that do not isolate', 'unpassende Annahmen zwischen Teilen: SQL, das die echte Datenbank ablehnt, falsche Serialisierung, Transaktionen, die nicht isolieren'),
+    intro: l(
+      'Two people reserve the same pet at the same time. The tests with a mocked database pass, because the mock does what the agent expected. An integration test runs against the real database and shows whether it rejects the second reservation.',
+      'Zwei Personen reservieren gleichzeitig dasselbe Tier. Die Tests mit gemockter Datenbank bestehen, weil der Mock tut, was der Agent erwartet hat. Ein Integrationstest läuft gegen die echte Datenbank und zeigt, ob sie die zweite Reservierung ablehnt.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -319,6 +335,10 @@ test('competing reservations leave exactly one owner', async () => {
     fromOverview: false,
     oneLiner: l('Drive the whole system through its real UI or API, like a user, and check the outcome.', 'Das ganze System über seine echte Oberfläche oder API steuern, wie ein Nutzer, und das Ergebnis prüfen.'),
     catches: l('pieces that each work but do not connect: a button wired to the wrong endpoint, a missing migration, broken routing', 'Teile, die einzeln funktionieren, aber nicht zusammenpassen: Button am falschen Endpunkt, fehlende Migration, kaputtes Routing'),
+    intro: l(
+      'All unit tests pass, but after the agent\'s change the reservation page shows no pets. No customer can reserve a pet. An end-to-end test follows the main journey like a customer and sees what the customer sees.',
+      'Alle Unit-Tests bestehen, aber nach der Änderung des Agenten zeigt die Reservierungsseite keine Tiere. Kein Kunde kann ein Tier reservieren. Ein End-to-End-Test folgt dem wichtigsten Ablauf wie ein Kunde und sieht, was der Kunde sieht.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -370,6 +390,10 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     fromOverview: true,
     oneLiner: l('Tests the customer or product owner agreed on: if they pass, the feature is done.', 'Tests, auf die sich Kunde oder Product Owner geeinigt haben: Bestehen sie, ist die Funktion fertig.'),
     catches: l('misunderstood requirements, and "done" that is not done', 'missverstandene Anforderungen und „fertig“, das nicht fertig ist'),
+    intro: l(
+      'You ask for "a reservation expires after 24 hours". The agent builds it, but nobody agreed what happens at exactly 24 hours. Acceptance tests make you agree on such cases before the agent starts.',
+      'Du verlangst: „Eine Reservierung verfällt nach 24 Stunden.“ Der Agent baut das, aber niemand hat festgelegt, was bei genau 24 Stunden passiert. Akzeptanztests zwingen dich, solche Fälle festzulegen, bevor der Agent beginnt.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -421,6 +445,10 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     fromOverview: true,
     oneLiner: l('Every bug that was fixed gets a test, so it can never come back unnoticed.', 'Jeder behobene Fehler bekommt einen Test, damit er nie unbemerkt zurückkommt.'),
     catches: l('old bugs reintroduced by new changes', 'alte Fehler, die durch neue Änderungen zurückkehren'),
+    intro: l(
+      'Last month a bug let a pet be reserved twice, and you fixed it. Today an agent changes the reservation code and brings the bug back. The regression test from the old fix fails at once.',
+      'Letzten Monat konnte ein Tier wegen eines Fehlers doppelt reserviert werden, und du hast ihn behoben. Heute ändert ein Agent den Reservierungscode und bringt den Fehler zurück. Der Regressionstest aus der alten Korrektur scheitert sofort.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -473,6 +501,10 @@ test('regression: a rejected reservation preserves the first owner', () => {
     fromOverview: true,
     oneLiner: l('A few quick checks that the system starts and its most basic functions respond, right after a build or deploy.', 'Wenige schnelle Prüfungen direkt nach Build oder Deploy, dass das System startet und die grundlegendsten Funktionen antworten.'),
     catches: l('dead-on-arrival builds: missing config, crash at startup, broken health endpoint', 'tot ausgelieferte Builds: fehlende Konfiguration, Absturz beim Start, kaputter Health-Endpunkt'),
+    intro: l(
+      'An agent renames an environment variable. The build passes, but the new version cannot read its configuration. A smoke test sends a few quick requests right after the deploy and stops the release before users see a broken shop.',
+      'Ein Agent benennt eine Umgebungsvariable um. Der Build besteht, aber die neue Version findet ihre Konfiguration nicht. Ein Smoke-Test sendet direkt nach dem Deploy einige schnelle Anfragen und stoppt das Release, bevor Nutzer einen kaputten Shop sehen.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -520,6 +552,10 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data`,
     fromOverview: false,
     oneLiner: l('Record the current output once, then fail whenever it changes, so changes have to be approved.', 'Die aktuelle Ausgabe einmal aufzeichnen und bei jeder Änderung scheitern, damit Änderungen freigegeben werden müssen.'),
     catches: l('unintended changes in output: a rendered page, a JSON response, an invoice text, behaviour of legacy code during a rewrite', 'ungewollte Änderungen der Ausgabe: gerenderte Seite, JSON-Antwort, Rechnungstext, Verhalten von Altcode bei einer Neufassung'),
+    intro: l(
+      'An agent refactors the invoice code. The total is still correct, but the voucher line is now missing. A snapshot test compares the new output with the approved output and shows the difference.',
+      'Ein Agent refaktoriert den Rechnungscode. Die Summe stimmt, aber die Gutscheinzeile fehlt jetzt. Ein Snapshot-Test vergleicht die neue Ausgabe mit der freigegebenen und zeigt den Unterschied.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -582,8 +618,12 @@ final class InvoiceTest extends TestCase
     layer: 'static',
     phases: ['pre'],
     fromOverview: true,
-    oneLiner: l('Check that a service and its consumers agree on the API, without running both together.', 'Prüfen, dass ein Dienst und seine Konsumenten sich über die API einig sind, ohne beide zusammen laufen zu lassen.'),
+    oneLiner: l('Check separately that a service and each of its consumers agree on the API.', 'Prüfen, dass ein Dienst und seine Konsumenten sich über die API einig sind, ohne beide zusammen laufen zu lassen.'),
     catches: l('breaking API changes: renamed field, changed type, removed endpoint, new required parameter', 'brechende API-Änderungen: umbenanntes Feld, geänderter Typ, entfernter Endpunkt, neuer Pflichtparameter'),
+    intro: l(
+      'An agent renames `priceCents` to `price` in the petstore API and updates the web app. The mobile app still reads `priceCents` and shows no prices. A contract test records which fields each consumer reads, so this change fails before the release.',
+      'Ein Agent benennt in der Petstore-API `priceCents` in `price` um und passt die Web-App an. Die Mobile-App liest weiter `priceCents` und zeigt keine Preise. Ein Contract-Test hält fest, welche Felder jeder Konsument liest, also scheitert diese Änderung vor dem Release.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -645,6 +685,10 @@ test('provider payload meets the consumer contract', () => {
     fromOverview: true,
     oneLiner: l('Automatically check how the interface looks and whether everyone can use it: screenshots against a baseline, accessibility rules.', 'Automatisch prüfen, wie die Oberfläche aussieht und ob alle sie nutzen können: Screenshots gegen eine Baseline, Barrierefreiheitsregeln.'),
     catches: l('layout breakage, overlapping elements, missing labels, poor contrast, broken keyboard navigation', 'zerbrochenes Layout, überlappende Elemente, fehlende Labels, schlechter Kontrast, kaputte Tastaturnavigation'),
+    intro: l(
+      'An agent changes the CSS of the reservation form. All tests pass, but the "Reserve" button is now under the footer. UI tests turn "looks broken" into a failed check that the agent can read.',
+      'Ein Agent ändert das CSS des Reservierungsformulars. Alle Tests bestehen, aber der Button „Reservieren“ liegt jetzt unter dem Footer. UI-Tests machen aus „sieht kaputt aus“ eine gescheiterte Prüfung, die der Agent lesen kann.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [

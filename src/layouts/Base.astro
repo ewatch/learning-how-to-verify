@@ -3,6 +3,7 @@ import '../styles/global.css';
 import type { Locale } from '../data/types';
 import { t, other, href } from '../i18n/ui';
 import FunnelMark from '../components/FunnelMark.astro';
+import { BASE } from '../lib/site';
 
 interface Props {
   lang: Locale;
@@ -14,7 +15,8 @@ interface Props {
   md?: string;
   nav?: 'funnel' | 'lifecycle' | 'stack' | 'start' | 'guides' | 'glossary' | 'about';
 }
-const { lang, title, description, path, md, nav } = Astro.props;
+const { lang, title, description, path, nav } = Astro.props;
+const md = Astro.props.md && BASE + Astro.props.md;
 const alt = other(lang);
 const site = Astro.site!;
 const canonical = new URL(href(lang, path), site).href;
@@ -41,8 +43,8 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
     <link rel="alternate" hreflang={lang} href={canonical} />
     <link rel="alternate" hreflang={alt} href={new URL(href(alt, path), site).href} />
     {md && <link rel="alternate" type="text/markdown" href={md} title="Markdown" />}
-    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/plain" href={`${BASE}/llms.txt`} title="llms.txt" />
+    <link rel="icon" href={`${BASE}/favicon.svg`} type="image/svg+xml" />
     <script is:inline>
       // Pinned scheme ("light" | "dark"); no stored value = follow the system. Must run before first paint.
       try { const v = localStorage.getItem('color-scheme'); if (v === 'light' || v === 'dark') document.querySelector('meta[name="color-scheme"]').content = v; } catch {}
@@ -111,7 +113,7 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
         <p>{t(lang, 'footerNote')}</p>
         <p>
           <a href={href(lang, 'about/')}>{t(lang, 'navAbout')}</a> ·
-          <a href="/llms.txt">llms.txt</a> ·
+          <a href={`${BASE}/llms.txt`}>llms.txt</a> ·
           {md && <><a href={md}>{t(lang, 'markdown')}</a> · </>}
           <a href={href(lang, 'about/#self-verification')}>{lang === 'en' ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</a>
         </p>

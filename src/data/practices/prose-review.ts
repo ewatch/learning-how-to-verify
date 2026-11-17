@@ -10,8 +10,12 @@ export const proseReview: Practice[] = [
     phases: ['pre'],
     fromOverview: false,
     core: true,
-    oneLiner: l('Written instructions that tell humans and coding agents how to work in this repository: commands, conventions, what not to do.', 'Schriftliche Anweisungen, die Menschen und Coding-Agenten sagen, wie in diesem Repository gearbeitet wird: Befehle, Konventionen, was man nicht tut.'),
+    oneLiner: l('Written instructions that tell people and coding agents how to work in this repository: commands, conventions, what not to do.', 'Schriftliche Anweisungen, die Menschen und Coding-Agenten sagen, wie in diesem Repository gearbeitet wird: Befehle, Konventionen, was man nicht tut.'),
     catches: l('nothing by itself; it prevents mistakes only if read and followed', 'von sich aus nichts; es verhindert Fehler nur, wenn es gelesen und befolgt wird'),
+    intro: l(
+      'Each new agent session starts without knowledge of your repository. The agent guesses the test command and the conventions. A short AGENTS.md gives it the commands and rules, but no tool enforces what the file says.',
+      'Jede neue Agenten-Sitzung beginnt ohne Wissen über dein Repository. Der Agent rät den Testbefehl und die Konventionen. Eine kurze AGENTS.md nennt ihm Befehle und Regeln, aber kein Werkzeug setzt durch, was in der Datei steht.',
+    ),
     cost: 1,
     feedback: 'days',
     worth: [
@@ -72,6 +76,10 @@ export const proseReview: Practice[] = [
     fromOverview: false,
     oneLiner: l('A repeatable set of representative tasks that measures how well your agent setup (model, prompts, rules, tools) actually performs.', 'Ein wiederholbarer Satz repräsentativer Aufgaben, der misst, wie gut das eigene Agenten-Setup (Modell, Prompts, Regeln, Werkzeuge) tatsächlich arbeitet.'),
     catches: l('changes to AGENTS.md, prompts or models that make results worse, and "improvements" that only feel better', 'Änderungen an AGENTS.md, Prompts oder Modellen, die Ergebnisse verschlechtern, und „Verbesserungen“, die sich nur besser anfühlen'),
+    intro: l(
+      'You add ten new rules to AGENTS.md, and the agent seems better. You cannot tell if it really succeeds more often. Evals run the same set of real tasks before and after the change and give you a number.',
+      'Du ergänzt zehn neue Regeln in der AGENTS.md, und der Agent wirkt besser. Ob er wirklich öfter Erfolg hat, kannst du nicht sagen. Evals führen vor und nach der Änderung dieselben echten Aufgaben aus und liefern eine Zahl.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -137,6 +145,10 @@ Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note:
     core: true,
     oneLiner: l('Another person reads the change before it is merged and decides whether it is right, clear and safe.', 'Eine andere Person liest die Änderung vor dem Merge und entscheidet, ob sie richtig, verständlich und sicher ist.'),
     catches: l('wrong intent, design problems, unclear code, missing tests, and things no machine was told to check', 'falsche Absicht, Designprobleme, unklaren Code, fehlende Tests und alles, was keiner Maschine zu prüfen aufgetragen wurde'),
+    intro: l(
+      'The agent\'s change passes every check, but it adds a second way to reserve a pet next to the existing one. No tool knows that this design is wrong. A person who did not write the change can see it before the merge.',
+      'Die Änderung des Agenten besteht jede Prüfung, baut aber neben dem bestehenden Weg einen zweiten Weg zum Reservieren. Kein Werkzeug weiß, dass dieses Design falsch ist. Ein Mensch, der die Änderung nicht geschrieben hat, sieht das vor dem Merge.',
+    ),
     cost: 3,
     feedback: 'hours',
     worth: [
@@ -204,6 +216,10 @@ List assumptions you could not verify. Do not invent findings.`, focus: [{ line:
     fromOverview: true,
     oneLiner: l('Security experts attack your system the way a real attacker would, and report what they got into.', 'Sicherheitsexperten greifen das System an wie ein echter Angreifer und berichten, wo sie hineinkamen.'),
     catches: l('chained vulnerabilities, broken authorization, business-logic abuse (reserving all pets with one account)', 'verkettete Schwachstellen, kaputte Autorisierung, Missbrauch der Geschäftslogik (alle Tiere mit einem Konto reservieren)'),
+    intro: l(
+      'Every scanner reports the petstore as clean. But a user can see the reservations of other people when they change a number in the URL. Penetration testers think like attackers and combine small weaknesses into a real attack.',
+      'Jeder Scanner meldet den Petstore als sauber. Aber ein Nutzer sieht fremde Reservierungen, wenn er eine Zahl in der URL ändert. Penetrationstester denken wie Angreifer und verbinden kleine Schwächen zu einem echten Angriff.',
+    ),
     cost: 3,
     feedback: 'days',
     worth: [
@@ -248,6 +264,10 @@ docker run --rm -t ghcr.io/zaproxy/zaproxy:stable   zap-baseline.py -t http://ho
     fromOverview: true,
     oneLiner: l('Watch a few real people try to complete real tasks with your product, and note where they struggle.', 'Wenigen echten Menschen zusehen, wie sie echte Aufgaben mit dem Produkt erledigen, und notieren, wo sie hängen.'),
     catches: l('confusing flows, misleading labels, steps users cannot find, features nobody understands', 'verwirrende Abläufe, irreführende Beschriftungen, Schritte, die Nutzer nicht finden, Funktionen, die niemand versteht'),
+    intro: l(
+      'The reservation flow passes every automated check. But users do not find the "Reserve" button, because its label says "Hold". In a usability test you watch five people try the task, and you see where they stop.',
+      'Der Reservierungsablauf besteht jede automatische Prüfung. Aber Nutzer finden den Button „Reservieren“ nicht, weil darauf „Vormerken“ steht. In einem Usability-Test siehst du fünf Menschen bei der Aufgabe zu und erkennst, wo sie aufgeben.',
+    ),
     cost: 2,
     feedback: 'days',
     worth: [
@@ -298,6 +318,10 @@ Separate observed behaviour from your interpretation.`, focus: [{ line: [2,3], n
     fromOverview: true,
     oneLiner: l('The people who get paged learn how the system really fails, and feed that back into design, tests and alerts.', 'Die Menschen, die alarmiert werden, lernen, wie das System wirklich ausfällt, und führen das in Design, Tests und Alarme zurück.'),
     catches: l('noisy alerts, missing runbooks, recurring incidents, failure modes nobody designed for', 'laute Alarme, fehlende Runbooks, wiederkehrende Vorfälle, Fehlerarten, für die niemand entworfen hat'),
+    intro: l(
+      'At 3 a.m., an alert wakes the person on call but does not say what is wrong. The same incident occurred last month. On-call work shows how the system really fails, and each incident should produce a check earlier in the funnel.',
+      'Um 3 Uhr nachts weckt ein Alert die Person in Rufbereitschaft, sagt aber nicht, was kaputt ist. Derselbe Vorfall trat schon letzten Monat auf. Rufbereitschaft zeigt, wie das System wirklich ausfällt, und jeder Vorfall soll eine Prüfung weiter oben im Trichter ergeben.',
+    ),
     cost: 3,
     feedback: 'days',
     worth: [

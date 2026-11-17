@@ -19,7 +19,8 @@ function cite(id: string): string {
 export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boolean } = {}): string {
   const out: string[] = [];
   out.push(`# ${p.name[loc]}`, '');
-  out.push(`${p.oneLiner[loc]}`, '');
+  out.push(p.intro[loc], '');
+  out.push(`**${T(loc, 'inOneSentence')}:** ${p.oneLiner[loc]}`, '');
   out.push(`- **${T(loc, 'catches')}:** ${p.catches[loc]}`);
   out.push(`- **${T(loc, 'layer')}:** ${layerName(p, loc)} · **${T(loc, 'phase')}:** ${phaseNames(p, loc).join(', ')}`);
   out.push(`- **${T(loc, 'cost')}:** ${COST_LABEL[p.cost][loc]} · **${T(loc, 'feedback')}:** ${FEEDBACK_LABEL[p.feedback][loc]}`, '');
@@ -71,7 +72,7 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
 }
 
 export function guideMarkdown(g: Guide, loc: Locale): string {
-  const out: string[] = [`# ${g.title[loc]}`, '', g.outcome[loc], '', `## ${T(loc, 'install')}`];
+  const out: string[] = [`# ${g.title[loc]}`, '', T(loc, 'guideLede'), '', g.outcome[loc], '', `## ${T(loc, 'install')}`];
   for (const i of g.install) out.push(`- ${i.os[loc]}: \`${i.cmd}\``);
   out.push('', g.installNote[loc], '');
   g.steps.forEach((s, i) => {

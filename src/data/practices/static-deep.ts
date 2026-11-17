@@ -9,8 +9,12 @@ export const staticDeep: Practice[] = [
     phases: ['pre'],
     fromOverview: true,
     core: true,
-    oneLiner: l('State a rule that must hold for all inputs; the tool generates hundreds of inputs and shrinks any failure to the smallest example.', 'Eine Regel formulieren, die für alle Eingaben gelten muss; das Werkzeug erzeugt Hunderte Eingaben und schrumpft jeden Fehlschlag auf das kleinste Beispiel.'),
+    oneLiner: l('State a rule for all inputs; a tool tries hundreds of inputs and shrinks each failure to the smallest example.', 'Eine Regel für alle Eingaben formulieren; ein Werkzeug probiert Hunderte Eingaben und schrumpft jeden Fehlschlag auf das kleinste Beispiel.'),
     catches: l('edge cases nobody wrote an example for: empty lists, zero, rounding, unusual orderings, interleavings', 'Randfälle, für die niemand ein Beispiel schrieb: leere Listen, Null, Rundung, ungewöhnliche Reihenfolgen, Verschränkungen'),
+    intro: l(
+      'Your tests check a dog of 3 years and a cat of 10 years. No test checks a pet of exactly 8 years or 0 years. A property states a rule for all pets, and the tool searches for the cases that you missed.',
+      'Deine Tests prüfen einen Hund mit 3 Jahren und eine Katze mit 10 Jahren. Kein Test prüft ein Tier mit genau 8 oder 0 Jahren. Eine Property beschreibt eine Regel für alle Tiere, und das Tool sucht die Fälle, die dir fehlen.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -124,6 +128,10 @@ final class AllocateTest extends TestCase
     fromOverview: true,
     oneLiner: l('Feed a program huge numbers of generated, often malformed inputs, guided by coverage, and watch for crashes.', 'Ein Programm mit riesigen Mengen erzeugter, oft kaputter Eingaben füttern, von Coverage gelenkt, und auf Abstürze achten.'),
     catches: l('crashes, hangs, memory errors and unhandled exceptions on untrusted input: parsers, decoders, protocol handlers', 'Abstürze, Hänger, Speicherfehler und unbehandelte Ausnahmen bei nicht vertrauenswürdigen Eingaben: Parser, Decoder, Protokoll-Handler'),
+    intro: l(
+      'The petstore reads search filters from the URL. One strangely encoded character crashes the parser, and an attacker can repeat it. A fuzzer tries inputs that no person would write and reports each crash with the input that caused it.',
+      'Der Petstore liest Suchfilter aus der URL. Ein seltsam kodiertes Zeichen bringt den Parser zum Absturz, und ein Angreifer kann das wiederholen. Ein Fuzzer probiert Eingaben, die kein Mensch schreiben würde, und meldet jeden Absturz mit der Eingabe, die ihn auslöste.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -205,6 +213,10 @@ module.exports.fuzz = (data) => {
     core: true,
     oneLiner: l('Test your tests: plant small bugs (mutants) in the code and check that at least one test fails for each.', 'Die Tests testen: Kleine Fehler (Mutanten) in den Code einbauen und prüfen, dass für jeden mindestens ein Test scheitert.'),
     catches: l('weak tests: missing boundary cases, assertions that check nothing, untested side effects', 'schwache Tests: fehlende Grenzfälle, Assertions, die nichts prüfen, ungetestete Seiteneffekte'),
+    intro: l(
+      'The agent wrote 40 tests, and all of them are green. But if you change `>=` to `>` in the senior discount, no test fails. Mutation testing makes such small changes on purpose and shows which ones your tests do not notice.',
+      'Der Agent hat 40 Tests geschrieben, und alle sind grün. Aber wenn du im Seniorenrabatt `>=` in `>` änderst, scheitert kein Test. Mutation Testing macht solche kleinen Änderungen absichtlich und zeigt, welche deine Tests nicht bemerken.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -271,6 +283,10 @@ tests_dir = ["tests/"]
     fromOverview: true,
     oneLiner: l('Measure which lines and branches your tests execute, to find code no test touches.', 'Messen, welche Zeilen und Zweige die Tests ausführen, um Code zu finden, den kein Test berührt.'),
     catches: l('completely untested code: forgotten error branches, dead features', 'völlig ungetesteten Code: vergessene Fehlerzweige, tote Funktionen'),
+    intro: l(
+      'The petstore has a function that cancels a reservation, but no test calls it. All tests are green, so nobody notices. Coverage makes this gap visible. It does not show whether a test also checks the result of a line that it runs.',
+      'Der Petstore hat eine Funktion, die eine Reservierung storniert, aber kein Test ruft sie auf. Alle Tests sind grün, also bemerkt es niemand. Coverage macht diese Lücke sichtbar. Sie zeigt nicht, ob ein Test das Ergebnis einer ausgeführten Zeile auch prüft.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -322,6 +338,10 @@ export default defineConfig({
     fromOverview: false,
     oneLiner: l('Run two implementations of the same thing on the same inputs and flag every difference.', 'Zwei Implementierungen derselben Sache mit denselben Eingaben laufen lassen und jeden Unterschied melden.'),
     catches: l('behaviour changes in a refactoring or rewrite, disagreement with a reference implementation or standard', 'Verhaltensänderungen bei Refactoring oder Neufassung, Abweichung von einer Referenzimplementierung oder einem Standard'),
+    intro: l(
+      'An agent rewrites the fee calculation to make it faster. You do not have a test for every combination of species and age. Differential testing gives the old code and the new code the same inputs, and each difference becomes a counterexample.',
+      'Ein Agent schreibt die Gebührenberechnung neu, damit sie schneller ist. Du hast keinen Test für jede Kombination aus Tierart und Alter. Differential Testing gibt altem und neuem Code dieselben Eingaben, und jeder Unterschied wird ein Gegenbeispiel.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [l('An oracle for free: you do not need to know the right answer, only that the two should agree.', 'Ein Orakel umsonst: Man muss die richtige Antwort nicht kennen, nur dass beide übereinstimmen sollen.'), l('Combines naturally with generated inputs (PBT, fuzzing).', 'Verbindet sich natürlich mit erzeugten Eingaben (PBT, Fuzzing).'), l('Bridges proofs and code: compare a verified Dafny model against the production TypeScript.', 'Überbrückt Beweis und Code: ein verifiziertes Dafny-Modell gegen das produktive TypeScript vergleichen.')],
@@ -387,6 +407,10 @@ final class PriceComparisonTest extends TestCase
     fromOverview: true,
     oneLiner: l('Measure how fast a small piece of code runs, repeatably, and compare against a baseline.', 'Messen, wie schnell ein kleines Stück Code läuft, wiederholbar, und mit einer Baseline vergleichen.'),
     catches: l('performance regressions in hot code: an accidental O(n²), an allocation in a loop', 'Performance-Regressionen in heißem Code: ein versehentliches O(n²), eine Allokation in einer Schleife'),
+    intro: l(
+      'An agent changes the pet search, and all tests pass. But the search now compares every pet with every other pet, and with 50 test pets nobody notices. A benchmark compares the speed with the last commit and fails if the search becomes much slower.',
+      'Ein Agent ändert die Tiersuche, und alle Tests bestehen. Aber die Suche vergleicht jetzt jedes Tier mit jedem anderen, und bei 50 Testtieren bemerkt das niemand. Ein Benchmark vergleicht die Geschwindigkeit mit dem letzten Commit und scheitert, wenn die Suche deutlich langsamer wird.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -440,6 +464,10 @@ console.table(bench.table());`, focus: [{ line: 3, note: l('Realistic data size 
     fromOverview: true,
     oneLiner: l('Check that the whole system meets its speed and resource goals (latency, throughput, memory) under a defined workload.', 'Prüfen, dass das ganze System unter einer definierten Last seine Ziele für Geschwindigkeit und Ressourcen erfüllt (Latenz, Durchsatz, Speicher).'),
     catches: l('slow endpoints, N+1 queries, memory growth, missing indexes', 'langsame Endpunkte, N+1-Abfragen, wachsender Speicher, fehlende Indizes'),
+    intro: l(
+      'The pet list loads fast on your laptop with 20 pets. In production with 50,000 pets, each page needs three seconds. A performance test runs the system on realistic data and compares the result with a target, for example p95 below 200 ms.',
+      'Die Tierliste lädt auf deinem Laptop mit 20 Tieren schnell. In Produktion mit 50.000 Tieren braucht jede Seite drei Sekunden. Ein Performancetest lässt das System mit realistischen Daten laufen und vergleicht das Ergebnis mit einem Ziel, zum Beispiel p95 unter 200 ms.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -494,6 +522,10 @@ export default function () {
     fromOverview: true,
     oneLiner: l('Put realistic or peak traffic on the deployed system and see where it bends or breaks.', 'Realistischen oder Spitzenverkehr auf das deployte System geben und schauen, wo es nachgibt oder bricht.'),
     catches: l('capacity limits, connection-pool exhaustion, lock contention, autoscaling that reacts too late', 'Kapazitätsgrenzen, erschöpfte Verbindungspools, Sperrkonflikte, zu spät reagierendes Autoscaling'),
+    intro: l(
+      'On adoption day, a thousand people open the petstore at the same time. The site becomes slow, and two people get the same pet. A load test sends this traffic before the event, so you see the limits first.',
+      'Am Adoptionstag öffnen tausend Menschen gleichzeitig den Petstore. Die Seite wird langsam, und zwei Personen bekommen dasselbe Tier. Ein Lasttest erzeugt diesen Verkehr vor dem Termin, damit du die Grenzen zuerst siehst.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -546,6 +578,10 @@ export default function () {
     fromOverview: true,
     oneLiner: l('Run a steady, moderate load for hours or days to find problems that only build up over time.', 'Eine gleichmäßige, mittlere Last über Stunden oder Tage laufen lassen, um Probleme zu finden, die sich erst mit der Zeit aufbauen.'),
     catches: l('memory leaks, growing queues, disk filling up, connection leaks, slow degradation', 'Speicherlecks, wachsende Warteschlangen, volllaufende Platten, Verbindungslecks, schleichende Verschlechterung'),
+    intro: l(
+      'The petstore runs well for two days and crashes on the third day. Each reservation leaves a small object in memory, and the memory never becomes free again. A soak test keeps a steady load long enough to show this growth.',
+      'Der Petstore läuft zwei Tage gut und stürzt am dritten Tag ab. Jede Reservierung lässt ein kleines Objekt im Speicher zurück, und der Speicher wird nie wieder frei. Ein Dauerlasttest hält lange genug eine gleichmäßige Last, um dieses Wachstum zu zeigen.',
+    ),
     cost: 3,
     feedback: 'days',
     worth: [
@@ -600,6 +636,10 @@ export default function () {
     fromOverview: true,
     oneLiner: l('Validate configuration (YAML, Kubernetes manifests, feature-flag settings, infrastructure code) before it is applied.', 'Konfiguration (YAML, Kubernetes-Manifeste, Feature-Flag-Einstellungen, Infrastrukturcode) prüfen, bevor sie angewendet wird.'),
     catches: l('typos in keys, wrong types, missing limits, open security groups, a timeout of 0', 'Tippfehler in Schlüsseln, falsche Typen, fehlende Limits, offene Security Groups, ein Timeout von 0'),
+    intro: l(
+      'An agent edits a Kubernetes manifest and sets `replicas: 0`. The YAML is valid, so the deploy works, and the petstore has no running server. Config tests check such values against a schema and the team\'s policies before they apply.',
+      'Ein Agent ändert ein Kubernetes-Manifest und setzt `replicas: 0`. Das YAML ist gültig, also klappt der Deploy, und der Petstore hat keinen laufenden Server. Konfigurationstests prüfen solche Werte gegen ein Schema und die Policies des Teams, bevor sie wirken.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [

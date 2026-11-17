@@ -12,6 +12,10 @@ export const staticChecks: Practice[] = [
     core: true,
     oneLiner: l('Let the compiler reject code that uses values in ways their types do not allow.', 'Den Compiler Code ablehnen lassen, der Werte anders verwendet, als ihre Typen erlauben.'),
     catches: l('wrong arguments, missing fields, null where a value is required, typos in names', 'falsche Argumente, fehlende Felder, null statt eines Werts, Tippfehler in Namen'),
+    intro: l(
+      'An agent reads `pet.reservedBy.name`, but nobody has reserved the pet yet. The code crashes for the first user who opens that pet. A strict type checker rejects this line before the code runs.',
+      'Ein Agent liest `pet.reservedBy.name`, aber noch niemand hat das Tier reserviert. Der Code stürzt beim ersten Nutzer ab, der dieses Tier öffnet. Ein strenger Type-Checker lehnt diese Zeile ab, bevor der Code läuft.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -117,6 +121,10 @@ function owner(Reservation $reservation): string
     core: true,
     oneLiner: l('Automatically flag suspicious or forbidden code patterns before anything runs.', 'Verdächtige oder verbotene Codemuster automatisch markieren, bevor irgendetwas läuft.'),
     catches: l('unused variables, forgotten `await`, shadowed names, banned APIs, inconsistent style', 'unbenutzte Variablen, vergessenes `await`, verdeckte Namen, verbotene APIs, uneinheitlicher Stil'),
+    intro: l(
+      'Your AGENTS.md says: never use `Math.random` in domain code. An agent forgets the rule in a long task, and nobody notices. A lint rule rejects the same code on every run.',
+      'In deiner AGENTS.md steht: nie `Math.random` im Domain-Code. Ein Agent vergisst die Regel in einer langen Aufgabe, und niemand bemerkt es. Eine Lint-Regel lehnt denselben Code bei jedem Lauf ab.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -194,8 +202,12 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     layer: 'static',
     phases: ['pre'],
     fromOverview: true,
-    oneLiner: l('Analyse code without running it to find bugs that need reasoning across functions or files.', 'Code analysieren, ohne ihn auszuführen, um Fehler zu finden, die Schlussfolgerungen über Funktionen oder Dateien hinweg brauchen.'),
+    oneLiner: l('Analyse the code before it runs, and find bugs that span more than one function or file.', 'Code analysieren, ohne ihn auszuführen, um Fehler zu finden, die Schlussfolgerungen über Funktionen oder Dateien hinweg brauchen.'),
     catches: l('null dereferences, resource leaks, unreachable code, taint from input to a dangerous sink', 'Null-Dereferenzierungen, Ressourcenlecks, unerreichbaren Code, ungeprüfte Eingaben, die gefährliche Stellen erreichen'),
+    intro: l(
+      'A request parameter goes through four functions into an SQL query. Each function looks correct alone, and no test sends a malicious value. Static analysis follows the data across functions and files and reports the dangerous path.',
+      'Ein Request-Parameter läuft durch vier Funktionen in eine SQL-Abfrage. Jede Funktion sieht für sich richtig aus, und kein Test sendet einen bösartigen Wert. Statische Analyse verfolgt die Daten über Funktionen und Dateien und meldet den gefährlichen Pfad.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -260,6 +272,10 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     fromOverview: false,
     oneLiner: l('Scan your code, dependencies and history for known vulnerability patterns, vulnerable packages and leaked credentials.', 'Code, Abhängigkeiten und Historie nach bekannten Schwachstellenmustern, verwundbaren Paketen und geleakten Zugangsdaten durchsuchen.'),
     catches: l('SQL injection patterns, dependencies with known CVEs, API keys committed to git, unknown or typo-squatted packages', 'SQL-Injection-Muster, Abhängigkeiten mit bekannten CVEs, in Git eingecheckte API-Schlüssel, unbekannte oder untergeschobene Pakete'),
+    intro: l(
+      'An agent adds a payment feature. It writes an API key into the code and adds a package that does not exist. A scanner checks every change for secrets and for unknown or vulnerable packages.',
+      'Ein Agent baut eine Bezahlfunktion. Er schreibt einen API-Key in den Code und fügt ein Paket hinzu, das es nicht gibt. Ein Scanner prüft jede Änderung auf Secrets und auf unbekannte oder verwundbare Pakete.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -327,6 +343,10 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     core: true,
     oneLiner: l('Run every automated check on every change, on a clean machine, before it is merged.', 'Jede automatische Prüfung bei jeder Änderung auf einer sauberen Maschine ausführen, bevor gemergt wird.'),
     catches: l('"works on my machine", checks someone forgot to run, integration breakage between parallel changes', '„läuft bei mir“, vergessene Prüfungen, Brüche zwischen parallelen Änderungen'),
+    intro: l(
+      'The agent reports green tests, but it ran only one test file on its own machine. Nobody ran all the tests before the merge. CI makes a green full run a condition for every merge, for people and agents.',
+      'Der Agent meldet grüne Tests, aber er hat nur eine Testdatei auf seiner Maschine ausgeführt. Vor dem Merge hat niemand alle Tests ausgeführt. CI macht einen grünen Gesamtlauf zur Bedingung für jeden Merge, für Menschen und Agenten.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -400,6 +420,10 @@ jobs:
     fromOverview: false,
     oneLiner: l('Write or approve the tests (or the spec) first; then the code, human or agent, iterates until they pass.', 'Zuerst die Tests (oder die Spezifikation) schreiben oder freigeben; dann iteriert der Code, ob von Mensch oder Agent, bis sie bestehen.'),
     catches: l('code that solves a different problem than intended, and untested behaviour that slips in "while we are at it"', 'Code, der ein anderes Problem löst als gedacht, und ungetestetes Verhalten, das „nebenbei“ hineinrutscht'),
+    intro: l(
+      'You ask an agent for the reservation rule. It writes the code and the tests together, so the tests confirm what the code does, not what you wanted. In TDD, a test that you approved sets the goal before any code exists.',
+      'Du bittest einen Agenten um die Reservierungsregel. Er schreibt Code und Tests zusammen, also prüfen die Tests seinen Code, nicht deinen Wunsch. Bei TDD legt ein von dir freigegebener Test das Ziel fest, bevor Code existiert.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -491,6 +515,10 @@ final class ReservationTest extends TestCase
     core: true,
     oneLiner: l('Make sure the code under test cannot change, skip or special-case the tests it is judged by.', 'Sicherstellen, dass der geprüfte Code die Tests, an denen er gemessen wird, nicht ändern, überspringen oder austricksen kann.'),
     catches: l('weakened assertions, deleted or skipped tests, code that detects the test environment, hard-coded expected outputs', 'abgeschwächte Assertions, gelöschte oder übersprungene Tests, Code, der die Testumgebung erkennt, fest kodierte Erwartungswerte'),
+    intro: l(
+      'A test fails, and the agent must make it green. The fastest way is to delete the assertion or to skip the test. Test integrity blocks these routes, so a green result keeps its meaning.',
+      'Ein Test scheitert, und der Agent soll ihn grün machen. Am schnellsten geht das, wenn er die Assertion löscht oder den Test überspringt. Testintegrität sperrt diese Wege, damit ein grünes Ergebnis seine Bedeutung behält.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [

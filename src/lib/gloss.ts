@@ -1,6 +1,7 @@
 import { GLOSSARY, type Term } from '../data/glossary';
 import type { Locale } from '../data/types';
 import { esc, inline } from './inline';
+import { BASE } from './site';
 
 const reEsc = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
 const hasMarks = (s: string) => /[()/]/.test(s);
@@ -32,7 +33,7 @@ function matcher(lang: Locale): Matcher {
 
 /** Link markup for one occurrence. Works as a plain link; /js/gloss enhances it into a popover. */
 function mark(t: Term, lang: Locale, shown: string): string {
-  return `<a class="gloss" href="/${lang}/glossary/#${t.id}" data-gloss="${esc(t.id)}" data-term="${esc(t.term[lang])}" data-def="${esc(t.def[lang])}">${shown}</a>`;
+  return `<a class="gloss" href="${BASE}/${lang}/glossary/#${t.id}" data-gloss="${esc(t.id)}" data-term="${esc(t.term[lang])}" data-def="${esc(t.def[lang])}">${shown}</a>`;
 }
 
 /**

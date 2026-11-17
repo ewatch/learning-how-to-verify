@@ -8,8 +8,12 @@ export const verification: Practice[] = [
     layer: 'verification',
     phases: ['pre'],
     fromOverview: true,
-    oneLiner: l('Prove mathematically that code or a design satisfies a property for every input and every interleaving, not just the tested ones.', 'Mathematisch beweisen, dass Code oder ein Entwurf eine Eigenschaft für jede Eingabe und jede Verschränkung erfüllt, nicht nur für die getesteten.'),
+    oneLiner: l('Prove mathematically that code or a design has a property for all inputs and interleavings, not only tested ones.', 'Mathematisch beweisen, dass Code oder ein Entwurf eine Eigenschaft für jede Eingabe und jede Verschränkung erfüllt, nicht nur für die getesteten.'),
     catches: l('design bugs in protocols and concurrency (double-booking in 7 steps), and logic bugs no test happened to hit', 'Entwurfsfehler in Protokollen und Nebenläufigkeit (Doppelbuchung in 7 Schritten) und Logikfehler, die kein Test zufällig traf'),
+    intro: l(
+      'Two people press "Reserve" for the same pet at the same moment. The bug needs one exact order of steps, so tests almost never hit it. Formal verification checks every possible order and shows the one that breaks the rule.',
+      'Zwei Personen drücken im selben Moment „Reservieren“ für dasselbe Tier. Der Fehler braucht genau eine Reihenfolge der Schritte, also treffen Tests ihn fast nie. Formale Verifikation prüft jede mögliche Reihenfolge und zeigt die, die die Regel bricht.',
+    ),
     cost: 3,
     feedback: 'hours',
     worth: [
@@ -89,6 +93,10 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
     fromOverview: false,
     oneLiner: l('Write pre- and postconditions and invariants into the code, and check them at runtime (or prove them).', 'Vor- und Nachbedingungen sowie Invarianten in den Code schreiben und zur Laufzeit prüfen (oder beweisen).'),
     catches: l('broken assumptions close to where they break: a negative price, a reservation without a pet, an empty cart at checkout', 'gebrochene Annahmen nahe der Stelle, wo sie brechen: negativer Preis, Reservierung ohne Tier, leerer Warenkorb an der Kasse'),
+    intro: l(
+      'A wrong value appears on an invoice, but it became wrong three modules earlier. A contract checks at each step what must be true and stops the program at the first wrong value.',
+      'Ein falscher Wert steht auf einer Rechnung, aber er wurde drei Module früher falsch. Ein Contract prüft an jeder Stelle, was gelten muss, und stoppt das Programm beim ersten falschen Wert.',
+    ),
     cost: 1,
     feedback: 'seconds',
     worth: [
@@ -171,6 +179,10 @@ function allocate(int $amount, array $weights): array
     fromOverview: false,
     oneLiner: l('Compile with extra runtime checks that detect memory errors, undefined behaviour and data races the moment they happen.', 'Mit zusätzlichen Laufzeitprüfungen kompilieren, die Speicherfehler, undefiniertes Verhalten und Data Races in dem Moment erkennen, in dem sie passieren.'),
     catches: l('buffer overflows, use-after-free, integer overflow, uninitialised reads, data races', 'Pufferüberläufe, Use-after-free, Ganzzahlüberlauf, Lesen nicht initialisierten Speichers, Data Races'),
+    intro: l(
+      'An agent writes a C function that reads one byte past the end of a buffer. The tests pass, because the extra byte does no visible harm today. A sanitizer stops the program at the exact line, so the test shows the bug.',
+      'Ein Agent schreibt eine C-Funktion, die ein Byte hinter dem Ende eines Buffers liest. Die Tests bestehen, weil das zusätzliche Byte heute keinen sichtbaren Schaden macht. Ein Sanitizer stoppt das Programm genau an dieser Zeile, und der Test zeigt den Fehler.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -213,6 +225,10 @@ add_link_options(-fsanitize=address,undefined)
     fromOverview: true,
     oneLiner: l('Send copies of real requests to the old and the new version and compare the responses.', 'Kopien echter Anfragen an die alte und die neue Version schicken und die Antworten vergleichen.'),
     catches: l('behaviour differences that only real traffic triggers: odd inputs, rare paths, data no test fixture has', 'Verhaltensunterschiede, die nur echter Verkehr auslöst: seltsame Eingaben, seltene Pfade, Daten, die keine Test-Fixture hat'),
+    intro: l(
+      'An agent rewrites the search service. Your test inputs pass, but real users search with typos, emoji and strange filters. Tap compare uses real requests as test input, so you find the differences before a user sees one.',
+      'Ein Agent schreibt den Suchservice neu. Deine Testeingaben bestehen, aber echte Nutzer suchen mit Tippfehlern, Emoji und seltsamen Filtern. Tap Compare nutzt echte Anfragen als Testeingabe, damit du die Unterschiede findest, bevor ein Nutzer einen sieht.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -260,6 +276,10 @@ test('candidate preserves the reservation owner', () => {
     fromOverview: true,
     oneLiner: l('Run the new version alongside production on a copy of live traffic; its responses are discarded, its behaviour is observed.', 'Die neue Version neben der Produktion auf einer Kopie des Live-Verkehrs betreiben; ihre Antworten werden verworfen, ihr Verhalten beobachtet.'),
     catches: l('crashes, latency, resource use and errors of the new version under real load, with zero user impact', 'Abstürze, Latenz, Ressourcenverbrauch und Fehler der neuen Version unter echter Last, ohne Auswirkung auf Nutzer'),
+    intro: l(
+      'You move the reservation service to a new database. The tests pass, but nobody knows how the new version behaves with the real number of requests. Shadowing lets the new version process real traffic in parallel, while users still get the old answers.',
+      'Du ziehst den Reservierungsservice auf eine neue Datenbank um. Die Tests bestehen, aber niemand weiß, wie sich die neue Version bei der echten Zahl an Anfragen verhält. Shadowing lässt die neue Version echten Verkehr parallel verarbeiten, während Nutzer weiter die alten Antworten bekommen.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -304,8 +324,12 @@ route:
     phases: ['release'],
     fromOverview: true,
     core: true,
-    oneLiner: l('Release the new version to a small share of users first, compare its health with the old version, and roll back automatically if it is worse.', 'Die neue Version zuerst einem kleinen Teil der Nutzer geben, ihre Gesundheit mit der alten vergleichen und automatisch zurückrollen, wenn sie schlechter ist.'),
+    oneLiner: l('Release to a few users first; if the new version is less healthy than the old one, roll back automatically.', 'Zuerst an einen kleinen Teil der Nutzer ausliefern; ist die neue Version weniger gesund als die alte, automatisch zurückrollen.'),
     catches: l('bugs that only real users, real data and real scale trigger, with limited blast radius', 'Fehler, die nur echte Nutzer, echte Daten und echte Größe auslösen, bei begrenztem Schaden'),
+    intro: l(
+      'A new release passes every check but fails for customers with a rare payment method. If all users get it at once, all those customers are affected. A canary limits the damage to a small group and stops the release when errors increase.',
+      'Ein neues Release besteht jede Prüfung, scheitert aber bei Kunden mit einer seltenen Zahlungsart. Bekommen alle Nutzer es gleichzeitig, trifft es alle diese Kunden. Ein Canary begrenzt den Schaden auf eine kleine Gruppe und stoppt das Release, wenn die Fehlerrate steigt.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -348,6 +372,10 @@ route:
     fromOverview: true,
     oneLiner: l('Control which requests reach which version, how fast, and how many, to release gradually and protect the system.', 'Steuern, welche Anfragen welche Version erreichen, wie schnell und wie viele, um schrittweise auszuliefern und das System zu schützen.'),
     catches: l('overload of a new version, a bad version reaching everyone at once, retries that snowball', 'Überlastung einer neuen Version, eine schlechte Version, die alle gleichzeitig erreicht, sich aufschaukelnde Wiederholungen'),
+    intro: l(
+      'A new version of the reservation service has a bug: it repeats every failed request three times. With full traffic, these repeats overload the database. Traffic shaping limits the traffic for each version, so one bug cannot stop the whole system.',
+      'Eine neue Version des Reservierungsservice hat einen Fehler: Sie wiederholt jede gescheiterte Anfrage dreimal. Bei vollem Verkehr überlasten diese Wiederholungen die Datenbank. Traffic Shaping begrenzt den Verkehr pro Version, damit ein Fehler nicht das ganze System stoppt.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -395,6 +423,10 @@ route:
     fromOverview: true,
     oneLiner: l('Ship code switched off, then turn it on for chosen users at runtime, and off again instantly if it misbehaves.', 'Code ausgeschaltet ausliefern, ihn dann zur Laufzeit für ausgewählte Nutzer einschalten und sofort wieder aus, wenn er sich danebenbenimmt.'),
     catches: l('bad features in production, with a kill switch that is faster than a rollback', 'schlechte Funktionen in Produktion, mit einem Notschalter, der schneller ist als ein Zurückrollen'),
+    intro: l(
+      'The new checkout reaches production on Friday. On Saturday it charges customers with a voucher twice. A feature flag switches the new checkout off at once, without a rollback of the whole release.',
+      'Der neue Checkout geht am Freitag in Produktion. Am Samstag belastet er Kunden mit Gutschein doppelt. Ein Feature Flag schaltet den neuen Checkout sofort ab, ohne Rollback des ganzen Releases.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -433,8 +465,12 @@ export async function reserve(petId: PetId, person: PersonId) {
     layer: 'verification',
     phases: ['release', 'post'],
     fromOverview: true,
-    oneLiner: l('Continuously measure the health of the running system and alert a human when it leaves its normal range.', 'Die Gesundheit des laufenden Systems fortlaufend messen und einen Menschen alarmieren, wenn sie ihren Normalbereich verlässt.'),
+    oneLiner: l('Continuously measure the health of the live system, and alert a person when it leaves its normal range.', 'Die Gesundheit des laufenden Systems fortlaufend messen und einen Menschen alarmieren, wenn sie ihren Normalbereich verlässt.'),
     catches: l('outages, slowdowns, error spikes, saturation, and broken business flows (no reservations for 10 minutes)', 'Ausfälle, Verlangsamungen, Fehlerspitzen, Auslastung und kaputte Geschäftsabläufe (10 Minuten keine Reservierung)'),
+    intro: l(
+      'On Sunday night no reservation succeeds for one hour, and nobody notices until Monday. All servers ran, and the logs showed no error. Monitoring measures signals such as completed reservations and alerts a person when they drop.',
+      'Am Sonntagabend gelingt eine Stunde lang keine Reservierung, und bis Montag bemerkt es niemand. Alle Server liefen, und die Logs zeigten keinen Fehler. Monitoring misst Signale wie abgeschlossene Reservierungen und alarmiert eine Person, wenn sie fallen.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -489,6 +525,10 @@ export async function reserve(petId: PetId, person: PersonId) {
     fromOverview: true,
     oneLiner: l('Collect, group and count unhandled errors from production, with stack traces and context, per release.', 'Unbehandelte Fehler aus der Produktion sammeln, gruppieren und zählen, mit Stacktraces und Kontext, pro Release.'),
     catches: l('new crash types introduced by a release, errors in rare paths, client-side exceptions', 'neue Absturzarten durch ein Release, Fehler in seltenen Pfaden, clientseitige Ausnahmen'),
+    intro: l(
+      'After a release, the reservation page throws an error for users with a long name. Each user sees the error once and leaves. Exception tracking groups these errors by release and shows you the new problem with its stack trace.',
+      'Nach einem Release wirft die Reservierungsseite bei Nutzern mit langem Namen einen Fehler. Jeder Nutzer sieht den Fehler einmal und geht. Exception Tracking gruppiert diese Fehler pro Release und zeigt dir das neue Problem mit Stack Trace.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -537,8 +577,12 @@ export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
     layer: 'verification',
     phases: ['post'],
     fromOverview: true,
-    oneLiner: l('Split a copy of live traffic or data off to a second consumer (like a T-piece in a pipe) for testing, replay or analysis.', 'Eine Kopie von Live-Verkehr oder -Daten an einen zweiten Empfänger abzweigen (wie ein T-Stück im Rohr), zum Testen, Wiederabspielen oder Analysieren.'),
+    oneLiner: l('Copy live traffic or data to a second consumer for tests, replay or analysis, like a T-piece in a pipe.', 'Eine Kopie von Live-Verkehr oder -Daten an einen zweiten Empfänger abzweigen, wie ein T-Stück im Rohr, für Tests, Wiederabspielen oder Analyse.'),
     catches: l('problems in new consumers (a new search index, an analytics pipeline) using real data, without risk to the main path', 'Probleme in neuen Empfängern (neuer Suchindex, Analyse-Pipeline) mit echten Daten, ohne Risiko für den Hauptpfad'),
+    intro: l(
+      'You build a new search index for pets. Test data does not show how real users search. With a tee, the new index gets a copy of the real data, and the shop works as before.',
+      'Du baust einen neuen Suchindex für Tiere. Testdaten zeigen nicht, wie echte Nutzer suchen. Mit einem Tee bekommt der neue Index eine Kopie der echten Daten, und der Shop arbeitet wie bisher.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -597,6 +641,10 @@ encoding.codec = "json"
     fromOverview: true,
     oneLiner: l('Measure where a running program actually spends its time and memory, ideally continuously in production.', 'Messen, wo ein laufendes Programm tatsächlich Zeit und Speicher verbraucht, idealerweise fortlaufend in Produktion.'),
     catches: l('hot spots, unexpected allocations, lock contention, the one slow function that matters', 'Hotspots, unerwartete Allokationen, Sperrkonflikte, die eine langsame Funktion, auf die es ankommt'),
+    intro: l(
+      'After a release, the petstore uses twice as much CPU, and the agent guesses which code is slow. Each guess costs a deploy. A profiler shows where the time really goes, for example 40% in one JSON function.',
+      'Nach einem Release braucht der Petstore doppelt so viel CPU, und der Agent rät, welcher Code langsam ist. Jeder Versuch kostet einen Deploy. Ein Profiler zeigt, wohin die Zeit wirklich geht, zum Beispiel 40 % in eine JSON-Funktion.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -642,6 +690,10 @@ py-spy record --pid 12345 --duration 30 --output reservation.svg
     fromOverview: true,
     oneLiner: l('Record what the system did as structured events, so you can ask questions about production after the fact.', 'Aufzeichnen, was das System getan hat, als strukturierte Ereignisse, damit man im Nachhinein Fragen über die Produktion stellen kann.'),
     catches: l('the "why" behind an incident, rare failure sequences, invariant violations visible only in history', 'das „Warum“ hinter einem Vorfall, seltene Fehlerfolgen, Invariantenverletzungen, die nur in der Historie sichtbar sind'),
+    intro: l(
+      'A customer reports that a pet was reserved twice last Tuesday. Without a record, you cannot reconstruct what happened. Structured events with a request id and a pet id let you query the exact order of actions afterwards.',
+      'Eine Kundin meldet, dass letzten Dienstag ein Tier doppelt reserviert wurde. Ohne Aufzeichnung kannst du den Ablauf nicht rekonstruieren. Strukturierte Events mit Request-ID und Tier-ID lassen dich die genaue Reihenfolge später abfragen.',
+    ),
     cost: 1,
     feedback: 'minutes',
     worth: [
@@ -684,8 +736,12 @@ logReservation('rex', 'taken', 'local-example-1');
     layer: 'verification',
     phases: ['post'],
     fromOverview: true,
-    oneLiner: l('Deliberately inject failures (kill instances, add latency, cut networks) to check that the system degrades the way you think it does.', 'Absichtlich Fehler einspeisen (Instanzen beenden, Latenz hinzufügen, Netze trennen), um zu prüfen, dass das System so ausfällt, wie man glaubt.'),
+    oneLiner: l('Inject failures on purpose (kill instances, add latency, cut networks), and check that the system degrades as you expect.', 'Absichtlich Fehler einspeisen (Instanzen beenden, Latenz hinzufügen, Netze trennen) und prüfen, dass das System so ausfällt wie erwartet.'),
     catches: l('missing timeouts, retries without backoff, single points of failure, fallbacks that were never tested', 'fehlende Timeouts, Wiederholungen ohne Backoff, Single Points of Failure, nie getestete Fallbacks'),
+    intro: l(
+      'The payment service becomes slow for two seconds. The reservation service waits without a timeout, and soon all its threads are blocked. Chaos testing adds such a delay on purpose and shows whether your fallback really works.',
+      'Der Payment-Service antwortet zwei Sekunden lang langsam. Der Reservierungsservice wartet ohne Timeout, und bald sind alle seine Threads blockiert. Chaos Engineering erzeugt eine solche Verzögerung absichtlich und zeigt, ob dein Fallback wirklich funktioniert.',
+    ),
     cost: 3,
     feedback: 'hours',
     worth: [
@@ -727,6 +783,10 @@ toxiproxy-cli toxic remove -n latency_downstream petstore-db`, focus: [{ line: 3
     fromOverview: true,
     oneLiner: l('Show two variants to randomly split groups of real users and measure which one achieves the goal better.', 'Zwei Varianten zufällig aufgeteilten Gruppen echter Nutzer zeigen und messen, welche das Ziel besser erreicht.'),
     catches: l('features that work technically but do not help, or hurt a metric that matters', 'Funktionen, die technisch funktionieren, aber nicht helfen oder einer wichtigen Metrik schaden'),
+    intro: l(
+      'An agent builds two versions of the adoption page in one hour. Both versions work, and the team argues about which one is better. An A/B test shows each version to a random half of the users and counts the adoptions for each.',
+      'Ein Agent baut in einer Stunde zwei Versionen der Adoptionsseite. Beide Versionen funktionieren, und das Team streitet, welche besser ist. Ein A/B-Test zeigt jede Version einer zufälligen Hälfte der Nutzer und zählt die Adoptionen pro Version.',
+    ),
     cost: 2,
     feedback: 'days',
     worth: [
@@ -790,8 +850,12 @@ test('a missing participant ID is excluded', () => {
     layer: 'verification',
     phases: ['post'],
     fromOverview: true,
-    oneLiner: l('Follow one request across all services it touches, with timing for every step.', 'Eine Anfrage über alle Dienste verfolgen, die sie berührt, mit Zeitmessung für jeden Schritt.'),
+    oneLiner: l('Follow one request across all the services that it touches, with the duration of every step.', 'Eine Anfrage über alle Dienste verfolgen, die sie berührt, mit Zeitmessung für jeden Schritt.'),
     catches: l('where latency comes from in a distributed system, unexpected calls, fan-out, retries hidden inside services', 'woher die Latenz in einem verteilten System kommt, unerwartete Aufrufe, Fan-out, in Diensten versteckte Wiederholungen'),
+    intro: l(
+      'The pet page needs two seconds, and each request goes through five services. Each service log looks normal. A trace shows the full path of one request and makes visible that one service calls another service 12 times.',
+      'Die Tierseite braucht zwei Sekunden, und jede Anfrage läuft durch fünf Services. Jedes Service-Log sieht normal aus. Ein Trace zeigt den ganzen Weg einer Anfrage und macht sichtbar, dass ein Service einen anderen 12-mal aufruft.',
+    ),
     cost: 2,
     feedback: 'minutes',
     worth: [
@@ -842,8 +906,12 @@ export async function traceReservation<T>(save: () => Promise<T>) {
     layer: 'verification',
     phases: ['post'],
     fromOverview: true,
-    oneLiner: l('Automatically explore a running system (crawl the UI, walk the API, try state sequences) to find behaviour nobody wrote a test for.', 'Ein laufendes System automatisch erkunden (UI crawlen, API durchgehen, Zustandsfolgen ausprobieren), um Verhalten zu finden, für das niemand einen Test schrieb.'),
+    oneLiner: l('Explore a running system automatically (crawl the UI, walk the API, try state sequences) to find untested behaviour.', 'Ein laufendes System automatisch erkunden (UI crawlen, API durchgehen, Zustandsfolgen ausprobieren), um ungetestetes Verhalten zu finden.'),
     catches: l('500 errors on unusual request sequences, broken pages reachable only via odd paths, unhandled states', '500-Fehler bei ungewöhnlichen Anfragefolgen, kaputte Seiten, die nur über seltsame Pfade erreichbar sind, unbehandelte Zustände'),
+    intro: l(
+      'Nobody wrote a test that releases a pet that was never reserved. The API fails on this request. A tool for dynamic exploration tries many sequences of requests on the running system, also the ones that nobody planned.',
+      'Niemand hat einen Test geschrieben, der ein nie reserviertes Tier freigibt. Die API scheitert an dieser Anfrage. Ein Werkzeug für dynamische Exploration probiert viele Abfolgen von Anfragen am laufenden System, auch die, die niemand geplant hat.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -890,6 +958,10 @@ export async function traceReservation<T>(save: () => Promise<T>) {
     fromOverview: true,
     oneLiner: l('Measure what real users experience in their browsers and apps: load times, interaction delays, client errors.', 'Messen, was echte Nutzer in ihren Browsern und Apps erleben: Ladezeiten, Verzögerungen bei Interaktionen, Clientfehler.'),
     catches: l('slowness on real devices and networks, errors in specific browsers, layout shifts', 'Langsamkeit auf echten Geräten und Netzen, Fehler in bestimmten Browsern, Layoutsprünge'),
+    intro: l(
+      'The agent tested the new pet gallery in a fast browser on a fast machine. On an old phone in a train, the page needs eight seconds. RUM shows such numbers for each device and browser, so you see who has the problem.',
+      'Der Agent hat die neue Tiergalerie in einem schnellen Browser auf einer schnellen Maschine getestet. Auf einem alten Handy im Zug braucht die Seite acht Sekunden. RUM zeigt solche Werte pro Gerät und Browser, damit du siehst, wer das Problem hat.',
+    ),
     cost: 1,
     feedback: 'hours',
     worth: [
@@ -942,8 +1014,12 @@ onLCP(report);
     layer: 'verification',
     phases: ['post'],
     fromOverview: true,
-    oneLiner: l('Keep a tamper-evident record of who did what and when, and review it regularly for things that should not have happened.', 'Ein manipulationssicheres Protokoll führen, wer was wann getan hat, und es regelmäßig auf Dinge prüfen, die nicht hätten passieren dürfen.'),
+    oneLiner: l('Keep a tamper-evident record of who did what and when, and review it regularly for actions that must not occur.', 'Ein manipulationssicheres Protokoll führen, wer was wann getan hat, und es regelmäßig auf unerlaubte Aktionen prüfen.'),
     catches: l('unauthorised access, privilege misuse, changes without approval, actions by automated agents outside their scope', 'unbefugten Zugriff, Missbrauch von Rechten, Änderungen ohne Freigabe, Aktionen automatischer Agenten außerhalb ihres Rahmens'),
+    intro: l(
+      'An agent with admin rights deletes 200 old reservations. A week later, a customer asks where her reservation is. An audit log lists each action of the agent under its own identity, so you can find the change and undo it.',
+      'Ein Agent mit Admin-Rechten löscht 200 alte Reservierungen. Eine Woche später fragt eine Kundin, wo ihre Reservierung ist. Ein Audit-Log listet jede Aktion des Agenten unter seiner eigenen Identität, damit du die Änderung findest und rückgängig machst.',
+    ),
     cost: 2,
     feedback: 'days',
     worth: [

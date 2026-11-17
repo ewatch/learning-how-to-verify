@@ -17,6 +17,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
   <article class="wrap narrow guide" style={`--c: var(--l-${practice.layer})`}>
     <nav class="small muted"><a href={href(lang, 'guides/')}>{t(lang, 'navGuides')}</a> / <a href={href(lang, `practices/${practice.id}/`)}>{practice.name[lang]}</a></nav>
     <h1>{g.title[lang]}</h1>
+    <p class="lede">{t(lang, 'guideLede')}</p>
     <div class="card outcome"><p class="eyebrow">{t(lang, 'outcome')}</p><p set:html={inline(g.outcome[lang])} /></div>
 
     <section><h2>{t(lang, 'install')}</h2>
@@ -29,12 +30,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
         <h2><span class="n">{i + 1}</span>{s.title[lang]}</h2>
         <p set:html={inline(s.text[lang])} />
         {s.code && <CodeBlock code={s.code.body.trimEnd()} file={s.code.file} lang={lang} id={`code-${i}`} />}
-        {s.output && (
-          <div class="out">
-            <p class="cmd"><span class="muted">$</span> <code>{s.output.cmd}</code></p>
-            <pre tabindex="0" class:list={['terminal', { fail: /Error|violated|could not be proved/.test(s.output.body) }]}>{s.output.body.trimEnd()}</pre>
-          </div>
-        )}
+        {s.output && <CodeBlock code={s.output.body.trimEnd()} cmd={s.output.cmd} fail={/Error|violated|could not be proved/.test(s.output.body)} lang={lang} id={`out-${i}`} />}
       </section>
     ))}
 
@@ -54,9 +50,6 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
   section { margin-top: 30px; }
   .step h2 { display: flex; gap: 12px; align-items: baseline; }
   .step .n { font: 600 var(--fs-code) var(--font-mono); color: var(--paper); background: var(--c); border-radius: 50%; width: 1.7rem; height: 1.7rem; display: inline-grid; place-items: center; flex: none; }
-  .cmd { margin: 8px 0 6px; font-size: var(--fs-sm); }
-  .terminal { background: #15130f; color: #e7e1d4; border-color: #2c2822; font-size: var(--fs-code); }
-  .terminal.fail { box-shadow: inset 3px 0 0 #e0705f; }
   .agent pre { white-space: pre-wrap; font-size: var(--fs-code); margin-top: 10px; }
   .agent .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 </style>

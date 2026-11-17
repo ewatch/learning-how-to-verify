@@ -11,7 +11,7 @@ export const GET: APIRoute = () => {
     '',
     '> How to verify software, especially when AI coding agents write it. 56 practices ordered along a funnel from cheap, automatic checks (codebase design, types, lint, tests) to expensive ones (formal verification, production practices, human review), with open-source tools per programming language, evidence ratings with sources, and ready-to-paste agent tasks. Available in English (/en/) and German (/de/).',
     '',
-    'Every page has a Markdown version: append `index.md` to its URL. Each practice page contains: a one-sentence definition, the bug class it catches, funnel layer and lifecycle phase, when it is worth it, limits, what changes when agents write the code, evidence (general / AI-specific), tools per language, example code, setup steps and a definition of done.',
+    'Every page has a Markdown version: append `index.md` to its URL. Each practice page contains: a short introduction with a concrete problem, a one-sentence definition, the bug class it catches, funnel layer and lifecycle phase, when it is worth it, limits, what changes when agents write the code, evidence (general / AI-specific), tools per language, example code, setup steps and a definition of done.',
     '',
     `Full text of all English practices in one file: ${SITE_URL}/llms-full.txt (German: ${SITE_URL}/llms-full-de.txt)`,
     '',

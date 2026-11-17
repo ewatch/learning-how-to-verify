@@ -56,6 +56,8 @@ export interface Practice {
   oneLiner: L;
   /** the bug class it catches */
   catches: L;
+  /** why a newcomer needs it: a concrete problem (petstore or agent) and what the practice does about it; 2–3 short sentences */
+  intro: L;
   /** 1 = cheap, 3 = expensive */
   cost: 1 | 2 | 3;
   feedback: 'seconds' | 'minutes' | 'hours' | 'days';

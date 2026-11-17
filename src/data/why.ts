@@ -4,8 +4,8 @@ const l = (en: string, de: string): L => ({ en, de });
 export const WHY = {
   title: l('Why one layer is not enough with agents', 'Warum eine Schicht bei Agenten nicht reicht'),
   intro: l(
-    'It is tempting to think: the agent runs the tests, the tests are green, done. Several independent studies say otherwise. Each finding below points at a layer of the funnel that catches what the one before missed.',
-    'Es ist verlockend zu denken: Der Agent führt die Tests aus, die Tests sind grün, fertig. Mehrere unabhängige Studien sagen etwas anderes. Jeder Befund unten zeigt auf eine Schicht des Trichters, die fängt, was die vorige übersah.',
+    'It is easy to think: the agent runs the tests, the tests are green, so the work is done. The studies below show that green tests are not enough. Each finding names a layer of the funnel that catches what the layer before it missed.',
+    'Es ist leicht zu denken: Der Agent führt die Tests aus, die Tests sind grün, also ist die Arbeit fertig. Die Studien unten zeigen, dass grüne Tests nicht genügen. Jeder Befund nennt eine Schicht des Trichters, die findet, was die Schicht davor übersah.',
   ),
   findings: [
     { src: 'patchdiff2026', claim: l('Green tests, different behaviour', 'Grüne Tests, anderes Verhalten'),
@@ -28,7 +28,7 @@ export const WHY = {
       fix: l('Move every rule that can be checked into a tool; measure the rest with evals.', 'Jede prüfbare Regel in ein Werkzeug verlagern; den Rest mit Evals messen.'), practices: ['agent-rules', 'evals'] },
   ],
   outro: l(
-    'None of these layers is perfect. That is the point of a funnel: each one is cheap relative to the one below it, and together they leave little for the most expensive layer, a human.',
-    'Keine dieser Schichten ist perfekt. Darum geht es beim Trichter: Jede ist billig im Vergleich zur darunter, und zusammen lassen sie wenig für die teuerste Schicht übrig, den Menschen.',
+    'No layer is perfect. That is the idea of the funnel: each layer is cheap compared with the layer below it. Together, the layers leave little work for the most expensive layer, a person.',
+    'Keine Schicht ist perfekt. Das ist die Idee des Trichters: Jede Schicht ist billig im Vergleich zur Schicht darunter. Zusammen lassen die Schichten wenig Arbeit für die teuerste Schicht übrig, den Menschen.',
   ),
 };

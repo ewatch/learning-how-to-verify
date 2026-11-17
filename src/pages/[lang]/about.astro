@@ -14,6 +14,7 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
 <Base lang={lang} path="about/" md={`/${lang}/about/index.md`} nav="about" title={en ? 'About' : 'Über'} description={en ? 'Credits, sources, privacy, and how this site verifies itself.' : 'Quellen, Datenschutz und wie diese Seite sich selbst prüft.'}>
   <div class="wrap narrow">
     <h1>{en ? 'About this site' : 'Über diese Seite'}</h1>
+    <p class="lede">{en ? 'This page names the origin of the ideas, lists all sources and explains the privacy rules. It also shows the checks that this site runs on itself.' : 'Diese Seite nennt die Herkunft der Ideen, listet alle Quellen und erklärt den Datenschutz. Sie zeigt auch die Prüfungen, die diese Seite an sich selbst ausführt.'}</p>
 
     <h2>{en ? 'Credits' : 'Quellen der Ideen'}</h2>
     <ul>
@@ -23,7 +24,7 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
     </ul>
 
     <h2 id="self-verification">{en ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</h2>
-    <p>{en ? 'A site about verification should use what it teaches. Every change runs through:' : 'Eine Seite über Verifikation sollte nutzen, was sie lehrt. Jede Änderung durchläuft:'}</p>
+    <p>{en ? 'A site about verification must use what it teaches. Every change goes through these checks:' : 'Eine Seite über Verifikation sollte nutzen, was sie lehrt. Jede Änderung durchläuft diese Prüfungen:'}</p>
     <ul>
       <li><strong>{en ? 'Types' : 'Typen'}</strong>: <code>astro check</code> {en ? 'with TypeScript strict mode.' : 'mit strengem TypeScript-Modus.'}</li>
       <li><strong>{en ? 'Data tests' : 'Datentests'}</strong>: {en ? `every one of the ${PRACTICES.length} practices must be complete in both languages, and reference only existing tools, practices and verified sources.` : `jede der ${PRACTICES.length} Praktiken muss in beiden Sprachen vollständig sein und darf nur auf existierende Werkzeuge, Praktiken und geprüfte Quellen verweisen.`}</li>

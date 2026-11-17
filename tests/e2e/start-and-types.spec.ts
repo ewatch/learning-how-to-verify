@@ -4,7 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 for (const lang of ['en', 'de'] as const) {
   test(`${lang}: choose a first check and copy a project-specific agent task`, async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.goto(`/${lang}/start/`);
+    await page.goto(`/${lang}/diagnose/`);
     const choices = page.locator('[data-start-choice]');
     await expect(choices).toHaveCount(6);
     for (const id of ['baseline', 'compiler', 'behaviour', 'green', 'boundaries', 'production']) {
@@ -18,7 +18,7 @@ for (const lang of ['en', 'de'] as const) {
       expect(copied).toContain(lang === 'en' ? 'exit codes' : 'Exit-Codes');
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    const md = await page.request.get(`/${lang}/start/index.md`);
+    const md = await page.request.get(`/${lang}/diagnose/index.md`);
     expect(md.ok()).toBe(true);
     expect(await md.text()).toContain(lang === 'en' ? 'Where should I start?' : 'Wo sollte ich anfangen?');
   });

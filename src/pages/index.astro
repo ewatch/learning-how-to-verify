@@ -1,4 +1,5 @@
 ---
+import { BASE } from '../lib/site';
 ---
 <!doctype html>
 <html lang="en">
@@ -7,12 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>Learning how to verify</title>
-    <meta http-equiv="refresh" content="0; url=/en/" />
-    <link rel="alternate" hreflang="en" href="/en/" />
-    <link rel="alternate" hreflang="de" href="/de/" />
-    <link rel="alternate" type="text/plain" href="/llms.txt" />
-    <script is:inline>
-      try { if ((navigator.language || '').toLowerCase().startsWith('de')) location.replace('/de/'); else location.replace('/en/'); } catch {}
+    <meta http-equiv="refresh" content={`0; url=${BASE}/en/`} />
+    <link rel="alternate" hreflang="en" href={`${BASE}/en/`} />
+    <link rel="alternate" hreflang="de" href={`${BASE}/de/`} />
+    <link rel="alternate" type="text/plain" href={`${BASE}/llms.txt`} />
+    <script is:inline define:vars={{ base: BASE }}>
+      try { if ((navigator.language || '').toLowerCase().startsWith('de')) location.replace(base + '/de/'); else location.replace(base + '/en/'); } catch {}
     </script>
     <style>
       :root{color-scheme:light dark}
@@ -22,6 +23,6 @@
     </style>
   </head>
   <body>
-    <p><a href="/en/">English</a> · <a href="/de/">Deutsch</a> · <a href="/llms.txt">llms.txt</a></p>
+    <p><a href={`${BASE}/en/`}>English</a> · <a href={`${BASE}/de/`}>Deutsch</a> · <a href={`${BASE}/llms.txt`}>llms.txt</a></p>
   </body>
 </html>

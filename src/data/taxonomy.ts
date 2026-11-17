@@ -14,17 +14,17 @@ export const LAYERS: Layer[] = [
     name: { en: 'Codebase', de: 'Codebasis' },
     examples: { en: 'good API design, architecture, refactoring', de: 'gutes API-Design, Architektur, Refactoring' },
     idea: {
-      en: 'Make wrong code hard to write in the first place. Clear module boundaries and narrow interfaces leave fewer places for a bug to hide.',
-      de: 'Falschen Code von vornherein schwer schreibbar machen. Klare Modulgrenzen und schmale Schnittstellen lassen Fehlern weniger Versteck.',
+      en: 'Make wrong code hard to write. Clear module boundaries and narrow interfaces give a bug fewer places to hide.',
+      de: 'Falschen Code schwer schreibbar machen. Klare Modulgrenzen und schmale Schnittstellen geben Fehlern weniger Verstecke.',
     },
   },
   {
     id: 'static',
     name: { en: 'Static analysis', de: 'Statische Analyse' },
-    examples: { en: 'lints, types, compilers, tests, CI', de: 'Linter, Typen, Compiler, Tests, CI' },
+    examples: { en: 'linters, types, compilers, tests, CI', de: 'Linter, Typen, Compiler, Tests, CI' },
     idea: {
-      en: 'Machines check every change, in seconds, the same way every time. This is the feedback an agent can loop on without asking anyone.',
-      de: 'Maschinen prüfen jede Änderung, in Sekunden, jedes Mal gleich. Auf dieses Feedback kann ein Agent reagieren, ohne jemanden zu fragen.',
+      en: 'Machines check every change in seconds, and they check it the same way every time. An agent can use this feedback again and again without a person.',
+      de: 'Maschinen prüfen jede Änderung in Sekunden, jedes Mal gleich. Ein Agent kann dieses Feedback immer wieder nutzen, ohne einen Menschen zu fragen.',
     },
   },
   {
@@ -32,8 +32,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Verification', de: 'Verifikation' },
     examples: { en: 'formal, runtime', de: 'formal, zur Laufzeit' },
     idea: {
-      en: 'Prove properties for all inputs, or watch the running system against what it should do. Slower and costlier, but it finds what examples miss.',
-      de: 'Eigenschaften für alle Eingaben beweisen oder das laufende System gegen sein Soll beobachten. Langsamer und teurer, findet aber, was Beispiele übersehen.',
+      en: 'Prove properties for all inputs, or compare the running system with its expected behaviour. These checks are slower and more expensive, but they find bugs that examples miss.',
+      de: 'Eigenschaften für alle Eingaben beweisen oder das laufende System mit seinem erwarteten Verhalten vergleichen. Diese Prüfungen sind langsamer und teurer, finden aber Fehler, die Beispiele übersehen.',
     },
   },
   {
@@ -41,8 +41,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Prose', de: 'Prosa' },
     examples: { en: 'rules, skills, AGENTS.md', de: 'Regeln, Skills, AGENTS.md' },
     idea: {
-      en: 'Written guidance for humans and agents. Cheap to write, but nothing enforces it: a rule is followed only if someone reads and obeys it.',
-      de: 'Geschriebene Anleitung für Menschen und Agenten. Billig zu schreiben, aber nichts erzwingt sie: Eine Regel gilt nur, wenn sie gelesen und befolgt wird.',
+      en: 'Rules files give written instructions to people and agents. They are cheap to write, but no tool enforces them. A rule has an effect only if someone reads it and obeys it.',
+      de: 'Regeldateien geben Menschen und Agenten schriftliche Anweisungen. Sie sind billig zu schreiben, aber kein Werkzeug setzt sie durch. Eine Regel wirkt nur, wenn jemand sie liest und befolgt.',
     },
   },
   {
@@ -50,8 +50,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Human review', de: 'Menschliches Review' },
     examples: { en: 'code review, approval', de: 'Code-Review, Freigabe' },
     idea: {
-      en: 'A person judges the change. The most expensive and least scalable check, so it should only see what the layers above could not catch.',
-      de: 'Ein Mensch beurteilt die Änderung. Die teuerste und am schlechtesten skalierende Prüfung. Sie sollte nur sehen, was die Schichten darüber nicht abfangen konnten.',
+      en: 'A person judges the change. This is the most expensive check, and it does not scale well. Give it only what the layers above cannot catch.',
+      de: 'Ein Mensch beurteilt die Änderung. Das ist die teuerste Prüfung, und sie skaliert schlecht. Sie sollte nur sehen, was die Schichten darüber nicht finden können.',
     },
   },
 ];

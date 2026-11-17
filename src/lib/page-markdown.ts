@@ -17,14 +17,14 @@ export function homeMarkdown(loc: Locale): string {
   const en = loc === 'en';
   const out = [
     `# ${en ? 'Learning how to verify' : 'Verifizieren lernen'}`, '',
-    en ? 'For developers who let AI agents write code and need to know that the code is right: which checks catch which bugs, from cheap and automatic to slow and human, with tools for your language and exercises that run in your browser.'
-       : 'Für Entwicklerinnen und Entwickler, die KI-Agenten Code schreiben lassen und wissen müssen, ob er stimmt: welche Prüfungen welche Fehler finden, von billig und automatisch bis langsam und menschlich, mit Werkzeugen für die eigene Sprache und Übungen im Browser.', '',
-    en ? `New here? Begin with [Start here](${SITE_URL}/${loc}/start/index.md). Other ways in:` : `Neu hier? Mit [Hier starten](${SITE_URL}/${loc}/start/index.md) beginnen. Andere Einstiege:`, '',
+    en ? 'This site is for developers who let coding agents write code. It shows which checks catch which bugs, from cheap automatic checks to slow human review. Each practice lists open-source tools and shows an exercise or an animated diagram.'
+       : 'Diese Seite ist für Entwicklerinnen und Entwickler, die Coding-Agenten Code schreiben lassen. Sie zeigt, welche Prüfungen welche Fehler finden, von billigen automatischen Prüfungen bis zum langsamen menschlichen Review. Jede Praktik nennt Open-Source-Werkzeuge und zeigt eine Übung oder ein animiertes Diagramm.', '',
+    en ? `If you are new here, begin with [Start here](${SITE_URL}/${loc}/start/index.md). Other ways in:` : `Neu hier? Mit [Hier starten](${SITE_URL}/${loc}/start/index.md) beginnen. Andere Einstiege:`, '',
     `- [${t(loc, 'navLifecycle')}](${SITE_URL}/${loc}/lifecycle/index.md)`,
     `- [${t(loc, 'navStack')}](${SITE_URL}/${loc}/stack/index.md)`, '',
     `## ${en ? 'The funnel' : 'Der Trichter'}`, '',
-    en ? `${PRACTICES.length} practices along a funnel from cheap, automatic checks to expensive ones. Every bug is caught somewhere. The higher up it is caught, the cheaper and faster the fix, and the less a human has to look at. Practices marked *(core)* are the ones to start with.`
-       : `${PRACTICES.length} Praktiken entlang eines Trichters von billigen, automatischen Prüfungen zu teuren. Jeder Fehler wird irgendwo gefunden. Je weiter oben, desto billiger und schneller die Korrektur, und desto weniger muss ein Mensch ansehen. Mit *(Kern)* markierte Praktiken sind die für den Anfang.`, '',
+    en ? `${PRACTICES.length} practices along a funnel from cheap automatic checks to expensive ones. Each layer of the funnel can catch a bug. If a higher layer catches the bug, the fix is cheaper and faster, and a person has less to review. Start with the practices marked *(core)*.`
+       : `${PRACTICES.length} Praktiken entlang eines Trichters von billigen automatischen Prüfungen zu teuren. Jede Schicht des Trichters kann einen Fehler finden. Findet ihn eine höhere Schicht, ist die Korrektur billiger und schneller, und ein Mensch muss weniger prüfen. Mit *(Kern)* markierte Praktiken sind die für den Anfang.`, '',
   ];
   for (const layer of LAYERS) {
     const list = PRACTICES.filter((x) => x.layer === layer.id);
@@ -33,16 +33,16 @@ export function homeMarkdown(loc: Locale): string {
     out.push('');
   }
   out.push(`## ${en ? 'How sure are we?' : 'Wie sicher ist das?'}`, '',
-    en ? 'The funnel is a practitioner rule of thumb (after a talk by Lauren Tan, @poteto), not a proven law. Evidence is strongest in the middle layers (tests as feedback for agents, mutation testing, fuzzing, formal methods), mixed for prose such as AGENTS.md, and missing for the claim that a well-designed codebase makes agents more successful. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
-       : 'Der Trichter ist eine Faustregel aus der Praxis (nach einem Vortrag von Lauren Tan, @poteto), kein bewiesenes Gesetz. Am stärksten ist die Evidenz in den mittleren Schichten (Tests als Feedback für Agenten, Mutation Testing, Fuzzing, formale Methoden), gemischt für Prosa wie AGENTS.md, und sie fehlt für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.', '');
+    en ? 'The funnel is a rule of thumb from practice (after a talk by Lauren Tan, @poteto), not a proven law. The evidence is strongest for the middle layers: tests as feedback for agents, mutation testing, fuzzing and formal methods. For prose such as AGENTS.md, the evidence is mixed. For the claim that a well-designed codebase makes agents more successful, we found no evidence. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
+       : 'Der Trichter ist eine Faustregel aus der Praxis (nach einem Vortrag von Lauren Tan, @poteto), kein bewiesenes Gesetz. Am stärksten ist die Evidenz für die mittleren Schichten: Tests als Feedback für Agenten, Mutation Testing, Fuzzing und formale Methoden. Für Prosa wie AGENTS.md ist die Evidenz gemischt. Für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht, haben wir keine Evidenz gefunden. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.', '');
   return out.join('\n');
 }
 
 export function lifecycleMarkdown(loc: Locale): string {
   const en = loc === 'en';
   const out = [`# ${en ? 'Lifecycle map: when does each check happen?' : 'Lebenszyklus: wann findet welche Prüfung statt?'}`, '',
-    en ? 'Practices grouped by phase. A practice can appear in several phases. *(core)* marks a practice to start with; *(added)* marks one that is not in Cindy Sridharan\'s original overview and was added on this site.'
-       : 'Praktiken nach Phase gruppiert. Eine Praktik kann in mehreren Phasen vorkommen. *(Kern)* markiert eine Praktik für den Anfang; *(ergänzt)* markiert eine, die nicht in Cindy Sridharans ursprünglicher Übersicht steht und auf dieser Seite ergänzt wurde.', ''];
+    en ? 'This map sorts the practices by the time when they run: before production, at deploy, at release and after release. Use it to find the checks for one stage of a change. A practice can appear in more than one phase. *(core)* marks a practice to start with. *(added)* marks a practice that is not in the original overview by Cindy Sridharan; this site added it.'
+       : 'Diese Karte sortiert die Praktiken nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release. Sie hilft, die Prüfungen für eine Phase einer Änderung zu finden. Eine Praktik kann in mehreren Phasen vorkommen. *(Kern)* markiert eine Praktik für den Anfang. *(ergänzt)* markiert eine Praktik, die nicht in Cindy Sridharans ursprünglicher Übersicht steht und auf dieser Seite ergänzt wurde.', ''];
   for (const ph of PHASES) {
     out.push(`## ${ph.name[loc]}`, '');
     for (const p of PRACTICES.filter((x) => x.phases.includes(ph.id))) {
@@ -56,7 +56,7 @@ export function lifecycleMarkdown(loc: Locale): string {
 
 export function glossaryMarkdown(loc: Locale): string {
   const terms = [...GLOSSARY].sort((a, b) => a.term[loc].localeCompare(b.term[loc], loc));
-  const out = [`# ${loc === 'en' ? 'Glossary' : 'Glossar'}`, ''];
+  const out = [`# ${loc === 'en' ? 'Glossary' : 'Glossar'}`, '', loc === 'en' ? 'Short definitions of the terms that this site uses.' : 'Kurze Definitionen der Begriffe, die diese Seite verwendet.', ''];
   for (const x of terms) out.push(`- **${x.term[loc]}**: ${x.def[loc]}${x.see ? ` (${link(loc, x.see)})` : ''}`);
   out.push('');
   return out.join('\n');
@@ -64,7 +64,9 @@ export function glossaryMarkdown(loc: Locale): string {
 
 export function aboutMarkdown(loc: Locale): string {
   const en = loc === 'en';
-  const out = [`# ${en ? 'About this site' : 'Über diese Seite'}`, '', `## ${en ? 'Credits' : 'Quellen der Ideen'}`, '',
+  const out = [`# ${en ? 'About this site' : 'Über diese Seite'}`, '',
+    en ? 'This page names the origin of the ideas, lists all sources and explains the privacy rules. It also shows the checks that this site runs on itself.' : 'Diese Seite nennt die Herkunft der Ideen, listet alle Quellen und erklärt den Datenschutz. Sie zeigt auch die Prüfungen, die diese Seite an sich selbst ausführt.', '',
+    `## ${en ? 'Credits' : 'Quellen der Ideen'}`, '',
     en ? '- The funnel (codebase, static analysis, verification, prose, human review) comes from a talk by Lauren Tan (@poteto).' : '- Der Trichter (Codebasis, statische Analyse, Verifikation, Prosa, menschliches Review) stammt aus einem Vortrag von Lauren Tan (@poteto).',
     en ? '- The lifecycle overview (pre-production to post-release) was originally drawn by Cindy Sridharan (@copyconstruct).' : '- Die Lebenszyklus-Übersicht (vor der Produktion bis nach dem Release) zeichnete ursprünglich Cindy Sridharan (@copyconstruct).',
     en ? '- Both diagrams are redrawn here; the content of each practice page is our own.' : '- Beide Diagramme sind hier neu gezeichnet; die Inhalte der Praktikseiten sind eigene.', '',
@@ -97,13 +99,13 @@ export function aboutMarkdown(loc: Locale): string {
 export function guidesIndexMarkdown(loc: Locale): string {
   const en = loc === 'en';
   return [`# ${en ? 'Getting started' : 'Einstieg'}`, '',
-    en ? 'Step-by-step guides for tools where the first hour is the hard part, with real recorded output.' : 'Schritt-für-Schritt-Anleitungen für Werkzeuge, bei denen die erste Stunde die schwerste ist, mit echter aufgezeichneter Ausgabe.', '',
+    en ? 'These guides cover the first hour with a tool. That hour is often the hardest part. Each guide uses the pet reservation example and shows the real output of the tool. In each guide, you break the example on purpose and read the failure.' : 'Diese Anleitungen begleiten die erste Stunde mit einem Werkzeug. Diese Stunde ist oft der schwerste Teil. Jede Anleitung nutzt das Beispiel der Tier-Reservierung und zeigt die echte Ausgabe des Werkzeugs. In jeder Anleitung machst du das Beispiel absichtlich kaputt und liest den Fehler.', '',
     ...GUIDES.map((g) => `- [${g.title[loc]}](${SITE_URL}/${loc}/guides/${g.id}/index.md): ${g.outcome[loc]}`), ''].join('\n');
 }
 
 export function stackIndexMarkdown(loc: Locale): string {
   const en = loc === 'en';
   return [`# ${en ? 'Which language do you work in?' : 'In welcher Sprache arbeitest du?'}`, '',
-    en ? 'One page per language, with every practice and its open-source tools.' : 'Eine Seite pro Sprache, mit jeder Praktik und den Open-Source-Werkzeugen dafür.', '',
+    en ? 'Use these pages to find tools for your programming language. Each page lists every practice with its open-source tools for that language.' : 'Diese Seiten helfen, Werkzeuge für deine Programmiersprache zu finden. Jede Seite nennt jede Praktik mit ihren Open-Source-Werkzeugen für diese Sprache.', '',
     ...LANGS.map((lg) => `- [${lg.name}](${SITE_URL}/${loc}/stack/${lg.id}/index.md)`), ''].join('\n');
 }

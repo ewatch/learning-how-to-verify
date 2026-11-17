@@ -14,6 +14,10 @@ export const codebase: Practice[] = [
       'Module und Schnittstellen so gestalten, dass falsche Nutzung schwer zu schreiben und leicht zu erkennen ist.',
     ),
     catches: l('whole bug classes, before they exist: invalid states, misuse of an API, hidden coupling', 'ganze Fehlerklassen, bevor es sie gibt: ungültige Zustände, falsche API-Nutzung, versteckte Kopplung'),
+    intro: l(
+      'An agent adds a reservation feature and imports the database code directly into the UI. Nothing stops it, so the next agent copies the shortcut. Clear modules and checked boundaries keep each change in its place.',
+      'Ein Agent baut eine Reservierungsfunktion und importiert den Datenbankcode direkt in die UI. Nichts verhindert das, also kopiert der nächste Agent die Abkürzung. Klare Module und geprüfte Grenzen halten jede Änderung an ihrem Platz.',
+    ),
     cost: 2,
     feedback: 'days',
     worth: [
@@ -90,8 +94,12 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
     layer: 'codebase',
     phases: ['pre'],
     fromOverview: false,
-    oneLiner: l('Change the structure of code without changing what it does, in small safe steps.', 'Die Struktur von Code ändern, ohne sein Verhalten zu ändern, in kleinen sicheren Schritten.'),
+    oneLiner: l('Change the structure of code in small safe steps, and keep its behaviour the same.', 'Die Struktur von Code ändern, ohne sein Verhalten zu ändern, in kleinen sicheren Schritten.'),
     catches: l('design decay that makes future bugs likely: duplication, tangled responsibilities, unclear names', 'Verfall des Designs, der künftige Fehler wahrscheinlich macht: Duplikate, verknotete Zuständigkeiten, unklare Namen'),
+    intro: l(
+      'The reservation code grows with each feature until nobody can change it safely. A rename in one place breaks three other places. Refactoring improves the structure in small steps, and tests confirm that the behaviour stays the same.',
+      'Der Reservierungscode wächst mit jeder Funktion, bis niemand ihn sicher ändern kann. Eine Umbenennung an einer Stelle bricht drei andere Stellen. Refactoring verbessert die Struktur in kleinen Schritten, und Tests bestätigen, dass das Verhalten gleich bleibt.',
+    ),
     cost: 2,
     feedback: 'hours',
     worth: [
@@ -164,6 +172,10 @@ test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
     fromOverview: true,
     oneLiner: l('Ask systematically what could go wrong, who could attack, and what you do about it, before you build.', 'Systematisch fragen, was schiefgehen kann, wer angreifen könnte und was man dagegen tut, bevor man baut.'),
     catches: l('design-level security flaws: missing authorization, trust in client input, data flowing where it should not', 'Sicherheitslücken im Entwurf: fehlende Autorisierung, Vertrauen in Client-Eingaben, Daten, die dorthin fließen, wo sie nicht hingehören'),
+    intro: l(
+      'The petstore checkout trusts the price from the browser. A user sets the price to 0 € and adopts a dog for free. Threat modeling asks what an attacker can do before you build, so you can plan a check for it.',
+      'Der Checkout im Petstore vertraut dem Preis aus dem Browser. Ein Nutzer setzt ihn auf 0 € und adoptiert einen Hund gratis. Threat Modeling fragt vor dem Bau, was ein Angreifer tun kann, damit du eine Prüfung dafür planst.',
+    ),
     cost: 2,
     feedback: 'days',
     worth: [

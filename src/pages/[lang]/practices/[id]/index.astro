@@ -12,6 +12,7 @@ import { PRACTICES, PRACTICE_BY_ID } from '../../../../data/practices';
 import { GUIDE_BY_ID } from '../../../../data/guides';
 import { LAYERS } from '../../../../data/taxonomy';
 import { t, href } from '../../../../i18n/ui';
+import { BASE } from '../../../../lib/site';
 import { inline } from '../../../../lib/inline';
 import { glosser } from '../../../../lib/gloss';
 import { practiceMarkdown } from '../../../../lib/markdown';
@@ -49,11 +50,14 @@ const num = () => String(++n).padStart(2, '0');
       </ol>
     </nav>
 
-    <header class="head narrow">
+    <header class="head">
       <p class="eyebrow">{t(lang, 'layer')} {layerIdx + 1} {t(lang, 'stepOf')} {LAYERS.length}</p>
       <h1>{p.name[lang]}</h1>
-      <p class="lede" set:html={gl(p.oneLiner[lang])} />
-      <p class="catches"><strong>{t(lang, 'catches')}:</strong> <span set:html={gl(p.catches[lang])} /></p>
+      <p class="intro" set:html={gl(p.intro[lang])} />
+      <dl class="def">
+        <div><dt>{t(lang, 'inOneSentence')}:</dt> <dd set:html={gl(p.oneLiner[lang])} /></div>
+        <div><dt>{t(lang, 'catches')}:</dt> <dd set:html={gl(p.catches[lang])} /></div>
+      </dl>
       <WhereItSits p={p} lang={lang} />
     </header>
 
@@ -140,7 +144,7 @@ const num = () => String(++n).padStart(2, '0');
       {next ? <a href={href(lang, `practices/${next.id}/`)} rel="next" data-nav="forward" class="nx"><span class="pl small muted">{t(lang, 'nextInFunnel')} →</span><span class="nm">{next.name[lang]}</span></a> : <span />}
     </nav>
   </article>
-  <script is:inline src="/gloss.js" defer></script>
+  <script is:inline src={`${BASE}/gloss.js`} defer></script>
 </Base>
 
 <style is:inline>
@@ -168,12 +172,24 @@ const num = () => String(++n).padStart(2, '0');
   .gloss-pop .gloss-def { display: block; color: var(--ink-2); margin-bottom: 6px; }
 </style>
 <style>
-  .head { padding-bottom: 22px; }
-  .head .lede { margin-bottom: 10px; }
-  .head .catches { margin: 0 0 14px; }
+  .head { padding-bottom: 20px; max-width: 58rem; }
+  /* why first (a concrete problem), then the definition and the bug class as a compact block */
+  .head .intro { max-width: 42rem; margin: 0 0 12px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+  .def { margin: 0 0 14px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); }
+  .def > div + div { margin-top: 2px; }
+  .def dt { display: inline; font-weight: 700; color: var(--ink); }
+  .def dd { display: inline; margin: 0; }
   .head h1 { border-left: 6px solid var(--c); padding-left: 14px; margin-left: -20px; }
   @media (max-width: 760px) { .head h1 { margin-left: 0; } }
-  .catches { color: var(--ink-2); }
+  /* phones: keep "Try it" / "See it" on the first screen */
+  @media (max-width: 560px) {
+    /* the breadcrumb and the layer chip in the strip already name the layer */
+    .head .eyebrow { display: none; }
+    .head h1 { margin-bottom: 10px; }
+    .head .intro { font-size: var(--fs-ui); line-height: 1.5; margin-bottom: 10px; }
+    .def { font-size: var(--fs-sm); line-height: 1.45; margin-bottom: 12px; }
+    .head { padding-bottom: 16px; }
+  }
   ul.checks li::marker { content: '✓  '; color: var(--ok); }
   ul.limits li::marker { content: '–  '; color: var(--ink-3); }
   .ai { margin: 16px 0; padding: 10px 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }

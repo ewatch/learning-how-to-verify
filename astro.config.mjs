@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   site: process.env.PUBLIC_SITE_URL || 'https://learning-how-to-verify.pages.dev',
+  // Sub-path deployments (GitHub Pages project site): PUBLIC_BASE_PATH=/repo-name. Default is the domain root.
+  base: process.env.PUBLIC_BASE_PATH || '/',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
   i18n: {

@@ -2,8 +2,13 @@
 import { t } from '../i18n/ui';
 import { inline } from '../lib/inline';
 import type { Locale, Focus } from '../data/types';
-interface Props { code: string; file?: string; lang: Locale; id: string; focus?: Focus[] }
-const { code, file, lang, id, focus } = Astro.props;
+/**
+ * One frame per snippet: a header bar (label left, actions right), then, while the walkthrough runs,
+ * the step panel, then the code. Start, counter, Previous/Next/Close, the step text and the highlighted
+ * line therefore sit together. `cmd` turns the block into a terminal output block ("$ cmd" as the label).
+ */
+interface Props { code: string; file?: string; lang: Locale; id: string; focus?: Focus[]; cmd?: string; fail?: boolean }
+const { code, file, lang, id, focus, cmd, fail } = Astro.props;
 const NUMS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
 const lines = code.split('\n');
 const range = (f: Focus): [number, number] => (Array.isArray(f.line) ? f.line : [f.line, f.line]);
@@ -16,131 +21,123 @@ const first = new Map<number, number>();
   for (let n = a; n <= b; n++) if (!owner.has(n)) owner.set(n, i);
 });
 const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${lang === 'de' ? 'Zeile' : 'Line'} ${a}` : `${lang === 'de' ? 'Zeilen' : 'Lines'} ${a}–${b}`; };
+const hasFocus = Boolean(focus?.length);
+const copyLabel = cmd ? t(lang, 'copyOutput') : t(lang, 'copyCode');
+const label = cmd ?? file;
+const guideId = `${id}-steps`;
 ---
-{!focus?.length ? (
-  <div class="codeblock">
-    <div class="head"><span>{file ?? ''}</span><button type="button" class="btn ghost sm" data-copy={id} command="--copy" commandfor={id} aria-label={file ? `${t(lang, 'copyCode')}: ${file}` : undefined}>{t(lang, 'copyCode')}</button></div>
-    <pre id={id} tabindex="0"><code>{code}</code></pre>
+<div
+  class:list={['codeblock', { fc: hasFocus, terminal: cmd !== undefined, fail }]}
+  data-fc={hasFocus ? '' : undefined}
+  data-total={hasFocus ? focus!.length : undefined}
+  data-note-label={hasFocus ? t(lang, 'noteLabel') : undefined}
+  data-step-label={hasFocus ? `${t(lang, 'stepWord')}|${t(lang, 'stepOf')}` : undefined}
+>
+  <div class="head">
+    <span class="file">{cmd !== undefined ? <><span class="prompt" aria-hidden="true">$ </span><code>{cmd}</code></> : (file ?? '')}</span>
+    <span class="actions">
+      {hasFocus && <button type="button" class="btn ghost sm" data-fc-start hidden aria-controls={guideId} aria-expanded="false">{t(lang, 'walkthrough')}</button>}
+      <button type="button" class="btn ghost sm" data-copy={id} command="--copy" commandfor={id} aria-label={label ? `${copyLabel}: ${label}` : undefined}>{copyLabel}</button>
+    </span>
   </div>
-) : (
-  <div class="codeblock fc" data-fc data-total={focus.length} data-note-label={t(lang, 'noteLabel')} data-close-label={t(lang, 'closeNote')}>
-    <div class="head">
-      <span>{file ?? ''}</span>
-      <span class="actions">
-        <button type="button" class="btn ghost sm" data-fc-start hidden>{t(lang, 'walkthrough')}</button>
-        <button type="button" class="btn ghost sm" data-copy={id} command="--copy" commandfor={id} aria-label={file ? `${t(lang, 'copyCode')}: ${file}` : undefined}>{t(lang, 'copyCode')}</button>
-      </span>
-    </div>
-    <pre id={id} hidden>{code}</pre>
-    <pre tabindex="0" class="view" aria-label={file ?? undefined}><code>{lines.map((ln, i) => {
-      const n = i + 1;
-      const o = owner.get(n);
-      const b = first.get(n);
-      return <span class={`ln${o !== undefined ? ' f' : ''}`} data-f={o} data-n={b !== undefined ? NUMS[b] : undefined} data-b={b}>{ln}</span>;
-    })}</code></pre>
-    <details class="more notebox">
-      <summary>{t(lang, 'notes')} ({focus.length})</summary>
-      <ol class="notes" aria-label={t(lang, 'whatToLookAt')}>
-        {focus.map((f, i) => <li data-note={i} data-n={NUMS[i]}><span class="where">{lineLabel(f)}</span> <span set:html={inline(f.note[lang])} /></li>)}
-      </ol>
-    </details>
-    <div class="guide" data-fc-guide hidden role="group" aria-label={t(lang, 'walkthrough')}>
-      <div class="gnote" data-fc-note aria-live="polite" aria-atomic="true"></div>
-      <div class="gctl">
-        <button type="button" class="btn ghost sm" data-fc-prev>{t(lang, 'prevStep')}</button>
-        <span class="count" data-fc-count aria-hidden="true"></span>
-        <button type="button" class="btn sm" data-fc-next>{t(lang, 'nextStep')}</button>
-        <button type="button" class="btn ghost sm" data-fc-close>{t(lang, 'closeWalkthrough')}</button>
+  {!hasFocus ? (
+    <pre id={id} tabindex="0" aria-label={label ?? undefined}><code>{code}</code></pre>
+  ) : (
+    <>
+      <div class="walk" id={guideId} data-fc-guide hidden role="group" aria-label={t(lang, 'walkthrough')} tabindex="-1">
+        <div class="wctl">
+          <button type="button" class="btn ghost sm" data-fc-prev><span aria-hidden="true">←</span> {t(lang, 'prevStep')}</button>
+          <span class="count" data-fc-count aria-hidden="true"></span>
+          <button type="button" class="btn sm" data-fc-next>{t(lang, 'nextStep')} <span aria-hidden="true">→</span></button>
+          <button type="button" class="btn ghost sm close" data-fc-close>{t(lang, 'closeWalkthrough')}</button>
+        </div>
+        <div class="wnote" data-fc-note aria-live="polite" aria-atomic="true"></div>
       </div>
-    </div>
-  </div>
-)}
+      <pre id={id} hidden>{code}</pre>
+      <pre tabindex="0" class="view" aria-label={file ?? undefined}><code>{lines.map((ln, i) => {
+        const n = i + 1;
+        const o = owner.get(n);
+        const b = first.get(n);
+        return <span class={`ln${o !== undefined ? ' f' : ''}`} data-f={o} data-n={b !== undefined ? NUMS[b] : undefined} data-b={b}>{ln}</span>;
+      })}</code></pre>
+      <div class="notebox">
+        <p class="nh">{t(lang, 'whatToLookAt')}</p>
+        <ol class="notes" aria-label={t(lang, 'whatToLookAt')}>
+          {focus!.map((f, i) => <li data-note={i} data-n={NUMS[i]}><span class="where">{lineLabel(f)}</span> <span set:html={inline(f.note[lang])} /></li>)}
+        </ol>
+      </div>
+    </>
+  )}
+</div>
 <style>
-  /* narrow: the file name keeps its line, the buttons move together to the next one */
-  .head { flex-wrap: wrap; row-gap: 6px; }
-  .actions { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-inline-start: auto; }
   .view code { display: block; width: max-content; min-width: 100%; }
-  .ln { display: block; min-height: 1.5em; padding-left: 1.9em; margin-left: -12px; border-left: 3px solid transparent; position: relative; transition: opacity .2s, background-color .2s; }
+  .ln { display: block; min-height: 1.5em; padding-left: 1.9em; margin-left: -12px; border-left: 3px solid transparent; position: relative; transition: color .2s, background-color .2s; }
   .ln.f { background: color-mix(in srgb, var(--c, var(--link)) 13%, transparent); border-left-color: var(--c, var(--link)); }
   .ln[data-n]::before { content: attr(data-n); position: absolute; left: .35em; top: 0; font-family: var(--font-sans, inherit); font-size: var(--fs-ui); line-height: 1.5; font-weight: 700; color: var(--c, var(--link)); }
-  .notes { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; font-size: var(--fs-ui); }
-  .notes li { display: grid; grid-template-columns: 1.6em 1fr; column-gap: 6px; }
+  /* no script: the notes are a plain list under the code */
+  .notebox { padding: 10px 14px 12px; border-top: 1px solid var(--rule); background: var(--card); }
+  /* hidden=until-found keeps the box: drop its padding and rule so no empty band shows */
+  .notebox[hidden] { padding: 0; border: 0; }
+  .nh { margin: 0 0 6px; font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); }
+  .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: var(--fs-ui); }
+  .notes li { display: grid; grid-template-columns: 1.6em 1fr; column-gap: 6px; margin: 0; }
   .notes li::before { content: attr(data-n); font-weight: 700; color: var(--c, var(--link)); grid-row: 1; grid-column: 1; }
   .notes li > * { grid-column: 2; }
   .where { font: 500 var(--fs-code) var(--font-mono); color: var(--ink-3); }
-  .guide { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--rule); border-left: 3px solid var(--c, var(--link)); border-radius: var(--radius); background: var(--card); }
-  .gnote { font-size: var(--fs-ui); min-height: 2.6em; }
-  .gctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  /* step panel: directly under the header bar, directly over the code */
+  .walk { padding: 8px 12px 10px; background: var(--card); border-bottom: 1px solid var(--rule); box-shadow: inset 3px 0 0 var(--c, var(--link)); }
+  .walk:focus { outline: none; }
+  .walk:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .wctl { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; }
+  .wctl .close { margin-inline-start: auto; }
   .count { font: 500 var(--fs-code) var(--font-mono); color: var(--ink-2); min-width: 3.5em; text-align: center; }
-  .fc { position: relative; }
-  /* with script the notes live in the badge popovers; the list stays findable (hidden=until-found) and opens on Ctrl+F */
-  .notebox { margin-top: 8px; }
+  .wnote { font-size: var(--fs-ui); line-height: 1.45; margin-top: 8px; min-block-size: calc(2 * 1.45em); }
+  .wnote :global(.where) { display: block; font: 500 var(--fs-code) var(--font-mono); color: var(--ink-3); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:disabled:hover { background: transparent; }
+  .btn.sm:not(.ghost):disabled:hover { background: var(--ink); }
+  /* with script: the badges on the lines open the matching step; the list stays findable (hidden=until-found) */
   .fc.js .ln[data-n]::before { content: none; }
-  .fc.guided :global(.badge-btn) { display: none; }
   :global(.badge-btn) { position: absolute; left: .15em; top: 0; width: 1.7em; height: 1.5em; padding: 0; border: 0; background: transparent; cursor: pointer; font: 700 var(--fs-ui)/1.5 var(--font-sans, inherit); color: var(--c, var(--link)); user-select: none; border-radius: 4px; }
   :global(.badge-btn:hover), :global(.badge-btn[aria-expanded='true']) { background: color-mix(in srgb, var(--c, var(--link)) 22%, transparent); }
-  :global(.badge-btn:focus-visible) { outline: 2px solid var(--link); outline-offset: -2px; }
-  :global(.pop) { position: absolute; z-index: 20; box-sizing: border-box; padding: 10px 12px; background: var(--card); color: var(--ink); border: 1px solid var(--rule-strong, var(--rule)); border-left: 3px solid var(--c, var(--link)); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); font-size: var(--fs-ui); line-height: 1.45; font-family: var(--font-body, inherit); white-space: normal; }
-  :global(.pop[hidden]) { display: none; }
-  /* native popover: top layer, light dismiss and Escape come from the browser; the badge is the implicit anchor */
-  :global(.pop[popover]) { --w: min(28rem, calc(100dvw - 1rem)); position: fixed; inline-size: var(--w); margin: 0; overflow: auto; max-block-size: 60dvh; }
-  @supports (top: anchor(bottom)) {
-    :global(.pop[popover]) { inset: auto; top: anchor(bottom); left: max(.5rem, min(anchor(left), calc(100dvw - var(--w) - .5rem))); margin-block: 4px; position-try-fallbacks: flip-block; }
-  }
-  :global(.pop .where) { display: block; margin-bottom: 2px; font: 500 var(--fs-code) var(--font-mono); color: var(--ink-3); }
-  .fc.guided .ln.f:not(.on), .fc.guided .ln:not(.f) { opacity: .4; }
+  :global(.badge-btn[aria-expanded='true']) { outline: 1.5px solid var(--c, var(--link)); outline-offset: -1.5px; }
+  :global(.badge-btn:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
+  /* walkthrough on: the current lines stand out, the rest is quieter (still readable) */
+  .fc.guided .view { max-block-size: min(32rem, 55dvh); }
+  .fc.guided .ln:not(.on) { color: color-mix(in srgb, var(--code-ink) 72%, var(--code-bg)); }
   .fc.guided .ln.f:not(.on) { background: transparent; border-left-color: transparent; }
   .fc.guided .ln.on { background: color-mix(in srgb, var(--c, var(--link)) 24%, transparent); }
   @media (prefers-reduced-motion: reduce) { .ln { transition: none; } }
 </style>
 <script>
+  // Header offset that a sticky site header takes from the top of the viewport
+  const topInset = () => {
+    const h = document.querySelector<HTMLElement>('.site-header');
+    if (!h) return 0;
+    const pos = getComputedStyle(h).position;
+    return pos === 'sticky' || pos === 'fixed' ? Math.max(0, h.getBoundingClientRect().bottom) : 0;
+  };
   for (const root of document.querySelectorAll<HTMLElement>('[data-fc]')) {
     const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const head = $('.head');
     const start = $<HTMLButtonElement>('[data-fc-start]');
     const guide = $('[data-fc-guide]');
     const noteEl = $('[data-fc-note]');
     const count = $('[data-fc-count]');
     const prev = $<HTMLButtonElement>('[data-fc-prev]');
     const next = $<HTMLButtonElement>('[data-fc-next]');
+    const view = $('.view');
     const notes = [...root.querySelectorAll<HTMLElement>('[data-note]')];
     const total = notes.length;
-    const of = document.documentElement.lang === 'de' ? 'von' : 'of';
+    const [stepWord, ofWord] = (root.dataset.stepLabel ?? 'Step|of').split('|');
     let step = 0;
+    let opener: HTMLElement = start;
     root.classList.add('js');
     // the plain notes list moves behind find-in-page: hidden until Ctrl+F matches it (browsers without until-found just hide it)
-    const notebox = $<HTMLDetailsElement>('.notebox');
+    const notebox = $('.notebox');
     notebox.setAttribute('hidden', 'until-found');
-    const nativePopover = 'popover' in HTMLElement.prototype;
-    const anchored = CSS.supports('top', 'anchor(bottom)');
-    // Note popovers anchored at the marked line
-    const pops: HTMLElement[] = [];
-    const btns: HTMLButtonElement[] = [];
-    const isOpen = (i: number) => (nativePopover ? pops[i]!.matches(':popover-open') : !pops[i]!.hidden);
-    const closePops = (refocus = false) => {
-      pops.forEach((p, i) => {
-        if (!isOpen(i)) return;
-        if (nativePopover) p.hidePopover(); else { p.hidden = true; btns[i]!.setAttribute('aria-expanded', 'false'); }
-        if (refocus) btns[i]!.focus();
-      });
-    };
-    // positioning for browsers without anchor() (and without native popover): same rule as the CSS
-    const place = (i: number) => {
-      const p = pops[i]!, b = btns[i]!;
-      const br = b.getBoundingClientRect();
-      const rr = root.getBoundingClientRect(), lr = (b.closest('.ln') as HTMLElement).getBoundingClientRect();
-      if (nativePopover) {
-        const w = Math.min(448, innerWidth - 16);
-        p.style.inset = 'auto'; p.style.margin = '0'; p.style.width = w + 'px';
-        p.style.left = Math.max(8, Math.min(br.left, innerWidth - w - 8)) + 'px';
-        const h = p.offsetHeight, below = lr.bottom + 4;
-        p.style.top = (below + h > innerHeight && lr.top - h - 4 > 0 ? lr.top - h - 4 : below) + 'px';
-      } else {
-        const w = Math.min(448, rr.width - 16);
-        p.style.width = w + 'px';
-        p.style.left = Math.max(8, Math.min(br.left - rr.left, rr.width - w - 8)) + 'px';
-        p.style.top = lr.bottom - rr.top + 4 + 'px';
-      }
-    };
+    // one badge per marked line; each opens its step in the same panel as the walkthrough
+    const badges: HTMLButtonElement[] = [];
     notes.forEach((li, i) => {
       const line = root.querySelector<HTMLElement>(`.ln[data-b="${i}"]`);
       if (!line) return;
@@ -149,60 +146,67 @@ const lineLabel = (f: Focus) => { const [a, b] = range(f); return a === b ? `${l
       b.textContent = li.dataset.n ?? String(i + 1);
       b.setAttribute('aria-label', `${root.dataset.noteLabel} ${i + 1}`);
       b.setAttribute('aria-expanded', 'false');
-      const id = `${root.querySelector('pre[id]')!.id}-pop-${i}`;
-      b.setAttribute('aria-controls', id);
+      b.setAttribute('aria-controls', guide.id);
+      b.addEventListener('click', () => open(i, b));
       line.appendChild(b);
-      const pop = document.createElement('div');
-      pop.className = 'pop'; pop.id = id;
-      pop.setAttribute('role', 'group');
-      pop.setAttribute('aria-label', `${root.dataset.noteLabel} ${i + 1}`);
-      pop.innerHTML = li.innerHTML;
-      root.appendChild(pop);
-      pops[i] = pop; btns[i] = b;
-      if (nativePopover) {
-        // declarative: the button opens/closes the popover; Escape, outside click and focus return are native
-        pop.setAttribute('popover', 'auto');
-        b.setAttribute('popovertarget', id);
-        // explicit anchor: the implicit popovertarget anchor is not honoured for anchor() everywhere (and not by the polyfill)
-        if (anchored) { b.style.setProperty('anchor-name', `--${id}`); pop.style.setProperty('position-anchor', `--${id}`); }
-        pop.addEventListener('beforetoggle', (e) => { if ((e as ToggleEvent).newState === 'open' && !anchored) place(i); });
-        // aria-expanded follows the popover (the source of truth); toggle does not bubble, so listen on the popover
-        pop.addEventListener('toggle', (e) => b.setAttribute('aria-expanded', String((e as ToggleEvent).newState === 'open')));
-      } else {
-        pop.hidden = true;
-        b.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const wasOpen = !pop.hidden;
-          closePops();
-          if (!wasOpen) { pop.hidden = false; b.setAttribute('aria-expanded', 'true'); place(i); }
-        });
-      }
+      badges[i] = b;
     });
-    if (!nativePopover) document.addEventListener('click', (e) => { if (!(e.target as Element).closest('.pop')) closePops(); });
-    window.addEventListener('resize', () => pops.forEach((_, i) => { if (isOpen(i)) place(i); }));
+    const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // keep header, panel and the highlighted line in view together: first inside the code area, then on the page
+    const reveal = () => {
+      const line = root.querySelector<HTMLElement>('.ln.on');
+      if (!line) return;
+      const vr = view.getBoundingClientRect();
+      const lr = line.getBoundingClientRect();
+      const pad = 8;
+      if (lr.top < vr.top + pad || lr.bottom > vr.bottom - pad) view.scrollTop += lr.top - vr.top - Math.min(view.clientHeight / 3, 64);
+      const top = topInset() + pad;
+      const hr = head.getBoundingClientRect();
+      const lb = line.getBoundingClientRect().bottom;
+      let dy = 0;
+      if (lb > innerHeight - pad) dy = Math.min(lb - innerHeight + 2 * pad, hr.top - top);
+      if (hr.top < top) dy = hr.top - top;
+      if (Math.abs(dy) > 1) scrollBy({ top: dy, behavior: reduce() ? 'auto' : 'smooth' });
+    };
     const show = () => {
-      root.querySelectorAll('.ln').forEach((l) => l.classList.toggle('on', (l as HTMLElement).dataset.f === String(step)));
-      noteEl.innerHTML = notes[step].innerHTML;
+      root.querySelectorAll<HTMLElement>('.ln').forEach((l) => l.classList.toggle('on', l.dataset.f === String(step)));
+      badges.forEach((b, i) => b?.setAttribute('aria-expanded', String(i === step)));
+      noteEl.innerHTML = `<span class="visually-hidden">${stepWord} ${step + 1} ${ofWord} ${total}: </span>${notes[step].innerHTML}`;
       count.textContent = `${step + 1} / ${total}`;
-      count.setAttribute('aria-label', `${step + 1} ${of} ${total}`);
       prev.disabled = step === 0;
       next.disabled = step === total - 1;
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      root.querySelector('.ln.on')?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+      reveal();
     };
-    const open = () => { closePops(); notebox.open = false; notebox.setAttribute('hidden', 'until-found'); root.classList.add('guided'); guide.hidden = false; start.setAttribute('aria-expanded', 'true'); step = 0; show(); next.focus(); };
-    const close = () => { root.classList.remove('guided'); guide.hidden = true; start.setAttribute('aria-expanded', 'false'); root.querySelectorAll('.ln.on').forEach((l) => l.classList.remove('on')); start.focus(); };
+    const open = (at: number, from: HTMLElement, focus = true) => {
+      opener = from;
+      step = at;
+      root.classList.add('guided');
+      guide.hidden = false;
+      start.setAttribute('aria-expanded', 'true');
+      show();
+      if (focus) guide.focus({ preventScroll: true });
+    };
+    const close = () => {
+      if (!root.classList.contains('guided')) return;
+      // focus leaves a button that is about to be disabled or hidden: move it first
+      const back = opener.isConnected ? opener : start;
+      root.classList.remove('guided');
+      guide.hidden = true;
+      start.setAttribute('aria-expanded', 'false');
+      badges.forEach((b) => b?.setAttribute('aria-expanded', 'false'));
+      root.querySelectorAll('.ln.on').forEach((l) => l.classList.remove('on'));
+      back.focus({ preventScroll: true });
+    };
     start.hidden = false;
-    start.setAttribute('aria-expanded', 'false');
-    start.addEventListener('click', open);
-    prev.addEventListener('click', () => { if (step > 0) { step--; show(); } });
-    next.addEventListener('click', () => { if (step < total - 1) { step++; show(); } });
+    start.addEventListener('click', () => (root.classList.contains('guided') ? close() : open(0, start)));
+    // at the first/last step the button is disabled: keep focus in the panel instead of losing it to <body>
+    prev.addEventListener('click', () => { if (step > 0) { step--; show(); if (prev.disabled) next.focus(); } });
+    next.addEventListener('click', () => { if (step < total - 1) { step++; show(); if (next.disabled) prev.focus(); } });
     $('[data-fc-close]').addEventListener('click', close);
     root.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      if (!nativePopover && pops.some((_, i) => isOpen(i))) { e.stopPropagation(); closePops(true); return; }
-      // native popovers close themselves on Escape; the walkthrough only closes when none was open
-      if (root.classList.contains('guided') && !pops.some((_, i) => isOpen(i))) { e.stopPropagation(); close(); }
+      if (e.key !== 'Escape' || !root.classList.contains('guided')) return;
+      e.stopPropagation();
+      close();
     });
   }
 </script>

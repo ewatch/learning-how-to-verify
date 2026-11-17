@@ -1,11 +1,11 @@
 .lint-find { display: grid; gap: 4px; }
-.lint-row { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 4px 8px; border-left: 3px solid var(--bad); background: color-mix(in srgb, var(--bad) 7%, transparent); border-radius: 0 6px 6px 0; font-size: .85rem; }
-.lint-row code { font-size: .8rem; overflow-wrap: anywhere; }
+.lint-row { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 4px 8px; border-left: 3px solid var(--bad); background: color-mix(in srgb, var(--bad) 7%, transparent); border-radius: 0 6px 6px 0; font-size: var(--fs-sm); }
+.lint-row code { font-size: var(--fs-code); overflow-wrap: anywhere; }
 .lint-row mark { background: color-mix(in srgb, var(--bad) 30%, transparent); color: inherit; }
 .lint-editor { border: 1px solid var(--rule-strong); border-radius: 6px; overflow: hidden; }
 .lint-editor .sim-textarea { width: 100%; min-height: 240px; font-family: var(--font-mono); }
 .lint-rules { display: flex; flex-wrap: wrap; gap: 6px 14px; }
-.lint-rules label { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; }
+.lint-rules label { display: inline-flex; gap: 6px; align-items: center; font-size: var(--fs-sm); }
 .lint-two { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 .lint-out { border: 2px solid var(--rule-strong); border-radius: 8px; padding: 10px; display: grid; gap: 6px; align-content: start; }
 .lint-out.bad { border-color: var(--bad); }

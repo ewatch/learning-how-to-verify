@@ -11,31 +11,44 @@ import { t } from '../i18n/ui';
 
 const link = (loc: Locale, id: string) => `[${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`;
 
+const coreTag = (loc: Locale) => (loc === 'en' ? ' *(core)*' : ' *(Kern)*');
+
 export function homeMarkdown(loc: Locale): string {
   const en = loc === 'en';
   const out = [
     `# ${en ? 'Learning how to verify' : 'Verifizieren lernen'}`, '',
-    en ? `How to verify software, especially when AI agents write it: ${PRACTICES.length} practices along a funnel from cheap, automatic checks to expensive ones.`
-       : `Wie man Software verifiziert, besonders wenn KI-Agenten sie schreiben: ${PRACTICES.length} Praktiken entlang eines Trichters von billigen, automatischen Prüfungen zu teuren.`, '',
-    `- [${en ? 'Start here' : 'Hier starten'}](${SITE_URL}/${loc}/start/index.md)`,
+    en ? 'For developers who let AI agents write code and need to know that the code is right: which checks catch which bugs, from cheap and automatic to slow and human, with tools for your language and exercises that run in your browser.'
+       : 'Für Entwicklerinnen und Entwickler, die KI-Agenten Code schreiben lassen und wissen müssen, ob er stimmt: welche Prüfungen welche Fehler finden, von billig und automatisch bis langsam und menschlich, mit Werkzeugen für die eigene Sprache und Übungen im Browser.', '',
+    en ? `New here? Begin with [Start here](${SITE_URL}/${loc}/start/index.md). Other ways in:` : `Neu hier? Mit [Hier starten](${SITE_URL}/${loc}/start/index.md) beginnen. Andere Einstiege:`, '',
     `- [${t(loc, 'navLifecycle')}](${SITE_URL}/${loc}/lifecycle/index.md)`,
     `- [${t(loc, 'navStack')}](${SITE_URL}/${loc}/stack/index.md)`, '',
+    `## ${en ? 'The funnel' : 'Der Trichter'}`, '',
+    en ? `${PRACTICES.length} practices along a funnel from cheap, automatic checks to expensive ones. Every bug is caught somewhere. The higher up it is caught, the cheaper and faster the fix, and the less a human has to look at. Practices marked *(core)* are the ones to start with.`
+       : `${PRACTICES.length} Praktiken entlang eines Trichters von billigen, automatischen Prüfungen zu teuren. Jeder Fehler wird irgendwo gefunden. Je weiter oben, desto billiger und schneller die Korrektur, und desto weniger muss ein Mensch ansehen. Mit *(Kern)* markierte Praktiken sind die für den Anfang.`, '',
   ];
   for (const layer of LAYERS) {
-    out.push(`## ${layer.name[loc]}`, '', `${layer.examples[loc]}. ${layer.idea[loc]}`, '');
-    for (const p of PRACTICES.filter((x) => x.layer === layer.id)) out.push(`- ${link(loc, p.id)}: ${p.oneLiner[loc]}`);
+    const list = PRACTICES.filter((x) => x.layer === layer.id);
+    out.push(`### ${layer.name[loc]}`, '', `${layer.examples[loc]}. ${layer.idea[loc]}`, '');
+    for (const p of [...list.filter((x) => x.core), ...list.filter((x) => !x.core)]) out.push(`- ${link(loc, p.id)}${p.core ? coreTag(loc) : ''}: ${p.oneLiner[loc]}`);
     out.push('');
   }
+  out.push(`## ${en ? 'How sure are we?' : 'Wie sicher ist das?'}`, '',
+    en ? 'The funnel is a practitioner rule of thumb (after a talk by Lauren Tan, @poteto), not a proven law. Evidence is strongest in the middle layers (tests as feedback for agents, mutation testing, fuzzing, formal methods), mixed for prose such as AGENTS.md, and missing for the claim that a well-designed codebase makes agents more successful. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
+       : 'Der Trichter ist eine Faustregel aus der Praxis (nach einem Vortrag von Lauren Tan, @poteto), kein bewiesenes Gesetz. Am stärksten ist die Evidenz in den mittleren Schichten (Tests als Feedback für Agenten, Mutation Testing, Fuzzing, formale Methoden), gemischt für Prosa wie AGENTS.md, und sie fehlt für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.', '');
   return out.join('\n');
 }
 
 export function lifecycleMarkdown(loc: Locale): string {
   const en = loc === 'en';
   const out = [`# ${en ? 'Lifecycle map: when does each check happen?' : 'Lebenszyklus: wann findet welche Prüfung statt?'}`, '',
-    en ? 'Practices grouped by phase. A practice can appear in several phases.' : 'Praktiken nach Phase gruppiert. Eine Praktik kann in mehreren Phasen vorkommen.', ''];
+    en ? 'Practices grouped by phase. A practice can appear in several phases. *(core)* marks a practice to start with; *(added)* marks one that is not in Cindy Sridharan\'s original overview and was added on this site.'
+       : 'Praktiken nach Phase gruppiert. Eine Praktik kann in mehreren Phasen vorkommen. *(Kern)* markiert eine Praktik für den Anfang; *(ergänzt)* markiert eine, die nicht in Cindy Sridharans ursprünglicher Übersicht steht und auf dieser Seite ergänzt wurde.', ''];
   for (const ph of PHASES) {
     out.push(`## ${ph.name[loc]}`, '');
-    for (const p of PRACTICES.filter((x) => x.phases.includes(ph.id))) out.push(`- ${link(loc, p.id)}: ${p.oneLiner[loc]}`);
+    for (const p of PRACTICES.filter((x) => x.phases.includes(ph.id))) {
+      const tags = `${p.core ? coreTag(loc) : ''}${p.fromOverview ? '' : en ? ' *(added)*' : ' *(ergänzt)*'}`;
+      out.push(`- ${link(loc, p.id)}${tags}: ${p.oneLiner[loc]}`);
+    }
     out.push('');
   }
   return out.join('\n');

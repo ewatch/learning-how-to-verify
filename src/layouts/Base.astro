@@ -75,7 +75,7 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
           </ul>
         </nav>
         <div class="header-actions">
-          <a class="lang" href={href(alt, path)} hreflang={alt} lang={alt} data-lang-switch>{t(lang, 'switchLang')}</a>
+          <a class="lang" href={href(alt, path)} hreflang={alt} lang={alt} data-lang-switch><span class="lang-long">{t(lang, 'switchLang')}</span><span class="lang-short" aria-hidden="true">{t(lang, 'switchLangShort')}</span></a>
           <button type="button" id="theme-toggle" class="theme-toggle">
             <span aria-hidden="true">◐</span>
             <span class="to-dark visually-hidden">{t(lang, 'toDark')}</span>

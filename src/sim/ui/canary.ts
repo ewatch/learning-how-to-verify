@@ -12,6 +12,7 @@ const T = {
     affected: (n: number) => `${n.toLocaleString('en')} requests hit the bug before the rollout ended.`,
     notMeasured: 'not measured',
     silentMiss: 'The silent bug reached everyone: every request returned status 200, so the error-rate check saw nothing wrong. A canary is only as good as what it measures.',
+    chart: 'Traffic diagram: requests go from users to v1 or v2; the share for v2 grows with each stage. Requests that hit the bug are coloured. The table below lists each stage.',
   },
   de: {
     intro: 'Version 2 des Reservierungsdienstes wird stufenweise ausgerollt: 5 %, 25 %, 50 %, 100 % des Verkehrs. Nach jeder Stufe vergleicht eine automatische Analyse v2 mit v1 und macht weiter oder rollt zurück. Wähle, was an v2 falsch ist, und ob die Analyse eine Geschäftsmetrik beobachtet.',
@@ -23,6 +24,7 @@ const T = {
     affected: (n: number) => `${n.toLocaleString('de')} Anfragen trafen den Fehler, bevor der Rollout endete.`,
     notMeasured: 'nicht gemessen',
     silentMiss: 'Der stille Fehler erreichte alle: Jede Anfrage lieferte Status 200, also sah die Fehlerraten-Prüfung nichts. Ein Canary ist nur so gut wie das, was er misst.',
+    chart: 'Verkehrsdiagramm: Anfragen gehen von den Nutzern an v1 oder v2; der Anteil für v2 wächst mit jeder Stufe. Anfragen, die den Fehler treffen, sind farbig. Die Tabelle darunter listet jede Stufe.',
   },
 };
 
@@ -34,6 +36,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('class', 'sim-chart');
   svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', t.chart);
   const tbody = h('tbody');
   const result = h('div', { class: 'sim-callout', hidden: true });
   const startBtn = h('button', { class: 'btn', type: 'button', onclick: () => start() }, t.start);

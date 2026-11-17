@@ -6,6 +6,7 @@ import LangTabs from '../../../../components/LangTabs.astro';
 import VizMount from '../../../../components/VizMount.astro';
 import SimMount from '../../../../components/SimMount.astro';
 import PracticeCard from '../../../../components/PracticeCard.astro';
+import CardKey from '../../../../components/CardKey.astro';
 import type { Locale, Practice } from '../../../../data/types';
 import { PRACTICES, PRACTICE_BY_ID } from '../../../../data/practices';
 import { GUIDE_BY_ID } from '../../../../data/guides';
@@ -20,8 +21,9 @@ export function getStaticPaths() {
   return (['en', 'de'] as Locale[]).flatMap((lang) => PRACTICES.map((p) => ({ params: { lang, id: p.id }, props: { lang, p } })));
 }
 const { lang, p } = Astro.props as { lang: Locale; p: Practice };
-const en = lang === 'en';
-const layer = LAYERS.find((l) => l.id === p.layer)!;
+const layerIdx = LAYERS.findIndex((l) => l.id === p.layer);
+const layer = LAYERS[layerIdx]!;
+// PRACTICES is sorted by funnel layer, so the pager walks the funnel from codebase to review
 const idx = PRACTICES.indexOf(p);
 const prev = PRACTICES[idx - 1], next = PRACTICES[idx + 1];
 const socratic = socraticPrompt(p, lang, 'js', practiceMarkdown(p, lang)).replace('JavaScript / TypeScript', '__PROGLANG__');
@@ -48,13 +50,12 @@ const num = () => String(++n).padStart(2, '0');
     </nav>
 
     <header class="head narrow">
-      <p class="eyebrow">{p.fromOverview ? t(lang, 'fromOverview') : t(lang, 'addedHere')}</p>
+      <p class="eyebrow">{t(lang, 'layer')} {layerIdx + 1} {t(lang, 'stepOf')} {LAYERS.length}</p>
       <h1>{p.name[lang]}</h1>
       <p class="lede" set:html={gl(p.oneLiner[lang])} />
       <p class="catches"><strong>{t(lang, 'catches')}:</strong> <span set:html={gl(p.catches[lang])} /></p>
+      <WhereItSits p={p} lang={lang} />
     </header>
-
-    <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'whereItSits')}</h2><WhereItSits p={p} lang={lang} /></section>
 
     {!p.sim && p.viz && (
       <section class="layer-section" id="see"><h2><span class="num">{num()}</span>{t(lang, 'seeIt')}</h2>
@@ -69,12 +70,12 @@ const num = () => String(++n).padStart(2, '0');
       </section>
     )}
 
-    <section class="layer-section"><h2><span class="num">{num()}</span>{t(lang, 'worthIt')}</h2>
+    <section class="layer-section" id="worth"><h2><span class="num">{num()}</span>{t(lang, 'worthIt')}</h2>
       <div class="grid cols-2">
         <div>
           <ul class="checks">{worthShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
           {worthMore.length > 0 && (
-            <details class="more"><summary>+{worthMore.length} {t(lang, 'moreN')}</summary>
+            <details class="more"><summary>{worthMore.length} {t(lang, 'moreN')}</summary>
               <ul class="checks">{worthMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
             </details>
           )}
@@ -82,7 +83,7 @@ const num = () => String(++n).padStart(2, '0');
         <div><h3>{t(lang, 'limits')}</h3>
           <ul class="limits">{limitsShown.map((x) => <li set:html={gl(x[lang])} />)}</ul>
           {limitsMore.length > 0 && (
-            <details class="more"><summary>+{limitsMore.length} {t(lang, 'moreN')}</summary>
+            <details class="more"><summary>{limitsMore.length} {t(lang, 'moreN')}</summary>
               <ul class="limits">{limitsMore.map((x) => <li set:html={gl(x[lang])} />)}</ul>
             </details>
           )}
@@ -93,54 +94,50 @@ const num = () => String(++n).padStart(2, '0');
         <p class="ai-text" set:html={gl(aiHead)} />
         {aiRest && <details class="more"><summary>{t(lang, 'moreText')}</summary><p class="ai-text" set:html={gl(aiRest)} /></details>}
       </aside>
-      {p.variants?.length ? (
-        <details class="disclose variants"><summary>{t(lang, 'variants')} ({p.variants.length})</summary>
-          <div class="body"><dl>{p.variants.map((v) => <><dt>{v.name[lang]}</dt><dd set:html={gl(v.text[lang])} /></>)}</dl></div>
-        </details>
-      ) : null}
-      <h3 class="evh">{t(lang, 'evidence')}</h3>
-      <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} />
+      <div class="ev-block">
+        <h3>{t(lang, 'evidence')}</h3>
+        <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} />
+      </div>
     </section>
 
     <section class="layer-section" id="your-language"><h2><span class="num">{num()}</span>{t(lang, 'yourLanguage')}</h2>
-      <LangTabs p={p} lang={lang} />
+      <LangTabs p={p} lang={lang} socratic={socratic} />
     </section>
 
     <section class="layer-section" id="deeper"><h2><span class="num">{num()}</span>{t(lang, 'goDeeper')}</h2>
       <h3>{t(lang, 'thinkFirst')}</h3>
       <div class="think">
         {p.think.slice(0, 1).map((q) => (
-          <details class="disclose"><summary set:html={inline(q.q[lang])} /><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
+          <details class="disclose"><summary><span set:html={inline(q.q[lang])} /></summary><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
         ))}
         {thinkMore.length > 0 && (
-          <details class="more"><summary>+{thinkMore.length} {t(lang, 'moreQuestions')}</summary>
+          <details class="more"><summary>{thinkMore.length} {t(lang, 'moreQuestions')}</summary>
             <div class="think">
               {thinkMore.map((q) => (
-                <details class="disclose"><summary set:html={inline(q.q[lang])} /><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
+                <details class="disclose"><summary><span set:html={inline(q.q[lang])} /></summary><div class="body"><p set:html={gl(q.a[lang])} /></div></details>
               ))}
             </div>
           </details>
         )}
       </div>
-      <div class="socratic card">
-        <div>
-          <strong>{t(lang, 'socratic')}</strong>
-          <p class="muted small">{t(lang, 'socraticHint')}</p>
-        </div>
-        <button type="button" class="btn" data-copy="socratic" command="--copy" commandfor="socratic" data-proglang>{t(lang, 'copy')}</button>
-        <pre id="socratic" hidden>{socratic}</pre>
-      </div>
+      {p.variants?.length ? (
+        <details class="disclose variants"><summary>{t(lang, 'variants')} ({p.variants.length})</summary>
+          <div class="body"><dl>{p.variants.map((v) => <><dt>{v.name[lang]}</dt><dd set:html={gl(v.text[lang])} /></>)}</dl></div>
+        </details>
+      ) : null}
       {p.guides?.length ? (
         <><h3>{t(lang, 'guides')}</h3>
         <ul>{p.guides.map((g) => <li><a href={href(lang, `guides/${g}/`)}>{GUIDE_BY_ID.get(g)!.title[lang]}</a></li>)}</ul></>
       ) : null}
       <h3>{t(lang, 'related')}</h3>
+      <CardKey lang={lang} />
       <div class="grid cols-3">{p.related.map((id) => <PracticeCard p={PRACTICE_BY_ID.get(id)!} lang={lang} compact />)}</div>
+      <p class="origin small muted">{t(lang, 'origin')}: {p.fromOverview ? t(lang, 'fromOverview') : t(lang, 'addedHere')} (<a href={href(lang, 'lifecycle/')}>{t(lang, 'navLifecycle')}</a>)</p>
     </section>
 
-    <nav class="pager" aria-label={en ? 'Next and previous practice' : 'Nächste und vorherige Praktik'}>
-      {prev ? <a href={href(lang, `practices/${prev.id}/`)} rel="prev" data-nav="backward">← {prev.name[lang]}</a> : <span />}
-      {next ? <a href={href(lang, `practices/${next.id}/`)} rel="next" data-nav="forward">{next.name[lang]} →</a> : <span />}
+    <nav class="pager" aria-label={t(lang, 'pagerLabel')}>
+      {prev ? <a href={href(lang, `practices/${prev.id}/`)} rel="prev" data-nav="backward"><span class="pl small muted">← {t(lang, 'prevInFunnel')}</span><span class="nm">{prev.name[lang]}</span></a> : <span />}
+      {next ? <a href={href(lang, `practices/${next.id}/`)} rel="next" data-nav="forward" class="nx"><span class="pl small muted">{t(lang, 'nextInFunnel')} →</span><span class="nm">{next.name[lang]}</span></a> : <span />}
     </nav>
   </article>
   <script is:inline src="/gloss.js" defer></script>
@@ -158,7 +155,7 @@ const num = () => String(++n).padStart(2, '0');
 <style is:global>
   a.gloss { text-decoration: underline dotted; text-decoration-thickness: 1.5px; color: inherit; }
   a.gloss:hover, a.gloss:focus-visible { color: var(--link); }
-  .gloss-pop { position: fixed; z-index: 50; box-sizing: border-box; padding: 10px 12px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); font-size: 0.9rem; line-height: 1.45; font-weight: 400; text-align: left; overflow: visible; }
+  .gloss-pop { position: fixed; z-index: 50; box-sizing: border-box; padding: 10px 12px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); font-size: var(--fs-sm); line-height: 1.45; font-weight: 400; text-align: left; overflow: visible; }
   .gloss-pop:not([popover]) { display: block; }
   .gloss-pop[hidden] { display: none; }
   .gloss-pop[popover] { margin: 0; }
@@ -171,30 +168,32 @@ const num = () => String(++n).padStart(2, '0');
   .gloss-pop .gloss-def { display: block; color: var(--ink-2); margin-bottom: 6px; }
 </style>
 <style>
-  .head { padding-bottom: 26px; }
+  .head { padding-bottom: 22px; }
+  .head .lede { margin-bottom: 10px; }
+  .head .catches { margin: 0 0 14px; }
   .head h1 { border-left: 6px solid var(--c); padding-left: 14px; margin-left: -20px; }
   @media (max-width: 760px) { .head h1 { margin-left: 0; } }
   .catches { color: var(--ink-2); }
   ul.checks li::marker { content: '✓  '; color: var(--ok); }
   ul.limits li::marker { content: '–  '; color: var(--ink-3); }
   .ai { margin: 16px 0; padding: 10px 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }
-  .ai-label { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-weight: 700; font-size: .92rem; color: var(--ink); }
+  .ai-label { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-weight: 700; font-size: var(--fs-ui); color: var(--ink); }
   .ai-label svg { color: var(--c); flex: none; }
-  .ai-text { margin: 0; font-size: .95rem; }
-  .more > summary { cursor: pointer; display: inline-block; font-size: .85rem; color: var(--ink-3); padding: 4px 0; text-decoration: underline dotted; }
-  .more > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-  .more[open] > summary { margin-bottom: 4px; }
+  .ai-text { margin: 0; font-size: var(--fs-ui); }
   .more .think { margin: 6px 0 0; }
-  .variants { margin: 14px 0; }
+  .variants { margin: 0 0 20px; }
   .variants dt { font-weight: 700; margin-top: 8px; }
   .variants dd { margin: 2px 0 0; color: var(--ink-2); }
-  .evh { margin-top: 24px; }
+  .ev-block { margin-top: 26px; }
+  .ev-block h3 { margin-bottom: 8px; }
+  .origin { margin: 26px 0 0; }
   .think { display: grid; gap: 8px; margin-bottom: 20px; }
-  .think summary { font-weight: 600 !important; }
-  .socratic { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 24px; }
-  .socratic p { margin: 2px 0 0; max-width: 36rem; }
+  .think .disclose > summary { font-weight: 600; }
   /* below the fold: skip layout/paint until near the viewport (still found by Ctrl+F, anchors keep working) */
   #your-language, #deeper { content-visibility: auto; contain-intrinsic-size: auto none auto 42rem; }
-  .pager a { display: inline-block; padding-block: 6px; }
+  .pager a { display: inline-flex; flex-direction: column; gap: 2px; padding-block: 6px; }
+  .pager .nx { text-align: end; align-items: flex-end; margin-inline-start: auto; }
+  .pager a { text-decoration: none; }
+  .pager .nm { text-decoration: underline; }
   .pager { display: flex; justify-content: space-between; gap: 12px; padding-top: 26px; border-top: 1px solid var(--rule); flex-wrap: wrap; }
 </style>

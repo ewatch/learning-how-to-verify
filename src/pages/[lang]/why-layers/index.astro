@@ -1,6 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import PracticeCard from '../../../components/PracticeCard.astro';
+import CardKey from '../../../components/CardKey.astro';
 import type { Locale } from '../../../data/types';
 import { WHY } from '../../../data/why';
 import { SOURCE_BY_ID } from '../../../data/sources';
@@ -15,6 +16,7 @@ const { lang } = Astro.props as { lang: Locale };
     <p class="eyebrow">{lang === 'en' ? 'Start here · step 2' : 'Hier starten · Schritt 2'}</p>
     <h1>{WHY.title[lang]}</h1>
     <p class="lede">{WHY.intro[lang]}</p>
+    <CardKey lang={lang} />
     {WHY.findings.map((f, i) => {
       const s = SOURCE_BY_ID.get(f.src)!;
       return (
@@ -35,5 +37,5 @@ const { lang } = Astro.props as { lang: Locale };
   .fix { background: var(--card); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
   .src { color: var(--ink-3); }
   .badge { margin-left: 4px; }
-  .outro { font-size: 1.15rem; margin-top: 28px; font-family: var(--font-display); }
+  .outro { font-size: var(--fs-lg); margin-top: 28px; font-family: var(--font-display); }
 </style>

@@ -75,10 +75,13 @@ export const START_ROUTES: StartRoute[] = [
   },
 ];
 
-export const START_COPY = {
-  title: l('Start here', 'Hier starten'),
-  description: l('Find your first verification step, try a small exercise and give your coding agent useful feedback.', 'Den ersten Verifikationsschritt finden, eine kleine Übung machen und dem Coding-Agenten brauchbares Feedback geben.'),
+/** Copy for the "Diagnose my project" page: the problem chooser and the feedback loop. */
+export const DIAGNOSE_COPY = {
+  title: l('Diagnose my project', 'Mein Projekt diagnostizieren'),
+  description: l('Pick the problem you recognise in your own project and get a first check, a small exercise and a task to copy for your coding agent.', 'Das Problem im eigenen Projekt wählen und eine erste Prüfung, eine kleine Übung und eine Aufgabe für den Coding-Agenten erhalten.'),
   intro: l('Bring one real task from your project. Choose the problem you recognise, add one useful check, and let its output guide the next edit.', 'Eine echte Aufgabe aus deinem Projekt mitbringen. Ein bekanntes Problem wählen, eine nützliche Prüfung ergänzen und deren Ausgabe für die nächste Änderung nutzen.'),
+  tour: l('New to verification? The guided tour introduces the ideas first.', 'Neu beim Thema Verifikation? Der geführte Einstieg erklärt zuerst die Grundlagen.'),
+  tourLink: l('Start here', 'Hier starten'),
   chooser: l('Where should I start?', 'Wo sollte ich anfangen?'),
   chooseHint: l('Choose the closest match. If several apply, first establish a baseline, then address the highest-impact failure you can reproduce.', 'Die passendste Beschreibung wählen. Treffen mehrere zu, zuerst eine Baseline erstellen und danach den folgenreichsten reproduzierbaren Fehler angehen.'),
   first: l('Your first check', 'Deine erste Prüfung'),
@@ -91,8 +94,42 @@ export const START_COPY = {
   preview: l('Read the task before copying', 'Aufgabe vor dem Kopieren lesen'),
   loop: l('Use one feedback loop', 'Einen Feedback-Loop nutzen'),
   loopHint: l('Use the project’s actual commands. Passing one check earns the next check; it does not prove the whole change correct.', 'Die tatsächlichen Projektbefehle verwenden. Eine bestandene Prüfung führt zur nächsten; sie beweist nicht die Korrektheit der gesamten Änderung.'),
-  learn: l('Prefer a guided tour?', 'Lieber ein geführter Einstieg?'),
-  learnHint: l('Use the same petstore example throughout. Predict an outcome, run a check, explain the result, then transfer one idea to your project.', 'Durchgehend dasselbe Petstore-Beispiel nutzen. Ein Ergebnis vorhersagen, eine Prüfung starten, das Ergebnis erklären und danach eine Idee ins eigene Projekt übertragen.'),
+};
+
+/** Copy for the "Start here" page: the guided tour. */
+export const START_COPY = {
+  title: l('Start here', 'Hier starten'),
+  description: l('A guided tour in eight steps, from the funnel to a canary rollout, on one shared petstore example. About 60–90 minutes.', 'Ein geführter Einstieg in acht Schritten, vom Trichter bis zum Canary-Rollout, an einem durchgehenden Petstore-Beispiel. Etwa 60–90 Minuten.'),
+  intro: l('For developers who let coding agents write code and want to know whether it works. No background in testing theory needed.', 'Für Entwickler, die Code von Coding-Agenten schreiben lassen und wissen wollen, ob er funktioniert. Vorwissen in Testtheorie ist nicht nötig.'),
+  after: l('Afterwards you can', 'Danach kannst du'),
+  outcomes: [
+    l('pick the cheapest check that would have caught a given bug,', 'die billigste Prüfung wählen, die einen bestimmten Fehler gefunden hätte,'),
+    l('give a coding agent compiler, lint and test feedback it can act on,', 'einem Coding-Agenten Compiler-, Lint- und Testfeedback geben, mit dem er arbeiten kann,'),
+    l('tell whether green tests actually reject wrong behaviour,', 'beurteilen, ob grüne Tests falsches Verhalten wirklich ablehnen,'),
+    l('decide when a rollout should stop.', 'entscheiden, wann ein Rollout gestoppt werden sollte.'),
+  ],
+  timeLabel: l('Time', 'Zeit'),
+  time: l('About 60–90 minutes in total. Each step takes 5–15 minutes and stands on its own, so you can stop after any step.', 'Insgesamt etwa 60–90 Minuten. Jeder Schritt dauert 5–15 Minuten und steht für sich; du kannst nach jedem Schritt aufhören.'),
+  begin: l('Begin with step 1', 'Mit Schritt 1 beginnen'),
+  /** {n} = step number; set by the progress script */
+  resume: l('Continue with step {n}', 'Weiter mit Schritt {n}'),
+  allOpened: l('Review the tour from step 1', 'Den Einstieg ab Schritt 1 wiederholen'),
+  example: l('The running example', 'Das durchgehende Beispiel'),
+  exampleText: l('A petstore where people reserve pets for adoption. Most exercises check one rule:', 'Ein Petstore, in dem Menschen Tiere zur Adoption reservieren. Die meisten Übungen prüfen eine Regel:'),
+  rule: l('A pet must never be reserved twice.', 'Ein Tier darf nie doppelt reserviert werden.'),
+  reservedFor: l('reserved for Anna', 'für Anna reserviert'),
+  rejected: l('rejected: already reserved', 'abgelehnt: bereits reserviert'),
+  fee: l('Some exercises also use the adoption fee: a dog costs 120 €, a cat 80 €.', 'Einige Übungen nutzen auch die Adoptionsgebühr: Ein Hund kostet 120 €, eine Katze 80 €.'),
+  learn: l('The tour in eight steps', 'Der Einstieg in acht Schritten'),
+  learnHint: l('In each step: predict an outcome, run a check, explain the result, then transfer one idea to your project.', 'In jedem Schritt: ein Ergebnis vorhersagen, eine Prüfung starten, das Ergebnis erklären und danach eine Idee ins eigene Projekt übertragen.'),
+  sim: l('Simulator in the browser', 'Simulator im Browser'),
+  opened: l('opened', 'geöffnet'),
+  /** {n} and {total} are filled in by the progress script */
+  progress: l('{n} of {total} steps opened. Saved in this browser only.', '{n} von {total} Schritten geöffnet. Nur in diesem Browser gespeichert.'),
+  reset: l('Reset progress', 'Fortschritt zurücksetzen'),
+  whatNext: l('What next', 'Wie es weitergeht'),
+  diagnose: l('Have a concrete problem in your own project?', 'Ein konkretes Problem im eigenen Projekt?'),
+  diagnoseHint: l('Pick the closest of six common problems. You get a first check, an exercise for your project and a task to copy for your agent.', 'Aus sechs häufigen Problemen das passende wählen. Du erhältst eine erste Prüfung, eine Übung für dein Projekt und eine Aufgabe für deinen Agenten.'),
   guides: l('Ready for a tool setup?', 'Bereit für ein Tool-Setup?'),
   guidesHint: l('The TLA+ and Dafny guides include installation, recorded output and a deliberate failure. Use My stack to find tools for your language.', 'Die TLA+- und Dafny-Guides enthalten Installation, aufgezeichnete Ausgabe und einen gezielten Fehler. Unter Mein Stack findest du Tools für deine Sprache.'),
 };
@@ -104,15 +141,25 @@ export const START_LOOP: { title: L; text: L }[] = [
   { title: l('4. Rerun, then widen the check', '4. Wiederholen, dann breiter prüfen'), text: l('Rerun the exact failed command. When it passes, run the project’s full gate and review the diff. Report what the checks still cannot establish. If the same failure repeats, reduce it and revisit the assumption.', 'Genau den fehlgeschlagenen Befehl wiederholen. Besteht er, das vollständige Projekt-Gate ausführen und den Diff prüfen. Festhalten, was die Prüfungen weiter nicht belegen. Wiederholt sich derselbe Fehler, ihn reduzieren und die Annahme prüfen.') },
 ];
 
-export const START_TOUR = [
-  { path: '', title: l('The funnel', 'Der Trichter'), exercise: l('Choose a recent bug. Which cheap check could have caught it earlier?', 'Einen aktuellen Fehler wählen. Welche billige Prüfung hätte ihn früher finden können?') },
-  { path: 'why-layers/', title: l('Why one layer is not enough', 'Warum eine Schicht nicht reicht'), exercise: l('Name one claim your green test suite does not establish.', 'Eine Aussage benennen, die deine grüne Testsuite nicht belegt.') },
-  { practice: 'type-systems', exercise: l('Predict all four compiler revisions; compare a guard with a non-null assertion.', 'Alle vier Compiler-Versionen vorhersagen; Guard und Non-null Assertion vergleichen.') },
-  { practice: 'lint', exercise: l('Turn one recurring mistake into a rule. Plant the mistake and confirm the linter rejects it.', 'Einen wiederkehrenden Fehler als Regel formulieren. Den Fehler einschleusen und die Ablehnung durch den Linter bestätigen.') },
-  { practice: 'unit-tests', exercise: l('Build test cases in the simulator that reject every buggy implementation without rejecting the correct one.', 'Im Simulator Testfälle bauen, die alle fehlerhaften Implementierungen ablehnen und die korrekte akzeptieren.') },
-  { practice: 'mutation-tests', exercise: l('Run the weak tests, inspect a survivor and strengthen one assertion. Predict whether it will now fail.', 'Schwache Tests starten, einen überlebenden Mutanten ansehen und eine Assertion verbessern. Vorhersagen, ob sie nun scheitert.') },
-  { practice: 'property-based-tests', exercise: l('Find a counterexample and inspect the shrink. Write one invariant for your own domain.', 'Ein Gegenbeispiel finden und den Shrink ansehen. Eine Invariante für die eigene Domäne schreiben.') },
-  { practice: 'canarying', exercise: l('Choose a rollout threshold. Observe the signal and decide when to roll back.', 'Eine Rollout-Schwelle wählen. Das Signal beobachten und entscheiden, wann ein Rollback nötig ist.') },
+export interface TourStep {
+  /** stable id, used to remember progress */
+  id: string;
+  /** a practice id, or a page path with its own title */
+  practice?: string;
+  path?: string;
+  title?: L;
+  exercise: L;
+}
+
+export const START_TOUR: TourStep[] = [
+  { id: 'funnel', path: '', title: l('The funnel', 'Der Trichter'), exercise: l('Choose a recent bug. Which cheap check could have caught it earlier?', 'Einen aktuellen Fehler wählen. Welche billige Prüfung hätte ihn früher finden können?') },
+  { id: 'why-layers', path: 'why-layers/', title: l('Why one layer is not enough', 'Warum eine Schicht nicht reicht'), exercise: l('Name one claim your green test suite does not establish.', 'Eine Aussage benennen, die deine grüne Testsuite nicht belegt.') },
+  { id: 'type-systems', practice: 'type-systems', exercise: l('Predict all four compiler revisions; compare a guard with a non-null assertion.', 'Alle vier Compiler-Versionen vorhersagen; Guard und Non-null Assertion vergleichen.') },
+  { id: 'lint', practice: 'lint', exercise: l('Turn one recurring mistake into a rule. Plant the mistake and confirm the linter rejects it.', 'Einen wiederkehrenden Fehler als Regel formulieren. Den Fehler einschleusen und die Ablehnung durch den Linter bestätigen.') },
+  { id: 'unit-tests', practice: 'unit-tests', exercise: l('Build test cases in the simulator that reject every buggy implementation without rejecting the correct one.', 'Im Simulator Testfälle bauen, die alle fehlerhaften Implementierungen ablehnen und die korrekte akzeptieren.') },
+  { id: 'mutation-tests', practice: 'mutation-tests', exercise: l('Run the weak tests, inspect a survivor and strengthen one assertion. Predict whether it will now fail.', 'Schwache Tests starten, einen überlebenden Mutanten ansehen und eine Assertion verbessern. Vorhersagen, ob sie nun scheitert.') },
+  { id: 'property-based-tests', practice: 'property-based-tests', exercise: l('Find a counterexample and inspect the shrink. Write one invariant for your own domain.', 'Ein Gegenbeispiel finden und den Shrink ansehen. Eine Invariante für die eigene Domäne schreiben.') },
+  { id: 'canarying', practice: 'canarying', exercise: l('Choose a rollout threshold. Observe the signal and decide when to roll back.', 'Eine Rollout-Schwelle wählen. Das Signal beobachten und entscheiden, wann ein Rollback nötig ist.') },
 ];
 
 export function startAgentPrompt(route: StartRoute, locale: 'en' | 'de'): string {

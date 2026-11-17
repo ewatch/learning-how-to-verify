@@ -1,7 +1,7 @@
 .ct-toggles { display: grid; gap: 6px; }
-.ct-toggles label { display: flex; gap: 8px; align-items: center; font-size: .92rem; }
+.ct-toggles label { display: flex; gap: 8px; align-items: center; font-size: var(--fs-ui); }
 .ct-res { display: grid; gap: 6px; }
-.ct-res > div { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .9rem; }
-.ct-res code { font-size: .82rem; }
+.ct-res > div { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: var(--fs-sm); }
+.ct-res code { font-size: var(--fs-code); }
 .sim-code .ln.err .tx { text-decoration: underline wavy var(--bad); text-underline-offset: 3px; }
 .sim-code .ln.err { background: color-mix(in srgb, var(--bad) 14%, transparent); }

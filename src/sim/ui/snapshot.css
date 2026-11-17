@@ -2,10 +2,10 @@
 .snap-card.ok { border-color: var(--ok); }
 .snap-card.bad { border-color: var(--bad); }
 .snap-head { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-.snap-head b { font-size: .95rem; }
+.snap-head b { font-size: var(--fs-ui); }
 .snap-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .snap-actions .btn[aria-pressed='true'] { outline: 2px solid var(--ink); }
-.snap-why { margin: 0; font-size: .88rem; color: var(--ink-2); }
+.snap-why { margin: 0; font-size: var(--fs-sm); color: var(--ink-2); }
 .snap-toggle { display: flex; gap: 8px; align-items: center; }
 .sim-code .ln.snap-same .no::before { content: ' '; }
 .sim-code .ln.minus .no::before { content: '−'; }

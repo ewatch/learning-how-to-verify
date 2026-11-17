@@ -51,6 +51,8 @@ export interface Practice {
   phases: PhaseId[];
   /** true = from Cindy Sridharan's overview */
   fromOverview: boolean;
+  /** true = a core practice: shown first in long lists ("start with these") */
+  core?: boolean;
   oneLiner: L;
   /** the bug class it catches */
   catches: L;

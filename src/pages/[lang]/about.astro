@@ -5,6 +5,7 @@ import { SOURCES } from '../../data/sources';
 import { TOOLS } from '../../data/tools';
 import { PRACTICES } from '../../data/practices';
 import { langPaths } from '../../lib/paths';
+import { t } from '../../i18n/ui';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -39,12 +40,12 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
     <h2>{en ? 'All sources' : 'Alle Quellen'} ({SOURCES.length})</h2>
     <p class="muted small">{en ? 'Each citation was checked against the publisher, DOI or arXiv page. Preprints are marked.' : 'Jede Quelle wurde gegen Verlag, DOI- oder arXiv-Seite geprüft. Preprints sind markiert.'}</p>
     <ol class="sources">
-      {sorted.map((s) => <li id={`src-${s.id}`}>{s.authors}. <a href={s.url} rel="noopener">{s.title}</a>. <em>{s.venue}</em>, {s.year}.{s.preprint && <> <span class="badge">preprint</span></>}</li>)}
+      {sorted.map((s) => <li id={`src-${s.id}`}>{s.authors}. <a href={s.url} rel="noopener">{s.title}</a>. <em>{s.venue}</em>, {s.year}.{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</li>)}
     </ol>
   </div>
 </Base>
 <style>
   h2 { margin-top: 2rem; }
-  .sources { font-size: .92rem; }
+  .sources { font-size: var(--fs-ui); }
   .sources li { margin-bottom: .5em; }
 </style>

@@ -1,14 +1,26 @@
 ---
 import type { Locale, PhaseId } from '../data/types';
 import { PHASES } from '../data/taxonomy';
-interface Props { phases: PhaseId[]; lang: Locale }
-const { phases, lang } = Astro.props;
+import { t } from '../i18n/ui';
+/** `legend` renders the key instead: every phase bar with its name. */
+interface Props { phases?: PhaseId[]; lang: Locale; legend?: boolean }
+const { phases = [], lang, legend } = Astro.props;
+const label = (lang === 'en' ? 'Runs in: ' : 'Läuft in: ') + phases.map((id) => PHASES.find((x) => x.id === id)!.name[lang]).join(', ');
 ---
-<span class="phases" aria-label={(lang === 'en' ? 'Lifecycle: ' : 'Lebenszyklus: ') + phases.map((id) => PHASES.find((x) => x.id === id)!.name[lang]).join(', ')}>
-  {PHASES.map((ph) => <i class:list={{ on: phases.includes(ph.id) }} style={`--pc: var(--p-${ph.id})`} title={ph.name[lang]} />)}
-</span>
+{legend ? (
+  <span class="phase-legend">
+    <span class="lead">{t(lang, 'phaseLegend')}:</span>
+    {PHASES.map((ph) => <span class="item"><i class="on" style={`--pc: var(--p-${ph.id})`} />{ph.name[lang]}</span>)}
+  </span>
+) : (
+  <span class="phases" role="img" aria-label={label} title={label}>
+    {PHASES.map((ph) => <i class:list={{ on: phases.includes(ph.id) }} style={`--pc: var(--p-${ph.id})`} title={ph.name[lang]} />)}
+  </span>
+)}
 <style>
   .phases { display: inline-flex; gap: 3px; }
-  i { width: 18px; height: 4px; border-radius: 2px; background: var(--rule); display: block; }
+  i { width: 18px; height: 4px; border-radius: 2px; background: var(--rule); display: block; flex: none; }
   i.on { background: var(--pc); }
+  .phase-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+  .item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 </style>

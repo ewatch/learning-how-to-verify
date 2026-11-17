@@ -27,13 +27,14 @@ Inclusion rule for new practices: widely recognised **and** catches a distinct b
 
 ## Practice page template (progressive disclosure)
 
-1. **In one sentence** — what, and which bug it catches.
-2. **Where it sits** — mini funnel + lifecycle badge, cost & feedback speed.
-3. **See it** — one visual/animation.
-4. **Try it** — in-browser simulator on the shared example (collapsed when animation-only).
-5. **Worth it / limits / evidence** — 3–5 bullets; evidence block with two ratings (general SE, with AI agents: strong / moderate / weak / none found), one plain sentence per finding + citation; "none found" stays visible; preprints badged.
-6. **Your language** — tabs (selection persists): tools, minimal snippet, "Copy for your agent" prompt.
-7. **Go deeper** — 2–3 "think first" questions with reveal + self-contained Socratic prompt (includes page content, chosen language, example code) for the reader's own LLM.
+1. **In one sentence** — what, and which bug it catches; under it a one-line "where it sits" strip (funnel layer, lifecycle phases, cost, feedback speed). Not a numbered section.
+2. **Try it / See it** — in-browser simulator on the shared example, or one visual/animation. First numbered section, visible on the first screen.
+3. **Worth it / limits / evidence** — 3–5 bullets; evidence block with two ratings (general SE, with AI agents: strong / moderate / weak / none found), one plain sentence per finding + citation; "none found" stays visible; preprints badged.
+4. **Your language** — tabs (selection persists): tools, minimal snippet.
+5. **Use with your agent** — one block with two named copy actions: the task for a coding agent, and the self-contained Socratic prompt (page content, chosen language, example code) for the reader's own LLM.
+6. **Go deeper** — 2–3 "think first" questions with reveal, guides, related practices.
+
+Revised 2026-11-16 after a UI review: the simulator moved ahead of "where it sits", and the two prompt blocks were merged.
 
 One new concept per screen; glossary popovers instead of inline definitions.
 
@@ -54,7 +55,11 @@ Structure: outcome → install (per OS / in-browser) → first spec/test on the 
 
 ## Entry points
 
-Home (interactive funnel) · Lifecycle map · My stack (pick language) · Start here (~8 steps) · Glossary · Guides.
+Home (who it is for, one primary action to Start here, then the interactive funnel as the map with no layer pre-opened) · Start here (the 8-step guided tour, opening with the petstore example; progress kept in the browser) · Diagnose my project (pick a symptom, get a first check and the feedback loop; linked from the tour) · Lifecycle map · My stack (pick language) · Glossary · Guides.
+
+About 10 practices are flagged **core** (`core: true`): the tour practices plus CI, test integrity, code review and agent rules. Long lists show them first.
+
+Revised 2026-11-16 after a UI review.
 
 ## For LLMs
 

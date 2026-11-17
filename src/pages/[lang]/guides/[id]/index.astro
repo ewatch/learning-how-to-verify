@@ -53,10 +53,10 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
   .outcome p:last-child { margin: 0; }
   section { margin-top: 30px; }
   .step h2 { display: flex; gap: 12px; align-items: baseline; }
-  .step .n { font: 600 .9rem var(--font-mono); color: var(--paper); background: var(--c); border-radius: 50%; width: 1.7rem; height: 1.7rem; display: inline-grid; place-items: center; flex: none; }
-  .cmd { margin: 8px 0 6px; font-size: .9rem; }
-  .terminal { background: #15130f; color: #e7e1d4; border-color: #2c2822; font-size: .8rem; }
+  .step .n { font: 600 var(--fs-code) var(--font-mono); color: var(--paper); background: var(--c); border-radius: 50%; width: 1.7rem; height: 1.7rem; display: inline-grid; place-items: center; flex: none; }
+  .cmd { margin: 8px 0 6px; font-size: var(--fs-sm); }
+  .terminal { background: #15130f; color: #e7e1d4; border-color: #2c2822; font-size: var(--fs-code); }
   .terminal.fail { box-shadow: inset 3px 0 0 #e0705f; }
-  .agent pre { white-space: pre-wrap; font-size: .85rem; margin-top: 10px; }
+  .agent pre { white-space: pre-wrap; font-size: var(--fs-code); margin-top: 10px; }
   .agent .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 </style>

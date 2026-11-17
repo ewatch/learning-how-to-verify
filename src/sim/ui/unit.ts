@@ -64,8 +64,8 @@ export function mount(root: HTMLElement, lang: Lang) {
       const badge = impl.buggy ? (isCaught ? pill('ok', `✓ ${t.caughtBy}`) : pill('bad', `✗ ${t.notCaught}`)) : (results.every((x) => x.outcome === 'pass') ? pill('ok', `✓ ${t.passOnCorrect}`) : pill('bad', `✗ ${t.fails}`));
       const cells = h('span', { class: 'sim-row', style: 'gap:3px' }, ...results.map((x, i) => h('span', { class: `sim-pill ${x.outcome === 'pass' ? 'idle' : 'bad'}`, title: `#${i + 1}: ${x.got}` }, String(i + 1))));
       const label = impl.buggy ? (isCaught ? BUG_LABEL[impl.id][lang] : `${lang === 'en' ? 'Implementation' : 'Implementierung'} ${IMPLS.indexOf(impl)}`) : BUG_LABEL.correct[lang];
-      return h('details', { class: 'disclose' },
-        h('summary', {}, h('span', { style: 'flex:1' }, label), cells, badge),
+      return h('details', { class: 'disclose sim-impl' },
+        h('summary', {}, h('span', { class: 'sim-impl-name' }, label), h('span', { class: 'sim-impl-res' }, cells, badge)),
         h('div', { class: 'body' }, codeView(impl.code)));
     }));
     const all = r.caught.length === r.total && !r.wrongCases.some(Boolean);

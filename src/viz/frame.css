@@ -7,16 +7,16 @@
 .vz-controls:empty { display: none; }
 .vz-stage { width: 100%; max-width: var(--vz-max, 760px); margin-inline: auto; }
 .vz-stage > svg { display: block; width: 100%; height: auto; }
-.vz-take { margin: 0; font-size: 1rem; line-height: 1.4; font-weight: 700; color: var(--ink); }
-.vz-cap { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--ink-2); }
-.vz-live { margin: 0; font-size: 0.9rem; line-height: 1.4; color: var(--ink-2); }
+.vz-take { margin: 0; font-size: var(--fs-body); line-height: 1.4; font-weight: 700; color: var(--ink); }
+.vz-cap { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--ink-2); }
+.vz-live { margin: 0; font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-2); }
 .vz-live:empty { display: none; }
 .vz-live.bad { color: var(--bad); font-weight: 600; }
 /* one look for sliders and toggles (label wrapping the input) */
-.vz-ctl { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; font-size: 0.9rem; color: var(--ink); cursor: pointer; }
+.vz-ctl { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; font-size: var(--fs-sm); color: var(--ink); cursor: pointer; }
 .vz-ctl input[type='range'] { width: min(200px, 44vw); accent-color: var(--l-verification); cursor: pointer; }
 .vz-ctl input[type='checkbox'] { width: 16px; height: 16px; margin: 0; accent-color: var(--l-verification); cursor: pointer; }
-.vz-ctl output { min-width: 4ch; font: 0.85rem var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.vz-ctl output { min-width: 4ch; font: var(--fs-code) var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .viz-mount :is(button, input, [role='button']):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .viz-mount .btn:disabled { opacity: 0.55; cursor: default; }
 .viz-mount .sim-seg { margin: 0; }

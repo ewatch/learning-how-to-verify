@@ -4,8 +4,8 @@ import { LANGS } from '../data/taxonomy';
 import { t } from '../i18n/ui';
 import { agentPrompt, toolsFor, langName } from '../lib/prompts';
 import CodeBlock from './CodeBlock.astro';
-interface Props { p: Practice; lang: Locale }
-const { p, lang } = Astro.props;
+interface Props { p: Practice; lang: Locale; socratic: string }
+const { p, lang, socratic } = Astro.props;
 const hasAnyTools = Object.values(p.tools).some((x) => x?.length);
 const firstSnippet = p.snippets?.[0];
 ---
@@ -49,39 +49,53 @@ const firstSnippet = p.snippets?.[0];
             </>)}
           </>
         )}
-        <div class="agent card">
-          <div class="agent-head">
-            <div>
-              <strong>{t(lang, 'copyForAgent')}</strong>
-              <p class="muted small">{t(lang, 'copyForAgentHint')}</p>
+        <div class="agent card" role="group" aria-labelledby={`agent-h-${lg.id}`}>
+          <h4 class="agent-h" id={`agent-h-${lg.id}`}>{t(lang, 'useWithAgent')}</h4>
+          <div class="agent-actions">
+            <div class="act">
+              <button type="button" class="btn" data-copy={promptId} command="--copy" commandfor={promptId}>{t(lang, 'copyTask')}</button>
+              <p class="muted small">{t(lang, 'copyTaskHint')}</p>
             </div>
-            <button type="button" class="btn" data-copy={promptId} command="--copy" commandfor={promptId}>{t(lang, 'copyForAgent')}</button>
+            <div class="act">
+              <button type="button" class="btn ghost" data-copy="socratic" command="--copy" commandfor="socratic" data-proglang>{t(lang, 'copyTutor')}</button>
+              <p class="muted small">{t(lang, 'copyTutorHint')}</p>
+            </div>
           </div>
-          <details class="preview"><summary class="small">{lang === 'en' ? 'Preview the task' : 'Aufgabe ansehen'}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id)}</pre></details>
+          <details class="more preview"><summary>{t(lang, 'previewTask')}</summary><pre id={promptId} tabindex="0">{agentPrompt(p, lang, lg.id)}</pre></details>
         </div>
       </section>
     );
   })}
+  <pre id="socratic" hidden>{socratic}</pre>
 </div>
 <style>
-  .table-wrap { overflow-x: auto; container-type: inline-size; max-inline-size: 100%; margin-bottom: 8px; }
-  .tools { width: 100%; border-collapse: collapse; font-size: .95rem; }
-  .tools th { text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
-  .tools tbody th { font-size: inherit; text-transform: none; letter-spacing: 0; color: inherit; font-weight: 400; padding-left: 0; background: transparent; vertical-align: top; padding-block: 7px; }
-  .tools td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  /* narrow container: one card per tool, labels injected from data-label */
-  @container (width < 26rem) {
-    .tools, .tools tbody, .tools tr, .tools tbody th, .tools td { display: block; }
-    .tools thead { display: none; }
-    .tools tr { padding: 6px 0; border-bottom: 1px solid var(--rule); }
-    .tools tbody th, .tools td { border: 0; padding: 2px 0; }
-    .tools td::before { content: attr(data-label) ': '; color: var(--ink-3); font-size: .85rem; }
+  /* eight short labels: all visible, none cut off at the scroll edge; on phones two rows of four */
+  .tabs { flex-wrap: wrap; overflow: visible; }
+  @media (max-width: 560px) {
+    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 0; }
+    .tabs [role='tab'] { border-bottom: 1px solid var(--rule); padding-inline: 4px; }
   }
-  .agent { margin-top: 14px; }
-  .agent-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
-  .agent-head p { margin: 2px 0 0; max-width: 34rem; }
-  .preview summary { cursor: pointer; margin-top: 8px; color: var(--ink-2); }
-  .preview pre { margin-top: 8px; white-space: pre-wrap; font-size: .82rem; }
+  .table-wrap { overflow-x: auto; container-type: inline-size; max-inline-size: 100%; margin-bottom: 8px; }
+  .tools { width: 100%; border-collapse: collapse; font-size: var(--fs-ui); }
+  .tools th { text-align: left; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+  .tools tbody th { font-size: inherit; text-transform: none; letter-spacing: 0; color: inherit; font-weight: 400; padding-left: 0; background: transparent; vertical-align: top; padding-block: 7px; }
+  .tools td code { font-size: var(--fs-code); }
+  .tools td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  /* narrow container: one line per tool (name, license, source link), wrapping only when the name is long */
+  @container (width < 26rem) {
+    .tools, .tools tbody { display: block; }
+    .tools thead { display: none; }
+    .tools tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+    .tools tbody th { flex: 1 1 auto; padding: 0; border: 0; }
+    .tools td { padding: 0; border: 0; }
+  }
+  .agent { margin-top: 18px; }
+  .agent-h { font-size: var(--fs-body); margin: 0 0 10px; }
+  .agent-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px 20px; }
+  .act { display: grid; gap: 4px; align-content: start; justify-items: start; }
+  .act p { margin: 0; max-width: 30rem; }
+  .preview { margin-top: 10px; }
+  .preview pre { margin-top: 8px; white-space: pre-wrap; font-size: var(--fs-code); }
 </style>
 <script>
   for (const root of document.querySelectorAll<HTMLElement>('[data-langtabs]')) {

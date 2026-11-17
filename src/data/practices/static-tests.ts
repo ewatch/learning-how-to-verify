@@ -10,6 +10,7 @@ export const staticTests: Practice[] = [
     layer: 'static',
     phases: ['pre'],
     fromOverview: true,
+    core: true,
     oneLiner: l('Check one small piece of code in isolation with concrete inputs and expected outputs.', 'Ein kleines Stück Code isoliert mit konkreten Eingaben und erwarteten Ausgaben prüfen.'),
     catches: l('wrong logic in a function: off-by-one, wrong branch, mishandled error case', 'falsche Logik in einer Funktion: um eins daneben, falscher Zweig, schlecht behandelter Fehlerfall'),
     cost: 1,

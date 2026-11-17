@@ -303,6 +303,7 @@ route:
     layer: 'verification',
     phases: ['release'],
     fromOverview: true,
+    core: true,
     oneLiner: l('Release the new version to a small share of users first, compare its health with the old version, and roll back automatically if it is worse.', 'Die neue Version zuerst einem kleinen Teil der Nutzer geben, ihre Gesundheit mit der alten vergleichen und automatisch zurückrollen, wenn sie schlechter ist.'),
     catches: l('bugs that only real users, real data and real scale trigger, with limited blast radius', 'Fehler, die nur echte Nutzer, echte Daten und echte Größe auslösen, bei begrenztem Schaden'),
     cost: 2,

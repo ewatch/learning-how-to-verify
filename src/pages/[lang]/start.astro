@@ -2,122 +2,194 @@
 import Base from '../../layouts/Base.astro';
 import type { Locale } from '../../data/types';
 import { PRACTICE_BY_ID } from '../../data/practices';
-import { START_COPY as C, START_ROUTES, START_LOOP, START_TOUR, startAgentPrompt } from '../../data/start';
+import { START_COPY as C, START_TOUR, DIAGNOSE_COPY } from '../../data/start';
 import { GUIDE_BY_ID } from '../../data/guides';
 import { href, t } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
-const practiceUrl = (id: string) => href(lang, `practices/${id}/`);
-const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
+const steps = START_TOUR.map((step) => {
+  const p = step.practice ? PRACTICE_BY_ID.get(step.practice)! : undefined;
+  return {
+    id: step.id,
+    url: p ? href(lang, `practices/${p.id}/`) : href(lang, step.path),
+    name: p ? p.name[lang] : step.title![lang],
+    exercise: step.exercise[lang],
+    sim: Boolean(p?.sim),
+  };
+});
 ---
 <Base lang={lang} path="start/" nav="start" title={C.title[lang]} description={C.description[lang]} md={`/${lang}/start/index.md`}>
-  <article class="wrap start">
-    <header class="narrow">
+  <article class="wrap start" data-tour data-resume={C.resume[lang]} data-review={C.allOpened[lang]} data-progress={C.progress[lang]}>
+    <header class="intro">
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
+      <div class="facts">
+        <div>
+          <h2 class="eyebrow">{C.after[lang]}</h2>
+          <ul class="outcomes">{C.outcomes.map((o) => <li>{o[lang]}</li>)}</ul>
+        </div>
+        <div>
+          <h2 class="eyebrow">{C.timeLabel[lang]}</h2>
+          <p class="time">{C.time[lang]}</p>
+        </div>
+      </div>
+      <div class="begin">
+        <a class="btn primary" href={steps[0].url} data-tour-begin data-step={steps[0].id}>{C.begin[lang]} →</a>
+        <p class="small muted progress" data-tour-status hidden>
+          <span data-tour-count></span>
+          <button type="button" class="linkish" data-tour-reset>{C.reset[lang]}</button>
+        </p>
+      </div>
     </header>
 
-    <section class="layer-section" aria-labelledby="where-start" data-start-picker>
-      <h2 id="where-start">{C.chooser[lang]}</h2>
-      <p class="muted narrow">{C.chooseHint[lang]}</p>
-      <div class="starting-points" role="group" aria-labelledby="where-start">
-        {START_ROUTES.map((route, i) => <button type="button" class="starting-point" data-start-choice={route.id} aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`start-${route.id}`}>
-          <span class="small muted">{String(i + 1).padStart(2, '0')}</span><span>{route.label[lang]}</span>
-        </button>)}
-      </div>
-      <div aria-live="polite" aria-atomic="false">
-        {START_ROUTES.map((route) => <section id={`start-${route.id}`} class="recommendation card" data-start-result={route.id} aria-labelledby={`heading-${route.id}`}>
-          <p class="eyebrow">{C.first[lang]}</p>
-          <h3 id={`heading-${route.id}`}><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
-          <p class="narrow">{route.why[lang]}</p>
-          <dl class="exercise">
-            <div><dt>{C.exercise[lang]}</dt><dd>{route.exercise[lang]}</dd></div>
-            <div><dt>{C.feedback[lang]}</dt><dd>{route.feedback[lang]}</dd></div>
-            <div><dt>{C.done[lang]}</dt><dd>{route.done[lang]}</dd></div>
-          </dl>
-          <div class="actions">
-            <a class="btn" href={practiceUrl(route.practice) + (route.practice === 'type-systems' ? '#try' : '')}>{C.open[lang]} →</a>
-            <button class="btn ghost" type="button" data-copy={`start-prompt-${route.id}`} command="--copy" commandfor={`start-prompt-${route.id}`}>{C.copy[lang]}</button>
-          </div>
-          <details class="task"><summary>{C.preview[lang]}</summary><pre id={`start-prompt-${route.id}`} tabindex="0">{startAgentPrompt(route, lang)}</pre></details>
-          <p class="next"><strong>{C.next[lang]}:</strong> <a href={practiceUrl(route.next)}>{practiceName(route.next)} →</a></p>
-        </section>)}
-      </div>
-    </section>
-
-    <section class="layer-section" aria-labelledby="feedback-loop">
-      <h2 id="feedback-loop">{C.loop[lang]}</h2>
-      <p class="muted narrow">{C.loopHint[lang]}</p>
-      <ol class="loop">
-        {START_LOOP.map((step) => <li><h3>{step.title[lang]}</h3><p>{step.text[lang]}</p></li>)}
+    <aside class="example card" aria-labelledby="example">
+      <h2 id="example" class="eyebrow">{C.example[lang]}</h2>
+      <p class="ex-text">{C.exampleText[lang]} <strong>{C.rule[lang]}</strong></p>
+      <ol class="ex-run" aria-label={C.rule[lang]}>
+        <li class="ok"><code>reserve(rex, anna)</code><span class="arrow" aria-hidden="true">→</span><span class="res"><span aria-hidden="true">✓</span> {C.reservedFor[lang]}</span></li>
+        <li class="bad"><code>reserve(rex, ben)</code><span class="arrow" aria-hidden="true">→</span><span class="res"><span aria-hidden="true">✗</span> {C.rejected[lang]}</span></li>
       </ol>
-    </section>
+      <p class="small muted fee">{C.fee[lang]}</p>
+    </aside>
 
-    <section class="layer-section narrow" aria-labelledby="tour">
+    <section class="tour" aria-labelledby="tour">
       <h2 id="tour">{C.learn[lang]}</h2>
-      <p class="muted">{C.learnHint[lang]}</p>
+      <p class="muted narrow">{C.learnHint[lang]}</p>
       <ol class="path">
-        {START_TOUR.map((step, i) => <li><a href={'practice' in step ? practiceUrl(step.practice!) : href(lang, step.path)}>
-          <span class="n">{i + 1}</span><span><strong>{'practice' in step ? practiceName(step.practice!) : step.title![lang]}</strong><span class="why">{step.exercise[lang]}</span></span>
-        </a></li>)}
+        {steps.map((s, i) => <li data-step={s.id}>
+          <a href={s.url} data-step={s.id}>
+            <span class="n" aria-hidden="true"><span class="num">{i + 1}</span><span class="tick">✓</span></span>
+            <span class="body">
+              <strong><span class="visually-hidden">{i + 1}. </span>{s.name}</strong>
+              <span class="why">{s.exercise}</span>
+              {s.sim && <span class="tag simtag">{C.sim[lang]}</span>}
+              <span class="state visually-hidden" data-step-state hidden> ({C.opened[lang]})</span>
+            </span>
+          </a>
+        </li>)}
       </ol>
     </section>
 
-    <section class="layer-section" aria-labelledby="setup">
-      <h2 id="setup">{C.guides[lang]}</h2>
-      <p class="muted narrow">{C.guidesHint[lang]}</p>
-      <ul class="setup-links">
-        {['tla', 'dafny'].map((id) => <li><a href={href(lang, `guides/${id}/`)}>{GUIDE_BY_ID.get(id)!.title[lang]} →</a></li>)}
-        <li><a href={href(lang, 'stack/')}>{t(lang, 'navStack')} →</a></li>
-      </ul>
+    <section class="next-block" aria-labelledby="what-next">
+      <h2 id="what-next">{C.whatNext[lang]}</h2>
+      <div class="next-grid">
+        <div class="card diag">
+          <h3>{C.diagnose[lang]}</h3>
+          <p>{C.diagnoseHint[lang]}</p>
+          <a class="btn ghost" href={href(lang, 'diagnose/')}>{DIAGNOSE_COPY.title[lang]} →</a>
+        </div>
+        <div class="setup">
+          <h3>{C.guides[lang]}</h3>
+          <p class="muted">{C.guidesHint[lang]}</p>
+          <ul class="setup-links">
+            {['tla', 'dafny'].map((id) => <li><a href={href(lang, `guides/${id}/`)}>{GUIDE_BY_ID.get(id)!.title[lang]} →</a></li>)}
+            <li><a href={href(lang, 'stack/')}>{t(lang, 'navStack')} →</a></li>
+          </ul>
+        </div>
+      </div>
     </section>
   </article>
 </Base>
 <script>
-  for (const root of document.querySelectorAll<HTMLElement>('[data-start-picker]')) {
-    const choices = [...root.querySelectorAll<HTMLButtonElement>('[data-start-choice]')];
-    const results = [...root.querySelectorAll<HTMLElement>('[data-start-result]')];
-    function select(id: string) {
-      choices.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.startChoice === id)));
-      results.forEach((panel) => { panel.hidden = panel.dataset.startResult !== id; });
-    }
-    choices.forEach((button) => button.addEventListener('click', () => select(button.dataset.startChoice!)));
-    select(choices[0].dataset.startChoice!);
+  import { PROGRESS_KEY, parseProgress, serializeProgress, nextStep, fill } from '../../lib/start-progress';
+  const root = document.querySelector<HTMLElement>('[data-tour]');
+  if (root) {
+    const items = [...root.querySelectorAll<HTMLLIElement>('.path > li')];
+    const ids = items.map((li) => li.dataset.step!);
+    const begin = root.querySelector<HTMLAnchorElement>('[data-tour-begin]')!;
+    const beginText = begin.textContent;
+    const status = root.querySelector<HTMLElement>('[data-tour-status]')!;
+    const read = () => { try { return parseProgress(localStorage.getItem(PROGRESS_KEY), ids); } catch { return new Set<string>(); } };
+    const write = (opened: Set<string>) => { try { localStorage.setItem(PROGRESS_KEY, serializeProgress(opened, ids)); } catch { /* storage unavailable */ } };
+    const render = () => {
+      const opened = read();
+      const next = nextStep(opened, ids);
+      items.forEach((li, i) => {
+        li.toggleAttribute('data-opened', opened.has(ids[i]));
+        li.toggleAttribute('data-next', opened.size > 0 && i === next);
+        li.querySelector<HTMLElement>('[data-step-state]')!.hidden = !opened.has(ids[i]);
+      });
+      const target = next === -1 ? 0 : next;
+      const link = items[target].querySelector('a')!;
+      begin.href = link.href;
+      begin.dataset.step = ids[target];
+      begin.textContent = opened.size === 0 ? beginText : `${next === -1 ? root.dataset.review : fill(root.dataset.resume!, { n: target + 1 })} →`;
+      status.hidden = opened.size === 0;
+      root.querySelector('[data-tour-count]')!.textContent = fill(root.dataset.progress!, { n: opened.size, total: ids.length });
+    };
+    const mark = (event: Event) => {
+      const id = (event.target as Element).closest<HTMLElement>('a[data-step]')?.dataset.step;
+      if (!id) return;
+      const opened = read();
+      opened.add(id);
+      write(opened);
+    };
+    root.addEventListener('click', mark);
+    root.addEventListener('auxclick', mark);
+    root.querySelector('[data-tour-reset]')!.addEventListener('click', () => {
+      try { localStorage.removeItem(PROGRESS_KEY); } catch { /* storage unavailable */ }
+      render();
+      begin.focus();
+    });
+    // Back/forward cache and other tabs: show the current state when the page is shown again.
+    addEventListener('pageshow', render);
+    addEventListener('storage', (e) => { if (e.key === PROGRESS_KEY) render(); });
+    render();
   }
 </script>
 <style>
   .start { max-width: 65rem; }
-  header { margin-bottom: 32px; }
-  .starting-points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 24px 0 14px; }
-  .starting-point { display: flex; align-items: baseline; gap: 12px; text-align: left; cursor: pointer; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--card); line-height: 1.4; }
-  .starting-point:hover { border-color: var(--l-static); }
-  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: inset 4px 0 var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
-  .recommendation { border-top: 3px solid var(--l-static); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
-  .recommendation h3 { font-size: 1.65rem; }
-  .exercise { margin: 24px 0; display: grid; gap: 16px; }
-  .exercise > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 16px; }
-  .exercise dt { font-weight: 700; line-height: 1.4; }
-  .exercise dd { margin: 0; color: var(--ink-2); }
-  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
-  .task { margin: 14px 0; }
-  .task summary { color: var(--ink-2); font-size: .9rem; cursor: pointer; }
-  .task pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .82rem; margin-top: 8px; }
-  .next { margin: 18px 0 0; font-size: .95rem; }
-  .loop { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 24px 0 0; }
-  .loop li { border-left: 2px solid var(--rule-strong); padding-left: 16px; margin: 0; }
-  .loop p { margin: 0; color: var(--ink-2); }
-  .path { list-style: none; padding: 0; margin: 28px 0 0; display: grid; position: relative; }
+  .intro { margin-bottom: 28px; }
+  .intro .lede { margin-bottom: 24px; }
+  .facts { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px 40px; max-width: 56rem; }
+  .facts h2 { margin: 0 0 8px; }
+  .outcomes { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
+  .outcomes li { margin: 0 0 4px; }
+  .time { margin: 0; color: var(--ink-2); }
+  .begin { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-top: 24px; }
+  .btn.primary { font-size: var(--fs-body); padding: 11px 18px; font-weight: 600; }
+  .progress { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+  .progress[hidden] { display: none; }
+  .linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--link); text-decoration: underline; cursor: pointer; }
+
+  .example { border-left: 3px solid var(--l-static); max-width: 44rem; margin: 0 0 32px; }
+  .example h2 { margin: 0 0 8px; }
+  .ex-text { margin: 0 0 12px; }
+  .ex-run { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
+  .ex-run li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
+  .ex-run code { font-size: var(--fs-code); }
+  .ex-run .arrow { color: var(--ink-3); }
+  .ex-run .ok .res { color: var(--ok); font-weight: 600; }
+  .ex-run .bad .res { color: var(--bad); font-weight: 600; }
+  .fee { margin: 0; }
+
+  .tour { padding: 28px 0; border-top: 1px solid var(--rule); }
+  .path { list-style: none; padding: 0; margin: 20px 0 0; display: grid; position: relative; max-width: var(--measure); }
   .path::before { content: ''; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: var(--rule-strong); }
   .path li { margin: 0; }
-  .path a { display: flex; gap: 16px; padding: 12px 0; text-decoration: none; color: var(--ink); align-items: flex-start; position: relative; }
-  .n { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 2px solid var(--ink); display: grid; place-items: center; font: 700 .95rem var(--font-mono); }
+  .path a { display: flex; gap: 16px; padding: 12px 8px 12px 0; text-decoration: none; color: var(--ink); align-items: flex-start; position: relative; border-radius: var(--radius); }
+  .n { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 2px solid var(--ink); display: grid; place-items: center; font: 700 var(--fs-ui) var(--font-mono); }
+  .n .tick { display: none; }
   .path a:hover .n { background: var(--ink); color: var(--paper); }
-  .path a > span:last-child { display: flex; flex-direction: column; padding-top: 5px; }
-  .why { color: var(--ink-2); font-size: .95rem; }
-  .setup-links { display: flex; flex-wrap: wrap; gap: 12px 28px; list-style: none; padding: 0; margin: 0; }
+  .path a:hover strong { text-decoration: underline; }
+  .body { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding-top: 5px; min-width: 0; }
+  .why { color: var(--ink-2); font-size: var(--fs-ui); }
+  .simtag { margin-top: 4px; }
+  .state[hidden] { display: none; }
+  li[data-opened] .n { background: var(--ok); border-color: var(--ok); color: var(--paper); }
+  li[data-opened] .n .num { display: none; }
+  li[data-opened] .n .tick { display: inline; }
+  li[data-next] .n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--l-static) 30%, transparent); border-color: var(--l-static); }
+  li[data-next] strong { color: var(--l-static); }
+
+  .next-block { padding: 28px 0; border-top: 1px solid var(--rule); }
+  .next-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; align-items: start; margin-top: 16px; }
+  .next-grid h3 { margin-top: 0; font-size: var(--fs-lg); }
+  .diag p { color: var(--ink-2); }
+  .setup-links { display: flex; flex-wrap: wrap; gap: 8px 24px; list-style: none; padding: 0; margin: 0; }
+  .setup-links li { margin: 0; }
   @media (max-width: 650px) {
-    .starting-points, .loop { grid-template-columns: 1fr; }
-    .exercise > div { grid-template-columns: 1fr; gap: 4px; }
+    .facts, .next-grid { grid-template-columns: 1fr; }
   }
 </style>

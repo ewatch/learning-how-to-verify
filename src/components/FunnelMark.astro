@@ -1,5 +1,6 @@
 ---
-const { size = 24 } = Astro.props as { size?: number };
+/** Small five-band funnel. With `on`, only that layer keeps its colour (position marker). */
+const { size = 24, on } = Astro.props as { size?: number; on?: string };
 const layers = ['codebase', 'static', 'verification', 'prose', 'review'];
 ---
 <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
@@ -7,6 +8,6 @@ const layers = ['codebase', 'static', 'verification', 'prose', 'review'];
     const y = 2 + i * 4;
     const half = 11 - i * 2.1;
     const half2 = 11 - (i + 1) * 2.1;
-    return <path d={`M${12 - half} ${y} H${12 + half} L${12 + half2} ${y + 3.4} H${12 - half2} Z`} fill={`var(--l-${l})`} />;
+    return <path d={`M${12 - half} ${y} H${12 + half} L${12 + half2} ${y + 3.4} H${12 - half2} Z`} fill={!on || on === l ? `var(--l-${l})` : 'var(--rule-strong)'} />;
   })}
 </svg>

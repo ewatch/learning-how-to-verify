@@ -1,11 +1,11 @@
 /* 'traffic' diagram family. Colours come from global tokens only. */
 .viz-mount[data-viz='traffic'] { container-type: inline-size; }
 .tv { --vz-max: 600px; }
-.tv-hyp { margin: 0; padding: 6px 10px; border-left: 3px solid var(--warn); background: var(--paper-2); font-weight: 600; font-size: 0.95rem; }
+.tv-hyp { margin: 0; padding: 6px 10px; border-left: 3px solid var(--warn); background: var(--paper-2); font-weight: 600; font-size: var(--fs-ui); }
 .tv-svg { overflow: visible; }
 .tv-t { font: 12px/1 var(--font-body); fill: var(--ink-2); }
 .tv-t.tv-b { fill: var(--ink); font-weight: 700; }
-.tv-t.tv-sm { font-size: 12px; }
+.tv-t.tv-sm { font-size: var(--fs-xs); }
 .tv-t.tv-mut { fill: var(--ink-3); }
 .tv-t.tv-staff-t { fill: var(--l-prose); font-weight: 700; }
 .tv-t.tv-warn-t { fill: var(--warn); font-weight: 700; }
@@ -49,18 +49,18 @@
 .tv-dot.staff { stroke: var(--l-prose); stroke-width: 3; }
 
 .tv-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
-.tv-stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.875rem; color: var(--ink-2); }
-.tv-stat b { font: 700 1rem var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
-.tv-phase { font-weight: 700; font-size: 0.875rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
-.tv-diff { width: 100%; border-collapse: collapse; font: 0.8125rem var(--font-mono); }
+.tv-stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--fs-sm); color: var(--ink-2); }
+.tv-stat b { font: 700 var(--fs-body) var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.tv-phase { font-weight: 700; font-size: var(--fs-sm); color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.tv-diff { width: 100%; border-collapse: collapse; font: var(--fs-code) var(--font-mono); }
 .tv-diff th, .tv-diff td { padding: 3px 6px; text-align: left; border-bottom: 1px solid var(--rule); }
 .tv-diff thead th { font-family: var(--font-body); color: var(--ink-3); font-weight: 600; }
 .tv-diff tr.tv-noise td, .tv-diff tr.tv-noise th { color: var(--ink-3); }
 .tv-diff tr.tv-noise td:not(.tv-verdict) { text-decoration: line-through; }
 .tv-diff tr.tv-real td, .tv-diff tr.tv-real th { color: var(--bad); font-weight: 700; background: color-mix(in srgb, var(--bad) 10%, var(--card)); }
-.tv-sampleline, .tv-pagerow, .tv-seq { margin: 0; font-size: 0.875rem; }
+.tv-sampleline, .tv-pagerow, .tv-seq { margin: 0; font-size: var(--fs-sm); }
 .tv-sample { word-break: break-word; }
-.tv-chip { display: inline-block; padding: 1px 8px; border-radius: 99px; font-weight: 700; font-size: 0.8125rem; border: 1px solid currentColor; }
+.tv-chip { display: inline-block; padding: 1px 8px; border-radius: 99px; font-weight: 700; font-size: var(--fs-sm); border: 1px solid currentColor; }
 .tv-chip-ok { color: var(--ok); }
 .tv-chip-degraded, .tv-chip-slow { color: var(--warn); }
 .tv-chip-down { color: var(--bad); }
@@ -68,7 +68,7 @@
 
 @container (max-width: 460px) {
   .opt { display: none; }
-  .tv-diff { font-size: 0.75rem; }
+  .tv-diff { font-size: var(--fs-xs); }
   .tv-diff th, .tv-diff td { padding: 3px 4px; }
 }
 @media (prefers-reduced-motion: reduce) { .tv-dot { transition: none; } }

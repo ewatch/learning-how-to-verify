@@ -1,0 +1,16 @@
+---
+import type { Locale } from '../data/types';
+import { t } from '../i18n/ui';
+import PhaseDots from './PhaseDots.astro';
+/** Key for the marks on practice cards (phase bars, "Try it" tag); shown once wherever cards are listed. */
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+---
+<div class="card-key">
+  <PhaseDots lang={lang} legend />
+  <span class="sim-key"><span class="tag">{t(lang, 'tryIt')}</span> {t(lang, 'simLegend')}</span>
+</div>
+<style>
+  .card-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; color: var(--ink-2); font-size: var(--fs-sm); margin: 0 0 12px; }
+  .sim-key { display: inline-flex; align-items: center; gap: 6px; }
+</style>

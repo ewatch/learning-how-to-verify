@@ -3,11 +3,12 @@ import Base from '../../layouts/Base.astro';
 import type { Locale } from '../../data/types';
 import { PHASES } from '../../data/taxonomy';
 import { PRACTICES } from '../../data/practices';
-import { href } from '../../i18n/ui';
+import { href, t } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
+const nCore = PRACTICES.filter((p) => p.core).length;
 ---
 <Base lang={lang} path="lifecycle/" md={`/${lang}/lifecycle/index.md`} nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
   description={en ? 'All verification practices by when they happen: pre-production, deploy, release, post-release.' : 'Alle Verifikationspraktiken danach, wann sie stattfinden: vor der Produktion, Deploy, Release, nach dem Release.'}>
@@ -19,8 +20,12 @@ const en = lang === 'en';
         ? 'Verification does not stop at the merge button. Some bugs only show up with real traffic, real data and real users, so the right-hand columns test in production, carefully and with a small blast radius.'
         : 'Verifikation endet nicht beim Merge-Knopf. Manche Fehler zeigen sich erst mit echtem Verkehr, echten Daten und echten Nutzern; die rechten Spalten testen deshalb in Produktion, vorsichtig und mit kleinem Wirkungsradius.'}</p>
       <p class="muted small">{en
-        ? 'After the overview by Cindy Sridharan (@copyconstruct), as shown by Lauren Tan (@poteto). Practices marked + were added on this site. Colour bars on the left show the funnel layer.'
-        : 'Nach der Übersicht von Cindy Sridharan (@copyconstruct), wie von Lauren Tan (@poteto) gezeigt. Mit + markierte Praktiken wurden auf dieser Seite ergänzt. Farbbalken links zeigen die Trichterschicht.'}</p>
+        ? 'After the overview by Cindy Sridharan (@copyconstruct), as shown by Lauren Tan (@poteto). Colour bars on the left show the funnel layer.'
+        : 'Nach der Übersicht von Cindy Sridharan (@copyconstruct), wie von Lauren Tan (@poteto) gezeigt. Farbbalken links zeigen die Trichterschicht.'}</p>
+      <ul class="key small">
+        <li><span class="core">{en ? 'core' : 'Kern'}</span> {en ? <>Core practice: one of {nCore} to start with. The <a href={href(lang, 'start/')}>Start here</a> tour covers most of them.</> : <>Kernpraktik: eine von {nCore} für den Anfang. Die Tour <a href={href(lang, 'start/')}>Hier starten</a> deckt die meisten ab.</>}</li>
+        <li><span class="added">{en ? 'added' : 'ergänzt'}</span> {en ? 'Not in the original overview; added on this site.' : 'Nicht in der ursprünglichen Übersicht; auf dieser Seite ergänzt.'}</li>
+      </ul>
     </header>
 
     <div class="groups" aria-hidden="true">
@@ -35,8 +40,8 @@ const en = lang === 'en';
             <h2>{ph.name[lang]} <span class="count">{list.length}</span></h2>
             <ul>
               {list.map((p) => (
-                <li style={`--c: var(--l-${p.layer})`}>
-                  <a href={href(lang, `practices/${p.id}/`)}>{p.name[lang]}</a>{!p.fromOverview && <span class="added" title={en ? 'added on this site' : 'auf dieser Seite ergänzt'}>+</span>}
+                <li class:list={{ 'is-core': p.core }} style={`--c: var(--l-${p.layer})`}>
+                  <a href={href(lang, `practices/${p.id}/`)}>{p.name[lang]}</a>{p.core && <span class="core" title={t(lang, 'corePractice')}>{en ? 'core' : 'Kern'}</span>}{!p.fromOverview && <span class="added" title={t(lang, 'addedHere')}>{en ? 'added' : 'ergänzt'}</span>}
                 </li>
               ))}
             </ul>
@@ -47,7 +52,7 @@ const en = lang === 'en';
   </div>
 </Base>
 <style>
-  .groups { display: grid; grid-template-columns: 1.15fr 3fr; gap: 10px; margin: 34px 0 6px; font: 600 .78rem var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+  .groups { display: grid; grid-template-columns: 1.15fr 3fr; gap: 10px; margin: 34px 0 6px; font: 600 var(--fs-xs) var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
   .g { border-bottom: 2px solid; padding-bottom: 6px; }
   .g.pre { color: var(--p-pre); }
   .g.prod { color: var(--ok); }
@@ -55,13 +60,21 @@ const en = lang === 'en';
   @media (max-width: 980px) { .board { grid-template-columns: 1fr 1fr; } .groups { display: none; } }
   @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
   .col { background: color-mix(in srgb, var(--pc) 9%, var(--card)); border: 1.5px solid var(--pc); border-radius: var(--radius); padding: 14px 14px 10px; }
-  .col h2 { font-size: 1.15rem; display: flex; justify-content: space-between; align-items: baseline; color: var(--ink); }
-  .count { font: 600 .8rem var(--font-mono); color: var(--pc); }
+  .col h2 { font-size: var(--fs-lg); display: flex; justify-content: space-between; align-items: baseline; color: var(--ink); }
+  .count { font: 600 var(--fs-code) var(--font-mono); color: var(--pc); }
   ul { list-style: none; padding: 0; margin: 0; }
   li { position: relative; padding: 5px 0 5px 12px; margin: 0; border-bottom: 1px dashed color-mix(in srgb, var(--pc) 30%, transparent); }
   li:last-child { border-bottom: 0; }
   li::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--c); }
   li a { color: var(--ink); text-decoration: none; }
   li a:hover { text-decoration: underline; }
-  .added { color: var(--ink-3); font-family: var(--font-mono); margin-left: 4px; font-size: .85rem; }
+  li.is-core a { font-weight: 700; }
+  .core, .added { display: inline-block; margin-left: 6px; font: 600 var(--fs-xs)/1.45 var(--font-body); letter-spacing: .02em; border-radius: 3px; padding: 0 5px; vertical-align: 1px; white-space: nowrap; }
+  .core { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+  .added { color: var(--ink-2); border: 1px dashed var(--rule-strong); font-weight: 500; }
+  .key { list-style: none; padding: 0; margin: 10px 0 0; color: var(--ink-2); }
+  .key li { padding: 0; border: 0; margin: 0 0 4px; }
+  .key li::before { display: none; }
+  .key a { color: var(--link); text-decoration: underline; }
+  .key .core, .key .added { margin: 0 6px 0 0; }
 </style>

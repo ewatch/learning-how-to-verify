@@ -5,6 +5,7 @@ import { TYPE_REVISIONS } from '../typecheck';
 export const staticChecks: Practice[] = [
   {
     id: 'type-systems',
+    domain: { parts: ['reserve', 'reservation'], what: l('The compiler checks `reserve()` for a missing pet and a `reservedBy` that can be null.', 'Der Compiler prüft `reserve()` auf ein fehlendes Tier und ein `reservedBy`, das null sein kann.') },
     name: l('Type systems & compilers', 'Typsysteme & Compiler'),
     layer: 'static',
     phases: ['pre'],
@@ -113,6 +114,7 @@ function owner(Reservation $reservation): string
   },
   {
     id: 'lint',
+    domain: { parts: ['domain', 'reserve'], what: l('Four lint rules check domain code, for example a save without `await`.', 'Vier Lint-Regeln prüfen Domain-Code, zum Beispiel ein Speichern ohne `await`.') },
     sim: 'lint',
     name: l('Lint tests', 'Linting'),
     layer: 'static',
@@ -197,6 +199,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'static-analysis',
+    domain: { parts: ['checkout', 'server-price', 'api'], what: l('A Semgrep rule follows the price from the request and stops code that trusts it.', 'Eine Semgrep-Regel verfolgt den Preis aus dem Request und stoppt Code, der ihm vertraut.') },
     viz: { kind: 'pipeline', mode: 'static-analysis' },
     name: l('Static analysis', 'Statische Analyse'),
     layer: 'static',
@@ -265,6 +268,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'security-scanning',
+    domain: { parts: ['config'], what: l('Six scanners check an agent\'s pull request for secrets and bad packages.', 'Sechs Scanner prüfen den Pull Request eines Agenten auf Secrets und schlechte Pakete.') },
     sim: 'secrets',
     name: l('Security scanning (SAST, SCA, secrets)', 'Security-Scans (SAST, SCA, Secrets)'),
     layer: 'static',
@@ -335,6 +339,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
   },
   {
     id: 'ci',
+    domain: { parts: ['tests'], what: l('Each petstore commit runs lint, types, tests and build before the merge.', 'Jeder Petstore-Commit durchläuft vor dem Merge Lint, Typen, Tests und Build.') },
     viz: { kind: 'pipeline', mode: 'ci' },
     name: l('Continuous integration', 'Continuous Integration (CI)'),
     layer: 'static',
@@ -413,6 +418,7 @@ jobs:
   },
   {
     id: 'tdd',
+    domain: { parts: ['reserve', 'never-twice'], what: l('Four approved tests for `reserve()` exist before the code.', 'Vier freigegebene Tests für `reserve()` gibt es vor dem Code.') },
     sim: 'tdd',
     name: l('TDD & spec-driven development', 'TDD & spezifikationsgetriebene Entwicklung'),
     layer: 'static',
@@ -507,6 +513,7 @@ final class ReservationTest extends TestCase
   },
   {
     id: 'test-integrity',
+    domain: { parts: ['tests', 'reserve', 'never-twice'], what: l('Four gates judge five agent patches for a failed reservation test.', 'Vier Gates bewerten fünf Agenten-Patches für einen gescheiterten Reservierungstest.') },
     sim: 'integrity',
     name: l('Test integrity', 'Testintegrität'),
     layer: 'static',

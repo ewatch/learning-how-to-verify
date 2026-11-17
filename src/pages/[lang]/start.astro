@@ -20,7 +20,8 @@ const steps = START_TOUR.map((step) => {
 });
 ---
 <Base lang={lang} path="start/" nav="start" title={C.title[lang]} description={C.description[lang]} md={`/${lang}/start/index.md`}>
-  <article class="wrap start" data-tour data-resume={C.resume[lang]} data-review={C.allOpened[lang]} data-progress={C.progress[lang]}>
+  <article class="wrap start" data-tour data-resume={C.resume[lang]} data-review={C.allOpened[lang]} data-progress={C.progress[lang]}
+    data-states={JSON.stringify({ done: C.stateDone[lang], opened: C.stateOpened[lang], current: C.stateCurrent[lang] })}>
     <header class="intro">
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
@@ -36,6 +37,7 @@ const steps = START_TOUR.map((step) => {
       </div>
       <div class="begin">
         <a class="btn primary" href={steps[0].url} data-tour-begin data-step={steps[0].id}>{C.begin[lang]} →</a>
+        <p class="finished" role="status" data-tour-finished hidden>{C.finished[lang].replace('{total}', String(steps.length))}</p>
         <p class="small muted progress" data-tour-status hidden>
           <span data-tour-count></span>
           <button type="button" class="linkish" data-tour-reset>{C.reset[lang]}</button>
@@ -51,6 +53,7 @@ const steps = START_TOUR.map((step) => {
         <li class="bad"><code>reserve(rex, ben)</code><span class="arrow" aria-hidden="true">→</span><span class="res"><span aria-hidden="true">✗</span> {C.rejected[lang]}</span></li>
       </ol>
       <p class="small muted fee">{C.fee[lang]}</p>
+      <p class="petstore"><a href={href(lang, 'petstore/')}>{C.petstore[lang]} <span aria-hidden="true">→</span></a></p>
     </aside>
 
     <section class="tour" aria-labelledby="tour">
@@ -64,7 +67,7 @@ const steps = START_TOUR.map((step) => {
               <strong><span class="visually-hidden">{i + 1}. </span>{s.name}</strong>
               <span class="why">{s.exercise}</span>
               {s.sim && <span class="tag simtag">{C.sim[lang]}</span>}
-              <span class="state visually-hidden" data-step-state hidden> ({C.opened[lang]})</span>
+              <span class="state visually-hidden" data-step-state hidden></span>
             </span>
           </a>
         </li>)}
@@ -92,41 +95,46 @@ const steps = START_TOUR.map((step) => {
   </article>
 </Base>
 <script>
-  import { PROGRESS_KEY, parseProgress, serializeProgress, nextStep, fill } from '../../lib/start-progress';
+  import { PROGRESS_KEY, parseTour, serializeTour, emptyTour, enterStep, firstNotDone, stepStatuses, fill, type TourState } from '../../lib/start-progress';
   const root = document.querySelector<HTMLElement>('[data-tour]');
   if (root) {
     const items = [...root.querySelectorAll<HTMLLIElement>('.path > li')];
     const ids = items.map((li) => li.dataset.step!);
+    const states = JSON.parse(root.dataset.states!) as Record<string, string>;
     const begin = root.querySelector<HTMLAnchorElement>('[data-tour-begin]')!;
     const beginText = begin.textContent;
     const status = root.querySelector<HTMLElement>('[data-tour-status]')!;
-    const read = () => { try { return parseProgress(localStorage.getItem(PROGRESS_KEY), ids); } catch { return new Set<string>(); } };
-    const write = (opened: Set<string>) => { try { localStorage.setItem(PROGRESS_KEY, serializeProgress(opened, ids)); } catch { /* storage unavailable */ } };
+    const finished = root.querySelector<HTMLElement>('[data-tour-finished]')!;
+    const read = (): TourState => { try { return parseTour(localStorage.getItem(PROGRESS_KEY), ids); } catch { return emptyTour(); } };
+    const write = (s: TourState) => { try { localStorage.setItem(PROGRESS_KEY, serializeTour(s, ids)); } catch { /* storage unavailable */ } };
     const render = () => {
-      const opened = read();
-      const next = nextStep(opened, ids);
+      const state = read();
+      const statuses = stepStatuses(state, ids);
+      const next = firstNotDone(state, ids);
+      const started = state.opened.size > 0;
       items.forEach((li, i) => {
-        li.toggleAttribute('data-opened', opened.has(ids[i]));
-        li.toggleAttribute('data-next', opened.size > 0 && i === next);
-        li.querySelector<HTMLElement>('[data-step-state]')!.hidden = !opened.has(ids[i]);
+        li.dataset.state = started ? statuses[i] : 'open';
+        const label = li.querySelector<HTMLElement>('[data-step-state]')!;
+        const text = started ? states[statuses[i]] : undefined;
+        label.hidden = !text;
+        label.textContent = text ? ` (${text})` : '';
       });
       const target = next === -1 ? 0 : next;
       const link = items[target].querySelector('a')!;
       begin.href = link.href;
       begin.dataset.step = ids[target];
-      begin.textContent = opened.size === 0 ? beginText : `${next === -1 ? root.dataset.review : fill(root.dataset.resume!, { n: target + 1 })} →`;
-      status.hidden = opened.size === 0;
-      root.querySelector('[data-tour-count]')!.textContent = fill(root.dataset.progress!, { n: opened.size, total: ids.length });
+      begin.textContent = !started ? beginText : `${next === -1 ? root.dataset.review : fill(root.dataset.resume!, { n: target + 1 })} →`;
+      status.hidden = !started;
+      finished.hidden = next !== -1;
+      root.querySelector('[data-tour-count]')!.textContent = fill(root.dataset.progress!, { n: state.done.size, opened: state.opened.size, total: ids.length });
     };
-    const mark = (event: Event) => {
+    // Entering a step from this page turns the tour on: the bar at the bottom then guides through each step page.
+    const enter = (event: Event) => {
       const id = (event.target as Element).closest<HTMLElement>('a[data-step]')?.dataset.step;
-      if (!id) return;
-      const opened = read();
-      opened.add(id);
-      write(opened);
+      if (id) write(enterStep(read(), id));
     };
-    root.addEventListener('click', mark);
-    root.addEventListener('auxclick', mark);
+    root.addEventListener('click', enter);
+    root.addEventListener('auxclick', enter);
     root.querySelector('[data-tour-reset]')!.addEventListener('click', () => {
       try { localStorage.removeItem(PROGRESS_KEY); } catch { /* storage unavailable */ }
       render();
@@ -134,7 +142,7 @@ const steps = START_TOUR.map((step) => {
     });
     // Back/forward cache and other tabs: show the current state when the page is shown again.
     addEventListener('pageshow', render);
-    addEventListener('storage', (e) => { if (e.key === PROGRESS_KEY) render(); });
+    addEventListener('storage', (e) => { if (e.key === PROGRESS_KEY || e.key === null) render(); });
     render();
   }
 </script>
@@ -177,11 +185,15 @@ const steps = START_TOUR.map((step) => {
   .why { color: var(--ink-2); font-size: var(--fs-ui); }
   .simtag { margin-top: 4px; }
   .state[hidden] { display: none; }
-  li[data-opened] .n { background: var(--ok); border-color: var(--ok); color: var(--paper); }
-  li[data-opened] .n .num { display: none; }
-  li[data-opened] .n .tick { display: inline; }
-  li[data-next] .n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--l-static) 30%, transparent); border-color: var(--l-static); }
-  li[data-next] strong { color: var(--l-static); }
+  li[data-state='done'] .n { background: var(--ok); border-color: var(--ok); color: var(--paper); }
+  li[data-state='done'] .n .num { display: none; }
+  li[data-state='done'] .n .tick { display: inline; }
+  li[data-state='opened'] .n { border-color: var(--ok); border-style: dashed; }
+  li[data-state='current'] .n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--l-static) 30%, transparent); border-color: var(--l-static); }
+  li[data-state='current'] strong { color: var(--l-static); }
+  .finished { flex-basis: 100%; margin: 0; padding: 10px 14px; border-left: 4px solid var(--ok); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; font-weight: 600; max-width: 40rem; }
+  .finished[hidden] { display: none; }
+  .petstore { margin: 10px 0 0; }
 
   .next-block { padding: 28px 0; border-top: 1px solid var(--rule); }
   .next-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; align-items: start; margin-top: 16px; }

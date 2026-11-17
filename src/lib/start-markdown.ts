@@ -12,7 +12,7 @@ const helpers = (locale: Locale) => {
   return { page, name, practice };
 };
 
-/** "Start here": the guided tour. */
+/** "Getting Started": the guided tour. */
 export function startMarkdown(locale: Locale): string {
   const { page, practice } = helpers(locale);
   const out = [`# ${C.title[locale]}`, '', C.intro[locale], '',

@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const proseReview: Practice[] = [
   {
     id: 'agent-rules',
+    domain: { parts: ['agent', 'domain'], what: l('The petstore AGENTS.md names the check command, the module rules and money in cents.', 'Die AGENTS.md des Petstores nennt den Prüfbefehl, die Modulregeln und Geld in Cent.') },
     viz: { kind: 'process', mode: 'agent-rules' },
     name: l('Rules, skills & AGENTS.md', 'Regeln, Skills & AGENTS.md'),
     layer: 'prose',
@@ -69,6 +70,7 @@ export const proseReview: Practice[] = [
   },
   {
     id: 'evals',
+    domain: { parts: ['agent'], what: l('Twelve petstore tasks run before and after a change to AGENTS.md.', 'Zwölf Petstore-Aufgaben laufen vor und nach einer Änderung an AGENTS.md.') },
     viz: { kind: 'process', mode: 'evals' },
     name: l('Evals for your agent setup', 'Evals für das Agenten-Setup'),
     layer: 'prose',
@@ -137,6 +139,7 @@ Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note:
   },
   {
     id: 'code-review',
+    domain: { parts: ['domain', 'reserve'], what: l('A person reviews the agent\'s change, for example a second way to reserve a pet.', 'Eine Person prüft die Änderung des Agenten, zum Beispiel einen zweiten Weg zum Reservieren.') },
     viz: { kind: 'process', mode: 'code-review' },
     name: l('Code review', 'Code-Review'),
     layer: 'review',
@@ -209,6 +212,7 @@ List assumptions you could not verify. Do not invent findings.`, focus: [{ line:
   },
   {
     id: 'penetration-tests',
+    domain: { parts: ['api', 'own-only', 'person'], what: l('An attack through a weak API endpoint reserves all pets for one account.', 'Ein Angriff über einen schwachen API-Endpoint reserviert alle Tiere für einen Account.') },
     viz: { kind: 'process', mode: 'penetration-tests' },
     name: l('Penetration tests', 'Penetrationstests'),
     layer: 'review',
@@ -257,6 +261,7 @@ docker run --rm -t ghcr.io/zaproxy/zaproxy:stable   zap-baseline.py -t http://ho
   },
   {
     id: 'usability-tests',
+    domain: { parts: ['ui', 'reserve'], what: l('Five people try to reserve a pet with the reservation form.', 'Fünf Personen versuchen, mit dem Reservierungsformular ein Tier zu reservieren.') },
     viz: { kind: 'process', mode: 'usability-tests' },
     name: l('Usability tests', 'Usability-Tests'),
     layer: 'review',
@@ -311,6 +316,7 @@ Separate observed behaviour from your interpretation.`, focus: [{ line: [2,3], n
   },
   {
     id: 'oncall-experience',
+    domain: { parts: ['monitoring', 'never-twice'], what: l('A double reservation in production becomes a lint rule.', 'Eine doppelte Reservierung in Production wird zu einer Lint-Regel.') },
     viz: { kind: 'process', mode: 'oncall-experience' },
     name: l('On-call experience', 'On-Call-Erfahrung'),
     layer: 'review',

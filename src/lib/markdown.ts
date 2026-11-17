@@ -7,6 +7,7 @@ import type { Guide } from '../data/guides';
 import { UI } from '../i18n/ui';
 import { layerName, phaseNames } from './prompts';
 import { SITE_URL } from './site';
+import { PART_BY_ID, PETSTORE_COPY } from '../data/petstore';
 
 const T = (loc: Locale, k: keyof typeof UI) => UI[k][loc];
 
@@ -23,7 +24,8 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
   out.push(`**${T(loc, 'inOneSentence')}:** ${p.oneLiner[loc]}`, '');
   out.push(`- **${T(loc, 'catches')}:** ${p.catches[loc]}`);
   out.push(`- **${T(loc, 'layer')}:** ${layerName(p, loc)} · **${T(loc, 'phase')}:** ${phaseNames(p, loc).join(', ')}`);
-  out.push(`- **${T(loc, 'cost')}:** ${COST_LABEL[p.cost][loc]} · **${T(loc, 'feedback')}:** ${FEEDBACK_LABEL[p.feedback][loc]}`, '');
+  out.push(`- **${T(loc, 'cost')}:** ${COST_LABEL[p.cost][loc]} · **${T(loc, 'feedback')}:** ${FEEDBACK_LABEL[p.feedback][loc]}`);
+  out.push(`- **${PETSTORE_COPY.inPetstore[loc]}:** ${p.domain.parts.map((id) => PART_BY_ID.get(id)!.name[loc]).join(', ')}. ${p.domain.what[loc]} ([${PETSTORE_COPY.open[loc]}](${SITE_URL}/${loc}/petstore/index.md))`, '');
   out.push(`## ${T(loc, 'worthIt')}`, ...p.worth.map((x) => `- ${x[loc]}`), '');
   out.push(`## ${T(loc, 'limits')}`, ...p.limits.map((x) => `- ${x[loc]}`), '');
   out.push(`## ${T(loc, 'withAgents')}`, p.ai[loc], '');

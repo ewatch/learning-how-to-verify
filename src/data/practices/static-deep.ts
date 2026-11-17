@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const staticDeep: Practice[] = [
   {
     id: 'property-based-tests',
+    domain: { parts: ['checkout', 'discount-sum'], what: l('For random carts, the shares of a discount must add up to the discount.', 'Für zufällige Warenkörbe müssen die Anteile eines Rabatts genau den Rabatt ergeben.') },
     name: l('Property-based tests', 'Property-Based Testing'),
     layer: 'static',
     phases: ['pre'],
@@ -122,6 +123,7 @@ final class AllocateTest extends TestCase
   },
   {
     id: 'fuzz-tests',
+    domain: { parts: ['search'], what: l('A fuzzer sends strange queries to the search parser `parseSearch`.', 'Ein Fuzzer sendet seltsame Anfragen an den Suchparser `parseSearch`.') },
     name: l('Fuzz tests', 'Fuzzing'),
     layer: 'static',
     phases: ['pre'],
@@ -206,6 +208,7 @@ module.exports.fuzz = (data) => {
   },
   {
     id: 'mutation-tests',
+    domain: { parts: ['fee', 'fee-rules', 'reserve'], what: l('Small changes to `adoptionFee` and `reserve` show which ones the tests miss.', 'Kleine Änderungen an `adoptionFee` und `reserve` zeigen, welche die Tests übersehen.') },
     name: l('Mutation tests', 'Mutation Testing'),
     layer: 'static',
     phases: ['pre'],
@@ -276,6 +279,7 @@ tests_dir = ["tests/"]
   },
   {
     id: 'coverage',
+    domain: { parts: ['tests', 'fee', 'cancel'], what: l('Coverage shows which lines of the fee code the tests run, and an untested `cancel`.', 'Coverage zeigt, welche Zeilen des Gebührencodes die Tests ausführen, und ein ungetestetes `cancel`.') },
     viz: { kind: 'pipeline', mode: 'coverage' },
     name: l('Coverage tests', 'Coverage (Testabdeckung)'),
     layer: 'static',
@@ -332,6 +336,7 @@ export default defineConfig({
   },
   {
     id: 'differential-testing',
+    domain: { parts: ['voucher'], what: l('Old and new voucher pricing get the same random inputs.', 'Alte und neue Gutschein-Preisberechnung bekommen dieselben Zufallseingaben.') },
     name: l('Differential testing', 'Differential Testing'),
     layer: 'static',
     phases: ['pre'],
@@ -400,6 +405,7 @@ final class PriceComparisonTest extends TestCase
   },
   {
     id: 'benchmark-tests',
+    domain: { parts: ['search'], what: l('A benchmark measures the pet search with 10 to 100,000 pets.', 'Ein Benchmark misst die Tiersuche mit 10 bis 100.000 Tieren.') },
     viz: { kind: 'load', mode: 'benchmark-tests' },
     name: l('Benchmark tests', 'Benchmarks'),
     layer: 'static',
@@ -457,6 +463,7 @@ console.table(bench.table());`, focus: [{ line: 3, note: l('Realistic data size 
   },
   {
     id: 'performance-tests',
+    domain: { parts: ['api', 'search'], what: l('The test measures the p95 latency of the pet list with realistic data.', 'Der Test misst die p95-Latenz der Tierliste mit realistischen Daten.') },
     viz: { kind: 'load', mode: 'performance-tests' },
     name: l('Performance tests', 'Performancetests'),
     layer: 'static',
@@ -515,6 +522,7 @@ export default function () {
   },
   {
     id: 'load-tests',
+    domain: { parts: ['api', 'db', 'never-twice'], what: l('Many users reserve at once: latency, errors and no pet reserved twice.', 'Viele Nutzer reservieren gleichzeitig: Latenz, Fehler und kein doppelt reserviertes Tier.') },
     viz: { kind: 'load', mode: 'load-tests' },
     name: l('Load tests', 'Lasttests'),
     layer: 'static',
@@ -571,6 +579,7 @@ export default function () {
   },
   {
     id: 'soak-tests',
+    domain: { parts: ['api', 'reserve'], what: l('The test watches memory for 24 hours while people reserve pets.', 'Der Test beobachtet den Speicher 24 Stunden lang, während Menschen Tiere reservieren.') },
     viz: { kind: 'load', mode: 'soak-tests' },
     name: l('Soak tests', 'Dauerlasttests (Soak)'),
     layer: 'static',
@@ -629,6 +638,7 @@ export default function () {
   },
   {
     id: 'config-tests',
+    domain: { parts: ['config', 'rollout'], what: l('A policy checks the Kubernetes manifest, for example `replicas: 0`.', 'Eine Policy prüft das Kubernetes-Manifest, zum Beispiel `replicas: 0`.') },
     viz: { kind: 'pipeline', mode: 'config-tests' },
     name: l('Config tests', 'Konfigurationstests'),
     layer: 'static',

@@ -73,7 +73,10 @@ export function mountMode(root: HTMLElement, lang: L, mode: string, def: ModeDef
 
   function draw() {
     const focused = (document.activeElement as HTMLElement | null)?.getAttribute?.('data-act');
-    stage.innerHTML = `<svg viewBox="0 0 360 230" role="img" aria-label="${def.label(ctx).replace(/"/g, '&quot;')}" preserveAspectRatio="xMidYMid meet">${def.svg(ctx)}</svg>`;
+    const body = def.svg(ctx);
+    // role="img" makes children presentational, which would hide in-diagram buttons from assistive tech.
+    const role = body.includes('role="button"') ? 'group' : 'img';
+    stage.innerHTML = `<svg viewBox="0 0 360 230" role="${role}" aria-label="${def.label(ctx).replace(/"/g, '&quot;')}" preserveAspectRatio="xMidYMid meet">${body}</svg>`;
     detail.innerHTML = def.html ? def.html(ctx) : '';
     syncs.forEach((f) => f());
     if (focused) (stage.querySelector(`[data-act="${focused}"]`) as HTMLElement | null)?.focus();

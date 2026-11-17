@@ -405,3 +405,68 @@ code, pre, kbd, .sim-code, .cm-content { font-variant-ligatures: none; font-feat
 @keyframes slide-to-right { to { transform: translateX(12%); opacity: 0; } }
 @keyframes slide-from-left { from { transform: translateX(-12%); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(root) { animation: none !important; } }
+
+/* ---------- tour bar: the "Getting Started" task, fixed to the bottom of the window (src/components/TourBar.astro) ---------- */
+.tour-bar { position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 6; max-block-size: 40dvh; overflow-y: auto; overscroll-behavior: contain; background: var(--card); color: var(--ink); border-top: 3px solid var(--l-static); box-shadow: 0 -6px 18px rgb(0 0 0 / 0.14); padding: 8px var(--gutter) calc(8px + env(safe-area-inset-bottom)); view-transition-name: tour-bar; font-size: var(--fs-ui); line-height: 1.4; }
+.tour-bar[hidden] { display: none; }
+html.has-tour-bar { scroll-padding-block: 4.75rem calc(var(--tour-bar-h, 0px) + 12px); }
+html.has-tour-bar body { padding-block-end: var(--tour-bar-h, 0px); }
+.tour-inner { max-inline-size: var(--wide); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'steps' 'detail' 'actions'; gap: 4px 24px; }
+.tour-head { grid-area: head; display: flex; align-items: center; gap: 8px; min-inline-size: 0; }
+.tour-where { flex: 1 1 auto; min-inline-size: 0; margin: 0; }
+.tour-name { display: block; font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--l-static); }
+.tour-title { font-weight: 600; }
+.tour-icon { flex: none; display: inline-grid; place-items: center; min-inline-size: 2.75rem; min-block-size: 2.75rem; padding: 0; border: 1px solid transparent; border-radius: var(--radius); background: none; color: var(--ink-2); font: inherit; font-size: var(--fs-lg); cursor: pointer; }
+.tour-icon:hover { background: var(--paper-2); color: var(--ink); }
+.tour-icon .chev { display: block; inline-size: 1.25rem; block-size: 1.25rem; }
+.tour-bar[data-collapsed] .tour-icon .chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: no-preference) { .tour-icon .chev { transition: transform 0.2s ease-in-out; } }
+.tour-steps { grid-area: steps; display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+.tour-steps ol { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.tour-steps li { margin: 0; }
+.tour-steps ol a { display: grid; place-items: center; min-inline-size: 1.625rem; min-block-size: 2.25rem; border-radius: var(--radius); text-decoration: none; color: var(--ink); }
+.tour-steps .dot { display: grid; place-items: center; inline-size: 1.5rem; block-size: 1.5rem; border-radius: 50%; border: 2px solid var(--rule-strong); background: var(--card); font: 700 var(--fs-xs)/1 var(--font-mono); }
+.tour-steps a:hover .dot { border-color: var(--ink); }
+.tour-steps a[data-state='opened'] .dot { border-color: var(--ok); border-style: dashed; }
+.tour-steps a[data-state='done'] .dot { background: var(--ok); border-color: var(--ok); color: var(--paper); font-size: 0; }
+.tour-steps a[data-state='done'] .dot::after { content: '✓' / ''; font-size: var(--fs-sm); }
+.tour-steps a[aria-current='step'] .dot { border-color: var(--l-static); box-shadow: 0 0 0 3px color-mix(in srgb, var(--l-static) 35%, transparent); }
+.tour-steps a[aria-current='step'][data-state='current'] .dot { background: var(--l-static); color: var(--paper); }
+.tour-overview { display: inline-flex; align-items: center; min-block-size: 2.25rem; font-size: var(--fs-sm); color: var(--link); }
+.tour-detail { grid-area: detail; min-inline-size: 0; }
+.tour-task { margin: 0 0 2px; max-inline-size: var(--measure); }
+.tour-when { margin: 0; font-size: var(--fs-sm); color: var(--ink-2); max-inline-size: var(--measure); }
+.tour-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-block-start: 4px; }
+.tour-bar .btn { justify-content: center; font-weight: 600; }
+.tour-next-short { display: none; }
+/* collapsed: one line with the step, "Done, next" and the toggle */
+.tour-bar[data-collapsed] { padding-block: 4px calc(4px + env(safe-area-inset-bottom)); }
+.tour-bar[data-collapsed] :is(.tour-detail, .tour-actions, .tour-name) { display: none; }
+.tour-bar[data-collapsed] .tour-next-short { display: inline-flex; flex: none; white-space: nowrap; }
+.tour-bar[data-collapsed] .tour-where { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 44rem), (pointer: coarse) {
+  .tour-bar .btn { min-block-size: 2.75rem; }
+  .tour-steps ol a, .tour-overview { min-block-size: 2.75rem; }
+}
+@media (max-width: 44rem) {
+  .tour-bar[data-collapsed] :is(.tour-steps, .tour-exit) { display: none; }
+  .tour-actions .btn { flex: 1 1 auto; }
+}
+/* collapsed: one flex row; on wide screens the step dots stay in it */
+.tour-bar[data-collapsed] .tour-inner { display: flex; align-items: center; gap: 8px 16px; }
+.tour-bar[data-collapsed] .tour-head { display: contents; }
+.tour-bar[data-collapsed] .tour-steps { order: 1; }
+.tour-bar[data-collapsed] :is(.tour-next-short, .tour-icon) { order: 2; }
+.tour-bar[data-collapsed] .tour-overview { display: none; }
+.tour-next .short { display: none; }
+@media (max-width: 44rem) {
+  .tour-bar[data-collapsed] .tour-inner { gap: 8px; }
+  .tour-name { display: none; }
+  .tour-actions .tour-next .long { display: none; }
+  .tour-actions .tour-next .short { display: inline; }
+}
+@media (min-width: 62rem) {
+  .tour-bar:not([data-collapsed]) .tour-inner { grid-template-columns: minmax(16rem, auto) minmax(0, 1fr) auto; grid-template-areas: 'head detail actions' 'steps detail actions'; align-items: center; }
+  .tour-bar:not([data-collapsed]) .tour-actions { flex-direction: column; align-items: stretch; padding: 0; }
+}
+@media print { .tour-bar { display: none !important; } html.has-tour-bar body { padding-block-end: 0; } }

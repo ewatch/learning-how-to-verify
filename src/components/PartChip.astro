@@ -1,0 +1,19 @@
+---
+// A link to one part of the petstore example. The border shows the kind: operation (solid), rule (amber), data (dashed), system part (square).
+import type { Locale } from '../data/types';
+import { PART_BY_ID, PETSTORE_COPY, partAnchor, type PartId } from '../data/petstore';
+import { href } from '../i18n/ui';
+interface Props { id: PartId; lang: Locale; /** link inside the same page */ local?: boolean; count?: number }
+const { id, lang, local = false, count } = Astro.props;
+const p = PART_BY_ID.get(id)!;
+const url = local ? `#${partAnchor(id)}` : href(lang, `petstore/#${partAnchor(id)}`);
+---
+<a class={`pc k-${p.kind}`} href={url} title={`${PETSTORE_COPY.kindOne[p.kind][lang]}: ${p.text[lang].replace(/`/g, '')}`}>{p.name[lang]}{count !== undefined && <span class="n">{count}</span>}</a>
+<style>
+  .pc { display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; vertical-align: top; border-radius: 999px; border: 1px solid var(--link); background: var(--card); color: var(--ink); font-size: var(--fs-sm); line-height: 18px; text-decoration: none; white-space: nowrap; }
+  .pc:hover { text-decoration: underline; }
+  .k-rule { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--card)); }
+  .k-data { border-style: dashed; border-color: var(--ink-3); }
+  .k-system { border-radius: 3px; border-color: var(--rule-strong); }
+  .n { font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+</style>

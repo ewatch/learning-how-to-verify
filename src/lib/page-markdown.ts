@@ -8,10 +8,35 @@ import { TOOLS } from '../data/tools';
 import { PRACTICE_BY_ID } from '../data/practices';
 import { SITE_URL } from './site';
 import { t } from '../i18n/ui';
+import { PARTS, PART_BY_ID, PETSTORE_COPY, KIND_ORDER } from '../data/petstore';
+import { practicesFor } from './petstore';
 
 const link = (loc: Locale, id: string) => `[${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`;
 
 const coreTag = (loc: Locale) => (loc === 'en' ? ' *(core)*' : ' *(Kern)*');
+
+/** The petstore page as Markdown: every part with its description, signature, rules and the practices that check it. */
+export function petstoreMarkdown(loc: Locale): string {
+  const C = PETSTORE_COPY;
+  const out = [`# ${C.title[loc]}`, '', C.intro[loc], '', `> ${C.story[loc]}`, ''];
+  out.push(loc === 'en'
+    ? 'The system parts sit in three zones: before the code runs (agent setup, tests and CI, config and packages), the running petstore (browser UI, REST API, domain code, database, payment and mail) and production (deploy and rollout, monitoring). Data, operations and rules live in the domain code.'
+    : 'Die Systemteile liegen in drei Zonen: bevor der Code läuft (Agent-Setup, Tests und CI, Config und Pakete), der laufende Petstore (Browser-UI, REST-API, Domain-Code, Datenbank, Payment und Mail) und Production (Deploy und Rollout, Monitoring). Daten, Operationen und Regeln liegen im Domain-Code.', '');
+  for (const kind of KIND_ORDER) {
+    out.push(`## ${C.kind[kind][loc]}`, '');
+    for (const p of PARTS.filter((x) => x.kind === kind)) {
+      out.push(`### ${p.name[loc]}`, '', p.text[loc], '');
+      if (p.zone) out.push(`- Zone: ${C.zone[p.zone][loc]}`);
+      if (p.sig) out.push(`- \`${p.sig}\``);
+      if (p.rules?.length) out.push(`- ${C.rulesLabel[loc]}: ${p.rules.map((r) => PART_BY_ID.get(r)!.name[loc]).join(', ')}`);
+      const ps = practicesFor(p.id);
+      out.push(`- ${C.usedBy[loc]}: ${ps.length ? '' : C.usedByNone[loc]}`);
+      for (const x of ps) out.push(`  - ${link(loc, x.id)}: ${x.domain.what[loc]}`);
+      out.push('');
+    }
+  }
+  return out.join('\n');
+}
 
 export function homeMarkdown(loc: Locale): string {
   const en = loc === 'en';
@@ -19,9 +44,10 @@ export function homeMarkdown(loc: Locale): string {
     `# ${en ? 'Learning how to verify' : 'Verifizieren lernen'}`, '',
     en ? 'This site is for developers who let coding agents write code. It shows which checks catch which bugs, from cheap automatic checks to slow human review. Each practice lists open-source tools and shows an exercise or an animated diagram.'
        : 'Diese Seite ist für Entwicklerinnen und Entwickler, die Coding-Agenten Code schreiben lassen. Sie zeigt, welche Prüfungen welche Fehler finden, von billigen automatischen Prüfungen bis zum langsamen menschlichen Review. Jede Praktik nennt Open-Source-Werkzeuge und zeigt eine Übung oder ein animiertes Diagramm.', '',
-    en ? `If you are new here, begin with [Start here](${SITE_URL}/${loc}/start/index.md). Other ways in:` : `Neu hier? Mit [Hier starten](${SITE_URL}/${loc}/start/index.md) beginnen. Andere Einstiege:`, '',
+    en ? `If you are new here, begin with [${t(loc, 'navStart')}](${SITE_URL}/${loc}/start/index.md). Other ways in:` : `Neu hier? Mit [${t(loc, 'navStart')}](${SITE_URL}/${loc}/start/index.md) beginnen. Andere Einstiege:`, '',
     `- [${t(loc, 'navLifecycle')}](${SITE_URL}/${loc}/lifecycle/index.md)`,
-    `- [${t(loc, 'navStack')}](${SITE_URL}/${loc}/stack/index.md)`, '',
+    `- [${t(loc, 'navStack')}](${SITE_URL}/${loc}/stack/index.md)`,
+    `- [${PETSTORE_COPY.open[loc]}](${SITE_URL}/${loc}/petstore/index.md): ${PETSTORE_COPY.homeWay[loc]}`, '',
     `## ${en ? 'The funnel' : 'Der Trichter'}`, '',
     en ? `${PRACTICES.length} practices along a funnel from cheap automatic checks to expensive ones. Each layer of the funnel can catch a bug. If a higher layer catches the bug, the fix is cheaper and faster, and a person has less to review. Start with the practices marked *(core)*.`
        : `${PRACTICES.length} Praktiken entlang eines Trichters von billigen automatischen Prüfungen zu teuren. Jede Schicht des Trichters kann einen Fehler finden. Findet ihn eine höhere Schicht, ist die Korrektur billiger und schneller, und ein Mensch muss weniger prüfen. Mit *(Kern)* markierte Praktiken sind die für den Anfang.`, '',

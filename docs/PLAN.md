@@ -13,7 +13,7 @@ A bilingual (English/German) static website that makes it easy to understand how
 - Every practice is tagged with **funnel layer** + **lifecycle phase(s)**.
 - Every practice has an **"with AI agents"** angle.
 - **Shared running example:** petstore pet reservation for adoption — "a pet must never be reserved twice".
-- Cross-cutting page **"Why one layer isn't enough with agents"** (PatchDiff, METR, ImpossibleBench, Perry et al.) — step 2 of "Start here".
+- Cross-cutting page **"Why one layer isn't enough with agents"** (PatchDiff, METR, ImpossibleBench, Perry et al.) — step 2 of "Getting Started" (DE: "Erste Schritte").
 
 ## Practices (~56)
 
@@ -61,7 +61,7 @@ Structure: outcome → install (per OS / in-browser) → first spec/test on the 
 
 ## Entry points
 
-Home (who it is for, one primary action to Start here, then the interactive funnel as the map with no layer pre-opened) · Start here (the 8-step guided tour, opening with the petstore example; progress kept in the browser) · Diagnose my project (pick a symptom, get a first check and the feedback loop; linked from the tour) · Lifecycle map · My stack (pick language) · Glossary · Guides.
+Home (who it is for, one primary action to Getting Started, then the interactive funnel as the map with no layer pre-opened) · Getting Started, DE "Erste Schritte" (the 8-step guided tour, opening with the petstore example; progress kept in the browser; while the tour is active, a bar at the bottom of each step page shows the task, the done criterion and "Done, next step") · Diagnose my project (pick a symptom, get a first check and the feedback loop; linked from the tour) · Lifecycle map · Tech Stack (pick language) · Glossary · Guides.
 
 About 10 practices are flagged **core** (`core: true`): the tour practices plus CI, test integrity, code review and agent rules. Long lists show them first.
 

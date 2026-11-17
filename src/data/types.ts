@@ -1,3 +1,5 @@
+import type { PartId } from './petstore';
+
 export type Locale = 'en' | 'de';
 export const LOCALES: Locale[] = ['en', 'de'];
 
@@ -83,6 +85,8 @@ export interface Practice {
   viz?: { kind: VizKind; mode: string };
   /** ids of getting-started guides */
   guides?: string[];
+  /** which parts of the petstore example the exercise, diagram or snippet uses, and what it checks there (one short sentence) */
+  domain: { parts: PartId[]; what: L };
 }
 
 export interface Tool {

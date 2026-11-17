@@ -1,0 +1,22 @@
+---
+// A tiny picture of the petstore map: three zones with their system parts; covered parts are filled.
+import type { SystemId } from '../data/petstore';
+interface Props { on: SystemId[]; size?: number }
+const { on, size = 18 } = Astro.props;
+// [id, x, y, w, h] in a 60 × 23 grid: build | running petstore | production
+const CELLS: [SystemId, number, number, number, number][] = [
+  ['agent', 0, 0, 13, 6.3], ['tests', 0, 8.3, 13, 6.3], ['config', 0, 16.6, 13, 6.3],
+  ['ui', 17, 0, 19, 4], ['api', 17, 5.5, 19, 4], ['domain', 17, 11, 19, 6.5], ['db', 17, 19, 19, 4],
+  ['services', 38, 5.5, 5, 12],
+  ['rollout', 47, 0, 13, 10.7], ['monitoring', 47, 12.3, 13, 10.7],
+];
+const set = new Set(on);
+---
+<svg class="ps-mini" viewBox="-0.5 -0.5 61 24" width={Math.round((size * 61) / 24)} height={size} aria-hidden="true" focusable="false">
+  {CELLS.map(([id, x, y, w, h]) => <rect x={x} y={y} width={w} height={h} rx="1.2" class={set.has(id) ? 'on' : ''} />)}
+</svg>
+<style>
+  .ps-mini { flex: none; display: block; }
+  .ps-mini rect { fill: none; stroke: var(--ink-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .ps-mini rect.on { fill: var(--link); stroke: var(--link); }
+</style>

@@ -3,10 +3,15 @@ import type { Locale, Practice } from '../data/types';
 import { LAYERS, PHASES, COST_LABEL, FEEDBACK_LABEL } from '../data/taxonomy';
 import { t, href } from '../i18n/ui';
 import FunnelMark from './FunnelMark.astro';
+import PartChip from './PartChip.astro';
+import PetstoreMiniMap from './PetstoreMiniMap.astro';
+import { PETSTORE_COPY, systemOf } from '../data/petstore';
+import { inline } from '../lib/inline';
 interface Props { p: Practice; lang: Locale }
 const { p, lang } = Astro.props;
 const layer = LAYERS.find((l) => l.id === p.layer)!;
 const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
+const systems = [...new Set(p.domain.parts.map(systemOf))];
 ---
 <!-- one-line "where it sits": layer, lifecycle phases, cost, feedback time -->
 <dl class="strip">
@@ -16,6 +21,9 @@ const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
   </dd></div>
   <div><dt>{t(lang, 'cost')}</dt><dd><span class="meter" data-n={p.cost} aria-hidden="true"><i /><i /><i /></span> {COST_LABEL[p.cost][lang]}</dd></div>
   <div><dt>{t(lang, 'feedback')}</dt><dd>{FEEDBACK_LABEL[p.feedback][lang]}</dd></div>
+  <!-- which part of the running petstore example this page uses; the chips open the petstore page -->
+  <div class="ps"><dt><a class="ps-home" href={href(lang, 'petstore/')}><PetstoreMiniMap on={systems} /><span class="ps-label">{PETSTORE_COPY.inPetstore[lang]}</span></a></dt>
+    <dd>{p.domain.parts.map((id) => <PartChip id={id} lang={lang} />)} <span class="ps-what" set:html={inline(p.domain.what[lang])} /></dd></div>
 </dl>
 <style>
   .strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin: 0; font-size: var(--fs-sm); }
@@ -27,4 +35,20 @@ const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
   .phases { display: flex; flex-wrap: wrap; gap: 4px; }
   .ph { font-size: var(--fs-sm); padding: 1px 8px; border-radius: 4px; border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 16%, var(--card)); color: var(--ink); text-decoration: none; }
   .ph:hover { text-decoration: underline; }
+  /* the petstore line: its own row, one line on wide screens */
+  .strip > .ps { flex-basis: 100%; align-items: flex-start; gap: 8px; margin-top: -2px; }
+  .ps dt { flex: none; display: flex; }
+  .ps-home { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); line-height: 20px; }
+  .ps-home:hover { color: var(--ink); }
+  .ps dd { display: block; line-height: 20px; }
+  .ps dd :global(.pc) { margin-inline-end: 3px; }
+  .ps-what { color: var(--ink-2); margin-inline-start: 3px; }
+  .ps-what :global(code) { font-size: 0.92em; }
+  /* phones: the mini-map stands for the label, and the sentence moves under the "Try it" / "See it" heading */
+  @media (max-width: 560px) {
+    .strip { row-gap: 6px; }
+    .ps-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .ps-what { display: none; }
+    .ps dd :global(.pc) { font-size: var(--fs-xs); }
+  }
 </style>

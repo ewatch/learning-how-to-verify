@@ -17,6 +17,7 @@ import { inline } from '../../../../lib/inline';
 import { glosser } from '../../../../lib/gloss';
 import { practiceMarkdown } from '../../../../lib/markdown';
 import { socraticPrompt } from '../../../../lib/prompts';
+import { PETSTORE_COPY } from '../../../../data/petstore';
 
 export function getStaticPaths() {
   return (['en', 'de'] as Locale[]).flatMap((lang) => PRACTICES.map((p) => ({ params: { lang, id: p.id }, props: { lang, p } })));
@@ -37,6 +38,8 @@ const [aiHead, aiRest] = firstSentence(p.ai[lang]);
 const worthShown = p.worth.slice(0, 3), worthMore = p.worth.slice(3);
 const limitsShown = p.limits.slice(0, 2), limitsMore = p.limits.slice(2);
 const thinkMore = p.think.slice(1);
+// phones only: the petstore sentence of the strip, shown under the first heading
+const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.domain.what[lang])}`;
 let n = 0;
 const num = () => String(++n).padStart(2, '0');
 ---
@@ -63,12 +66,14 @@ const num = () => String(++n).padStart(2, '0');
 
     {!p.sim && p.viz && (
       <section class="layer-section" id="see"><h2><span class="num">{num()}</span>{t(lang, 'seeIt')}</h2>
+        <p class="ps-what-m small" set:html={psWhat} />
         <VizMount kind={p.viz.kind} mode={p.viz.mode} lang={lang} />
       </section>
     )}
 
     {p.sim && (
       <section class="layer-section" id="try"><h2><span class="num">{num()}</span>{t(lang, 'tryIt')}</h2>
+        <p class="ps-what-m small" set:html={psWhat} />
         <p class="muted small">{t(lang, 'tryItHint')}</p>
         <SimMount sim={p.sim} lang={lang} />
       </section>
@@ -172,7 +177,9 @@ const num = () => String(++n).padStart(2, '0');
   .gloss-pop .gloss-def { display: block; color: var(--ink-2); margin-bottom: 6px; }
 </style>
 <style>
-  .head { padding-bottom: 20px; max-width: 58rem; }
+  .head { padding-bottom: 14px; }
+  /* the strip may use the full width, so the petstore line stays on one line */
+  .head > :not(.strip) { max-width: 58rem; }
   /* why first (a concrete problem), then the definition and the bug class as a compact block */
   .head .intro { max-width: 42rem; margin: 0 0 12px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
   .def { margin: 0 0 14px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); }
@@ -188,8 +195,10 @@ const num = () => String(++n).padStart(2, '0');
     .head h1 { margin-bottom: 10px; }
     .head .intro { font-size: var(--fs-ui); line-height: 1.5; margin-bottom: 10px; }
     .def { font-size: var(--fs-sm); line-height: 1.45; margin-bottom: 12px; }
-    .head { padding-bottom: 16px; }
+    .head { padding-bottom: 12px; }
   }
+  .ps-what-m { display: none; margin: -4px 0 6px; color: var(--ink-2); }
+  @media (max-width: 560px) { .ps-what-m { display: block; } }
   ul.checks li::marker { content: '✓  '; color: var(--ok); }
   ul.limits li::marker { content: '–  '; color: var(--ink-3); }
   .ai { margin: 16px 0; padding: 10px 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }

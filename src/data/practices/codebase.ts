@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const codebase: Practice[] = [
   {
     id: 'architecture',
+    domain: { parts: ['domain', 'ui', 'db'], what: l('An architecture test stops imports from the domain code into the UI.', 'Ein Architekturtest stoppt Imports aus dem Domain-Code in die UI.') },
     viz: { kind: 'process', mode: 'architecture' },
     name: l('API design & architecture', 'API-Design & Architektur'),
     layer: 'codebase',
@@ -89,6 +90,7 @@ export function reserve(pet: Pet, person: PersonId, now: Date): Result<Pet, 'tak
   },
   {
     id: 'refactoring',
+    domain: { parts: ['domain', 'reserve'], what: l('Characterization tests pin the results while the reservation code changes.', 'Characterization Tests halten die Ergebnisse fest, während sich der Reservierungscode ändert.') },
     viz: { kind: 'process', mode: 'refactoring' },
     name: l('Refactoring', 'Refactoring'),
     layer: 'codebase',
@@ -165,6 +167,7 @@ test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
   },
   {
     id: 'threat-modeling',
+    domain: { parts: ['server-price', 'own-only'], what: l('STRIDE checks the data flow from browser to API, database and payment.', 'STRIDE prüft den Datenfluss vom Browser zu API, Datenbank und Payment.') },
     viz: { kind: 'process', mode: 'threat-modeling' },
     name: l('Threat modeling', 'Threat Modeling (Bedrohungsmodellierung)'),
     layer: 'codebase',

@@ -6,6 +6,7 @@ const RUNNERS = { php: ['phpunit', 'pest'], js: ['vitest', 'jest', 'node-test'],
 export const staticTests: Practice[] = [
   {
     id: 'unit-tests',
+    domain: { parts: ['fee', 'fee-rules', 'valid-age'], what: l('Tests check the fee function `adoptionFee`, its four rules and the age check.', 'Tests prüfen die Gebührenfunktion `adoptionFee`, ihre vier Regeln und die Altersprüfung.') },
     name: l('Unit tests', 'Unit-Tests'),
     layer: 'static',
     phases: ['pre'],
@@ -119,6 +120,7 @@ final class FeeTest extends TestCase
   },
   {
     id: 'functional-tests',
+    domain: { parts: ['api', 'reserve'], what: l('A test sends "reserve Rex" to the public API and checks only the response.', 'Ein Test sendet „reserve Rex“ an die öffentliche API und prüft nur die Antwort.') },
     viz: { kind: 'scope', mode: 'functional-tests' },
     name: l('Functional tests', 'Funktionale Tests'),
     layer: 'static',
@@ -191,6 +193,7 @@ test('a second person cannot take a reserved pet', () => {
   },
   {
     id: 'component-tests',
+    domain: { parts: ['ui'], what: l('A test renders the reservation component and replaces the API with a fake.', 'Ein Test rendert die Reservierungskomponente und ersetzt die API durch einen Fake.') },
     viz: { kind: 'scope', mode: 'component-tests' },
     name: l('Component tests', 'Komponententests'),
     layer: 'static',
@@ -255,6 +258,7 @@ test('sends the chosen pet, not a hard-coded one', () => {
   },
   {
     id: 'integration-tests',
+    domain: { parts: ['api', 'db', 'never-twice'], what: l('API, domain code and a real database must reject a second reservation.', 'API, Domain-Code und eine echte Datenbank müssen eine zweite Reservierung ablehnen.') },
     viz: { kind: 'scope', mode: 'integration-tests' },
     name: l('Integration tests', 'Integrationstests'),
     layer: 'static',
@@ -328,6 +332,7 @@ test('competing reservations leave exactly one owner', async () => {
   },
   {
     id: 'e2e-tests',
+    domain: { parts: ['ui', 'api', 'reserve'], what: l('A visitor reserves Rex in the browser, through every layer.', 'Eine Besucherin reserviert Rex im Browser, durch alle Schichten.') },
     viz: { kind: 'scope', mode: 'e2e-tests' },
     name: l('End-to-end tests', 'End-to-End-Tests'),
     layer: 'static',
@@ -383,6 +388,7 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
   },
   {
     id: 'acceptance-tests',
+    domain: { parts: ['reserve', 'never-twice'], what: l('The rule "a pet cannot be reserved twice" is written as Given, When, Then.', 'Die Regel „ein Tier kann nicht doppelt reserviert werden“ steht als Given, When, Then.') },
     viz: { kind: 'scope', mode: 'acceptance-tests' },
     name: l('Acceptance tests', 'Akzeptanztests'),
     layer: 'static',
@@ -438,6 +444,7 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
   },
   {
     id: 'regression-tests',
+    domain: { parts: ['reserve', 'never-twice'], what: l('A test reproduces a bug report: a pet id with a space at the end.', 'Ein Test stellt einen Fehlerbericht nach: eine Tier-ID mit einem Leerzeichen am Ende.') },
     sim: 'regression',
     name: l('Regression tests', 'Regressionstests'),
     layer: 'static',
@@ -494,6 +501,7 @@ test('regression: a rejected reservation preserves the first owner', () => {
   },
   {
     id: 'smoke-tests',
+    domain: { parts: ['rollout', 'api'], what: l('After each deploy, a health ping and one pet read pass through all parts.', 'Nach jedem Deploy laufen ein Health-Ping und ein Tier-Abruf durch alle Teile.') },
     viz: { kind: 'scope', mode: 'smoke-tests' },
     name: l('Smoke tests', 'Smoke-Tests'),
     layer: 'static',
@@ -545,6 +553,7 @@ curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data`,
   },
   {
     id: 'snapshot-tests',
+    domain: { parts: ['invoice', 'voucher'], what: l('The adoption invoice is compared line by line with the approved text.', 'Die Adoptionsrechnung wird Zeile für Zeile mit dem freigegebenen Text verglichen.') },
     sim: 'snapshot',
     name: l('Snapshot & characterization tests', 'Snapshot- & Charakterisierungstests'),
     layer: 'static',
@@ -613,6 +622,7 @@ final class InvoiceTest extends TestCase
   },
   {
     id: 'contract-tests',
+    domain: { parts: ['api', 'pet'], what: l('The pet fields that the reservation UI reads must keep their names and types.', 'Die Tierfelder, die die Reservierungs-UI liest, müssen Namen und Typen behalten.') },
     sim: 'contract',
     name: l('Contract tests', 'Contract-Tests'),
     layer: 'static',
@@ -678,6 +688,7 @@ test('provider payload meets the consumer contract', () => {
   },
   {
     id: 'ui-ux-tests',
+    domain: { parts: ['ui'], what: l('A screenshot and an accessibility scan check the pet list.', 'Ein Screenshot und ein Accessibility-Scan prüfen die Tierliste.') },
     viz: { kind: 'scope', mode: 'ui-ux-tests' },
     name: l('UI/UX tests (visual, accessibility)', 'UI/UX-Tests (visuell, Barrierefreiheit)'),
     layer: 'static',

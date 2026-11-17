@@ -19,7 +19,7 @@ const groups = [
 ---
 <Base lang={lang} path={`stack/${prog}/`} md={`/${lang}/stack/${prog}/index.md`} nav="stack" title={lg.name} description={en ? `Verification practices and open-source tools for ${lg.name}.` : `Verifikationspraktiken und Open-Source-Werkzeuge für ${lg.name}.`}>
   <div class="wrap">
-    <nav class="breadcrumb small" aria-label={en ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'stack/')}>{en ? 'My stack' : 'Mein Stack'}</a></li><li><a href={href(lang, `stack/${prog}/`)} aria-current="page">{lg.name}</a></li></ol></nav>
+    <nav class="breadcrumb small" aria-label={en ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'stack/')}>{t(lang, 'navStack')}</a></li><li><a href={href(lang, `stack/${prog}/`)} aria-current="page">{lg.name}</a></li></ol></nav>
     <h1>{lg.name}</h1>
     <p class="lede">{en ? 'Start with the core practices, then browse every practice by funnel layer. Tools in bold are specific to this language; the others work with any language.' : 'Mit den Kernpraktiken anfangen, danach jede Praktik nach Trichterschicht durchsehen. Fett gedruckte Werkzeuge sind sprachspezifisch; die anderen funktionieren mit jeder Sprache.'}</p>
     {groups.map((g, gi) => (

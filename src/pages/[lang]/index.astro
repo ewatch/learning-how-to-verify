@@ -7,6 +7,7 @@ import { BASE } from '../../lib/site';
 import { PRACTICES } from '../../data/practices';
 import { langPaths } from '../../lib/paths';
 import { START_TOUR } from '../../data/start';
+import { PETSTORE_COPY } from '../../data/petstore';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -27,7 +28,7 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
           : 'Diese Seite ist für Entwicklerinnen und Entwickler, die Coding-Agenten Code schreiben lassen. Sie zeigt, welche Prüfungen welche Fehler finden, von billigen automatischen Prüfungen bis zum langsamen menschlichen Review. Jede Praktik nennt Open-Source-Werkzeuge und zeigt eine Übung oder ein animiertes Diagramm.'}
       </p>
       <div class="cta">
-        <a class="btn primary" href={href(lang, 'start/')}>{en ? `Start here: ${steps} steps` : `Hier starten: ${steps} Schritte`} <span aria-hidden="true">→</span></a>
+        <a class="btn primary" href={href(lang, 'start/')}>{en ? `Getting Started: ${steps} steps` : `Erste Schritte: ${steps} Schritte`} <span aria-hidden="true">→</span></a>
         <a class="secondary" href="#funnel">{en ? 'Or see the whole map' : 'Oder die ganze Übersicht ansehen'} <span aria-hidden="true">↓</span></a>
       </div>
     </section>
@@ -46,7 +47,8 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
       <h2>{en ? 'Other ways in' : 'Andere Einstiege'}</h2>
       <div class="grid cols-2">
         <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{en ? 'The same practices, sorted by the time when they run: before production, at deploy, at release and after release.' : 'Dieselben Praktiken, sortiert nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release.'}</span></a>
-        <a class="way card" href={href(lang, 'stack/')}><strong>{en ? 'My stack →' : 'Mein Stack →'}</strong><span>{en ? 'Select your programming language. You see each practice with the open-source tools for that language.' : 'Programmiersprache wählen und jede Praktik mit den passenden Open-Source-Werkzeugen sehen.'}</span></a>
+        <a class="way card" href={href(lang, 'stack/')}><strong>{'Tech Stack →'}</strong><span>{en ? 'Select your programming language. You see each practice with the open-source tools for that language.' : 'Programmiersprache wählen und jede Praktik mit den passenden Open-Source-Werkzeugen sehen.'}</span></a>
+        <a class="way card" href={href(lang, 'petstore/')}><strong>{PETSTORE_COPY.open[lang]} →</strong><span>{PETSTORE_COPY.homeWay[lang]}</span></a>
       </div>
     </section>
 

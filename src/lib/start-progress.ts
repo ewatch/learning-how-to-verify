@@ -1,6 +1,11 @@
 /**
- * Progress through the "Start here" tour, kept in the reader's browser.
- * Pure functions only; the page script does the storage and DOM work.
+ * Progress through the "Getting Started" tour, kept in the reader's browser.
+ * Pure functions only; the start page and the tour bar do the storage and DOM work.
+ *
+ * Stored format (key PROGRESS_KEY):
+ * - version 1 (before the tour bar): a JSON array of opened step ids, e.g. ["funnel","lint"].
+ * - version 2: {"v":2,"opened":[…],"done":[…],"active":true,"collapsed":false}.
+ * parseTour reads both, so readers keep their progress; serializeTour always writes version 2.
  */
 export const PROGRESS_KEY = 'lhtv:start-tour';
 
@@ -29,4 +34,92 @@ export function nextStep(opened: ReadonlySet<string>, ids: readonly string[]): n
 /** Fills {name} placeholders in a template. */
 export function fill(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in values ? String(values[key]) : match));
+}
+
+// ---------- version 2: opened + done + tour mode ----------
+
+export interface TourState {
+  /** steps whose page the reader opened */
+  opened: Set<string>;
+  /** steps the reader marked as done; a done step also counts as opened */
+  done: Set<string>;
+  /** tour mode: the bar shows on tour pages */
+  active: boolean;
+  /** the bar shows as a one-line strip */
+  collapsed: boolean;
+}
+
+export const emptyTour = (): TourState => ({ opened: new Set(), done: new Set(), active: false, collapsed: false });
+
+const idSet = (value: unknown, ids: readonly string[]): Set<string> =>
+  new Set(Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string' && ids.includes(id)) : []);
+
+/** Reads version 2 and migrates version 1 (an array of opened ids). Malformed input gives the empty state. */
+export function parseTour(raw: string | null | undefined, ids: readonly string[]): TourState {
+  if (!raw) return emptyTour();
+  let value: unknown;
+  try { value = JSON.parse(raw); } catch { return emptyTour(); }
+  if (Array.isArray(value)) return { ...emptyTour(), opened: idSet(value, ids) };
+  if (!value || typeof value !== 'object') return emptyTour();
+  const v = value as Record<string, unknown>;
+  const done = idSet(v.done, ids);
+  const opened = idSet(v.opened, ids);
+  for (const id of done) opened.add(id);
+  return { opened, done, active: v.active === true, collapsed: v.collapsed === true };
+}
+
+/** Writes version 2, ids in tour order, so the stored value is stable. */
+export function serializeTour(state: TourState, ids: readonly string[]): string {
+  const ordered = (set: ReadonlySet<string>) => ids.filter((id) => set.has(id));
+  return JSON.stringify({ v: 2, opened: ordered(new Set([...state.opened, ...state.done])), done: ordered(state.done), active: state.active, collapsed: state.collapsed });
+}
+
+/** Index of the first step that is not done, or -1 when every step is done. */
+export const firstNotDone = (state: TourState, ids: readonly string[]): number => nextStep(state.done, ids);
+
+/** Index of the step after `index`, or -1 after the last step. */
+export const stepAfter = (index: number, ids: readonly string[]): number => (index >= 0 && index + 1 < ids.length ? index + 1 : -1);
+
+export type StepStatus = 'done' | 'opened' | 'current' | 'open';
+
+/** Status of each step for the start page list: "current" is the first step that is not done. */
+export function stepStatuses(state: TourState, ids: readonly string[]): StepStatus[] {
+  const current = firstNotDone(state, ids);
+  return ids.map((id, i) => (state.done.has(id) ? 'done' : i === current ? 'current' : state.opened.has(id) ? 'opened' : 'open'));
+}
+
+/** Returns a copy with the step opened and the tour active (the reader entered a step from the start page). */
+export function enterStep(state: TourState, id: string): TourState {
+  return { ...state, opened: new Set([...state.opened, id]), active: true };
+}
+
+/** Returns a copy with the step opened (the reader is on its page). */
+export function markOpened(state: TourState, id: string): TourState {
+  return { ...state, opened: new Set([...state.opened, id]) };
+}
+
+/** Returns a copy with the step done. When every step is done, the tour ends. */
+export function markDone(state: TourState, id: string, ids: readonly string[]): TourState {
+  const done = new Set([...state.done, id]);
+  const opened = new Set([...state.opened, id]);
+  return { ...state, opened, done, active: state.active && ids.some((x) => !done.has(x)) };
+}
+
+/**
+ * Index of the tour step for a URL path, or -1. `base` is the deployment prefix without a trailing slash
+ * ('' or e.g. '/learning-how-to-verify'); `paths` are the step paths after /{lang}/ ('' for the home page).
+ */
+export function stepForPath(pathname: string, base: string, paths: readonly string[]): number {
+  let p = pathname;
+  try { p = decodeURI(p); } catch { /* keep the raw path */ }
+  const prefix = base.replace(/\/+$/, '');
+  if (prefix) {
+    if (p !== prefix && !p.startsWith(prefix + '/')) return -1;
+    p = p.slice(prefix.length);
+  }
+  const m = /^\/(?:en|de)(?:\/(.*))?$/.exec(p.replace(/\/index\.html$/, '/'));
+  if (!m) return -1;
+  let rest = (m[1] ?? '').replace(/\/{2,}/g, '/');
+  if (rest && !rest.endsWith('/')) rest += '/';
+  return paths.indexOf(rest);
 }

@@ -13,14 +13,14 @@ const { lang } = Astro.props as { lang: Locale };
 ---
 <Base lang={lang} path="why-layers/" md={`/${lang}/why-layers/index.md`} nav="start" title={WHY.title[lang]} description={WHY.intro[lang]}>
   <div class="wrap narrow">
-    <p class="eyebrow">{lang === 'en' ? 'Start here · step 2' : 'Hier starten · Schritt 2'}</p>
+    <p class="eyebrow">{lang === 'en' ? 'Getting Started · step 2' : 'Erste Schritte · Schritt 2'}</p>
     <h1>{WHY.title[lang]}</h1>
     <p class="lede">{WHY.intro[lang]}</p>
     <CardKey lang={lang} />
     {WHY.findings.map((f, i) => {
       const s = SOURCE_BY_ID.get(f.src)!;
       return (
-        <section class="finding">
+        <section class="finding" id={`finding-${i + 1}`}>
           <p class="eyebrow">{String(i + 1).padStart(2, '0')}</p>
           <h2>{f.claim[lang]}</h2>
           <p>{f.text[lang]} <a class="src small" href={s.url} rel="noopener">{s.authors.split(',')[0]}, {s.venue} {s.year}</a>{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</p>

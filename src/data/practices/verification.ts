@@ -4,6 +4,7 @@ import { ev, f, l, none, q } from './_h';
 export const verification: Practice[] = [
   {
     id: 'formal-verification',
+    domain: { parts: ['reserve', 'never-twice', 'discount-sum'], what: l('A model checker tries every order of two reservations; proofs cover discounts.', 'Ein Model Checker prüft jede Reihenfolge zweier Reservierungen; Beweise decken Rabatte ab.') },
     name: l('Formal verification', 'Formale Verifikation'),
     layer: 'verification',
     phases: ['pre'],
@@ -86,6 +87,7 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
   },
   {
     id: 'contracts',
+    domain: { parts: ['checkout', 'discount-sum', 'invoice'], what: l('Pre- and postconditions guard the discount split between checkout and invoice.', 'Vor- und Nachbedingungen sichern die Rabattverteilung zwischen Checkout und Rechnung.') },
     sim: 'dbc',
     name: l('Design by contract & assertions', 'Design by Contract & Assertions'),
     layer: 'verification',
@@ -172,6 +174,7 @@ function allocate(int $amount, array $weights): array
   },
   {
     id: 'sanitizers',
+    domain: { parts: ['tests'], what: l('A second CI lane runs the same tests with AddressSanitizer on native code.', 'Eine zweite CI-Lane führt dieselben Tests mit AddressSanitizer für nativen Code aus.') },
     viz: { kind: 'pipeline', mode: 'sanitizers' },
     name: l('Sanitizers', 'Sanitizer'),
     layer: 'verification',
@@ -218,6 +221,7 @@ add_link_options(-fsanitize=address,undefined)
   },
   {
     id: 'tap-compare',
+    domain: { parts: ['rollout', 'api'], what: l('Copies of real requests go to the old and the new version; a diff compares them.', 'Kopien echter Requests gehen an alte und neue Version; ein Diff vergleicht sie.') },
     viz: { kind: 'traffic', mode: 'tap-compare' },
     name: l('Tap compare', 'Tap Compare'),
     layer: 'verification',
@@ -269,6 +273,7 @@ test('candidate preserves the reservation owner', () => {
   },
   {
     id: 'shadowing',
+    domain: { parts: ['rollout', 'reserve'], what: l('A new reservation service gets copies of real requests; users get the old answers.', 'Ein neuer Reservierungsdienst bekommt Kopien echter Requests; Nutzer bekommen die alten Antworten.') },
     viz: { kind: 'traffic', mode: 'shadowing' },
     name: l('Shadowing', 'Shadowing (Schattenbetrieb)'),
     layer: 'verification',
@@ -319,6 +324,7 @@ route:
   },
   {
     id: 'canarying',
+    domain: { parts: ['rollout', 'monitoring'], what: l('A new version gets 5 to 100 % of traffic and stops when errors rise.', 'Eine neue Version bekommt 5 bis 100 % des Traffics und stoppt, wenn Fehler steigen.') },
     name: l('Canarying', 'Canary-Releases'),
     layer: 'verification',
     phases: ['release'],
@@ -365,6 +371,7 @@ route:
   },
   {
     id: 'traffic-shaping',
+    domain: { parts: ['rollout', 'api'], what: l('A proxy splits traffic between v1 and v2 and limits a slow version.', 'Ein Proxy teilt den Traffic auf v1 und v2 auf und begrenzt eine langsame Version.') },
     viz: { kind: 'traffic', mode: 'traffic-shaping' },
     name: l('Traffic shaping', 'Traffic Shaping (Verkehrssteuerung)'),
     layer: 'verification',
@@ -417,6 +424,7 @@ route:
   },
   {
     id: 'feature-flags',
+    domain: { parts: ['rollout', 'reserve'], what: l('The flag `reservation-v2` turns the new reservation flow on and off.', 'Das Flag `reservation-v2` schaltet den neuen Reservierungsablauf ein und aus.') },
     name: l('Feature flagging', 'Feature Flags'),
     layer: 'verification',
     phases: ['release'],
@@ -460,6 +468,7 @@ export async function reserve(petId: PetId, person: PersonId) {
   },
   {
     id: 'monitoring',
+    domain: { parts: ['monitoring', 'reserve'], what: l('Four golden signals and the count of completed reservations raise alerts.', 'Vier Golden Signals und die Zahl abgeschlossener Reservierungen lösen Alerts aus.') },
     viz: { kind: 'observe', mode: 'monitoring' },
     name: l('Monitoring', 'Monitoring'),
     layer: 'verification',
@@ -518,6 +527,7 @@ export async function reserve(petId: PetId, person: PersonId) {
   },
   {
     id: 'exception-tracking',
+    domain: { parts: ['monitoring', 'reserve'], what: l('Errors from the reservation code are grouped by fingerprint and release.', 'Fehler aus dem Reservierungscode werden nach Fingerprint und Release gruppiert.') },
     viz: { kind: 'observe', mode: 'exception-tracking' },
     name: l('Exception tracking', 'Exception Tracking'),
     layer: 'verification',
@@ -572,6 +582,7 @@ export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
   },
   {
     id: 'teeing',
+    domain: { parts: ['rollout', 'search'], what: l('Real requests without personal data are recorded and replayed on a test system.', 'Echte Requests ohne personenbezogene Daten werden aufgezeichnet und auf einem Testsystem abgespielt.') },
     viz: { kind: 'traffic', mode: 'teeing' },
     name: l('Teeing', 'Teeing'),
     layer: 'verification',
@@ -634,6 +645,7 @@ encoding.codec = "json"
   },
   {
     id: 'profiling',
+    domain: { parts: ['monitoring', 'reserve'], what: l('A flame graph shows where the reservation endpoint spends CPU time.', 'Ein Flame Graph zeigt, wo der Reservierungs-Endpoint CPU-Zeit verbraucht.') },
     viz: { kind: 'observe', mode: 'profiling' },
     name: l('Profiling', 'Profiling'),
     layer: 'verification',
@@ -683,6 +695,7 @@ py-spy record --pid 12345 --duration 30 --output reservation.svg
   },
   {
     id: 'logs-events',
+    domain: { parts: ['monitoring', 'reservation', 'never-twice'], what: l('A query on structured events finds a pet with two active reservations.', 'Eine Abfrage auf strukturierte Events findet ein Tier mit zwei aktiven Reservierungen.') },
     viz: { kind: 'observe', mode: 'logs-events' },
     name: l('Logs & events', 'Logs & Events'),
     layer: 'verification',
@@ -731,6 +744,7 @@ logReservation('rex', 'taken', 'local-example-1');
   },
   {
     id: 'chaos-testing',
+    domain: { parts: ['services', 'reserve'], what: l('Payment becomes slow on purpose: do reservations still succeed?', 'Payment wird absichtlich langsam: Gelingen Reservierungen trotzdem?') },
     viz: { kind: 'traffic', mode: 'chaos-testing' },
     name: l('Chaos testing', 'Chaos Engineering'),
     layer: 'verification',
@@ -776,6 +790,7 @@ toxiproxy-cli toxic remove -n latency_downstream petstore-db`, focus: [{ line: 3
   },
   {
     id: 'ab-tests',
+    domain: { parts: ['ui', 'adopt'], what: l('Two versions of the adoption page; the test counts adoptions for each.', 'Zwei Versionen der Adoptionsseite; der Test zählt die Adoptionen je Version.') },
     viz: { kind: 'observe', mode: 'ab-tests' },
     name: l('A/B tests', 'A/B-Tests'),
     layer: 'verification',
@@ -845,6 +860,7 @@ test('a missing participant ID is excluded', () => {
   },
   {
     id: 'tracing',
+    domain: { parts: ['monitoring', 'api', 'reserve'], what: l('A trace of one reservation request shows 12 calls to the inventory service.', 'Ein Trace einer Reservierungsanfrage zeigt 12 Aufrufe des Inventory-Service.') },
     viz: { kind: 'observe', mode: 'tracing' },
     name: l('Tracing', 'Tracing'),
     layer: 'verification',
@@ -901,6 +917,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
   },
   {
     id: 'dynamic-exploration',
+    domain: { parts: ['api', 'cancel', 'reserve'], what: l('A bot tries API sequences such as reserve, cancel, reserve until one fails.', 'Ein Bot probiert API-Folgen wie reserve, cancel, reserve, bis eine scheitert.') },
     viz: { kind: 'traffic', mode: 'dynamic-exploration' },
     name: l('Dynamic exploration', 'Dynamische Exploration'),
     layer: 'verification',
@@ -951,6 +968,7 @@ export async function traceReservation<T>(save: () => Promise<T>) {
   },
   {
     id: 'real-user-monitoring',
+    domain: { parts: ['ui', 'monitoring'], what: l('Load times of the pet pages are measured on the devices of real users.', 'Ladezeiten der Tierseiten werden auf den Geräten echter Nutzer gemessen.') },
     viz: { kind: 'observe', mode: 'real-user-monitoring' },
     name: l('Real user monitoring', 'Real User Monitoring (RUM)'),
     layer: 'verification',
@@ -1009,6 +1027,7 @@ onLCP(report);
   },
   {
     id: 'auditing',
+    domain: { parts: ['agent', 'monitoring'], what: l('An audit log records each agent action, for example deleted reservations.', 'Ein Audit-Log hält jede Aktion eines Agenten fest, zum Beispiel gelöschte Reservierungen.') },
     viz: { kind: 'observe', mode: 'auditing' },
     name: l('Auditing', 'Auditing'),
     layer: 'verification',

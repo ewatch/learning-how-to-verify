@@ -3,6 +3,7 @@ import '../styles/global.css';
 import type { Locale } from '../data/types';
 import { t, other, href } from '../i18n/ui';
 import FunnelMark from '../components/FunnelMark.astro';
+import TourBar from '../components/TourBar.astro';
 import { BASE } from '../lib/site';
 
 interface Props {
@@ -119,6 +120,7 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
         </p>
       </div>
     </footer>
+    <TourBar lang={lang} path={path} />
     <p id="copy-status" class="visually-hidden" role="status" data-ok={t(lang, 'copied')} data-fail={t(lang, 'copyFailed')}></p>
     <script>
       // ---- color scheme toggle: pins light/dark through <meta name="color-scheme">; works without localStorage ----

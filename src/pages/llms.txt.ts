@@ -23,6 +23,7 @@ export const GET: APIRoute = () => {
     `- [Tools by language](${SITE_URL}/en/stack/index.md)`,
     `- [The petstore example](${SITE_URL}/en/petstore/index.md): the running example in one place (data, operations, rules such as "a pet must never be reserved twice", system parts) and the practices that check each part`,
     `- [About, sources and self-verification](${SITE_URL}/en/about/index.md)`,
+    `- [References](${SITE_URL}/en/references/index.md): talks and articles from practice that this site builds on (not evidence; the evidence ratings use the studies on the About page)`,
     '',
     '## Start',
     `- [Getting Started](${SITE_URL}/en/start/index.md): a guided tour in eight steps on the shared petstore example (a pet must never be reserved twice), about 60–90 minutes`,

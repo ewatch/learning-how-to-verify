@@ -11,6 +11,7 @@ import { t } from '../i18n/ui';
 import { PARTS, PART_BY_ID, PETSTORE_COPY, KIND_ORDER } from '../data/petstore';
 import { practicesFor } from './petstore';
 import { featureOf } from '../data/petstore-features';
+import { REFERENCES, REFERENCE_KIND as KIND, REFERENCES_COPY, formatDate } from '../data/references';
 
 const link = (loc: Locale, id: string) => `[${PRACTICE_BY_ID.get(id)!.name[loc]}](${SITE_URL}/${loc}/practices/${id}/index.md)`;
 
@@ -98,7 +99,9 @@ export function aboutMarkdown(loc: Locale): string {
     `## ${en ? 'Credits' : 'Quellen der Ideen'}`, '',
     en ? '- The funnel (codebase, static analysis, verification, prose, human review) comes from a talk by Lauren Tan (@poteto).' : '- Der Trichter (Codebasis, statische Analyse, Verifikation, Prosa, menschliches Review) stammt aus einem Vortrag von Lauren Tan (@poteto).',
     en ? '- The lifecycle overview (pre-production to post-release) was originally drawn by Cindy Sridharan (@copyconstruct).' : '- Die Lebenszyklus-Übersicht (vor der Produktion bis nach dem Release) zeichnete ursprünglich Cindy Sridharan (@copyconstruct).',
-    en ? '- Both diagrams are redrawn here; the content of each practice page is our own.' : '- Beide Diagramme sind hier neu gezeichnet; die Inhalte der Praktikseiten sind eigene.', '',
+    en ? '- Both diagrams are redrawn here; the content of each practice page is our own.' : '- Beide Diagramme sind hier neu gezeichnet; die Inhalte der Praktikseiten sind eigene.',
+    `- ${en ? 'Talks and articles from practice that this site builds on' : 'Vorträge und Artikel aus der Praxis, auf denen diese Seite aufbaut'} ([${t(loc, 'navReferences')}](${SITE_URL}/${loc}/references/index.md)):`,
+    ...REFERENCES.map((r) => `  - ${r.author}: [${r.title}](${r.url}) (${KIND[r.kind][loc]}, ${r.venue[loc]}${r.date ? `, ${r.date}` : ''})`), '',
     `## ${en ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}`, '',
     ...(en ? [
       '- Types: `astro check` with TypeScript strict mode.',
@@ -137,4 +140,25 @@ export function stackIndexMarkdown(loc: Locale): string {
   return [`# ${en ? 'Which language do you work in?' : 'In welcher Sprache arbeitest du?'}`, '',
     en ? 'Use these pages to find tools for your programming language. Each page lists every practice with its open-source tools for that language.' : 'Diese Seiten helfen, Werkzeuge für deine Programmiersprache zu finden. Jede Seite nennt jede Praktik mit ihren Open-Source-Werkzeugen für diese Sprache.', '',
     ...LANGS.map((lg) => `- [${lg.name}](${SITE_URL}/${loc}/stack/${lg.id}/index.md)`), ''].join('\n');
+}
+
+/** The references page as Markdown: talks and articles from practice, with external URLs and related pages here. */
+export function referencesMarkdown(loc: Locale): string {
+  const en = loc === 'en';
+  const out = [`# ${t(loc, 'navReferences')}`, '', REFERENCES_COPY.lede[loc], '',
+    en ? `These are talks and articles from practice, not studies: the evidence ratings on the practice pages come from the studies on the About page (${SITE_URL}/en/about/index.md).`
+       : `Das sind Vorträge und Artikel aus der Praxis, keine Studien: die Evidenzbewertungen auf den Praktikseiten stammen aus den Studien auf der Über-Seite (${SITE_URL}/de/about/index.md).`, ''];
+  for (const r of REFERENCES) {
+    out.push(`## ${r.title}`, '',
+      `- ${en ? 'Kind' : 'Art'}: ${KIND[r.kind][loc]}`,
+      `- ${(r.kind === 'talk' ? REFERENCES_COPY.speaker : REFERENCES_COPY.author)[loc]}: ${r.author}`,
+      `- ${REFERENCES_COPY.venue[loc]}: ${r.venue[loc]}`,
+      ...(r.date ? [`- ${REFERENCES_COPY.date[loc]}: ${formatDate(r.date, loc)}`] : []),
+      `- URL: ${r.url}`, '', r.about[loc], '');
+    if (r.points?.length) out.push(`${REFERENCES_COPY.points[loc]}:`, '', ...r.points.map((p) => `- ${p[loc]}`), '');
+    out.push(`${REFERENCES_COPY.related[loc]}:`, '',
+      ...r.pages.map((p) => `- [${p.label[loc]}](${SITE_URL}/${loc}/${p.path.replace(/#.*$/, '')}index.md)`),
+      ...r.practices.map((id) => `- ${link(loc, id)}`), '');
+  }
+  return out.join('\n');
 }

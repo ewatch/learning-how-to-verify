@@ -1,0 +1,67 @@
+---
+import Base from '../../../layouts/Base.astro';
+import type { Locale } from '../../../data/types';
+import { REFERENCES, REFERENCE_KIND, REFERENCES_COPY as C, domainOf, formatDate } from '../../../data/references';
+import { PRACTICE_BY_ID } from '../../../data/practices';
+import { t, href } from '../../../i18n/ui';
+import { langPaths } from '../../../lib/paths';
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Locale };
+---
+<Base lang={lang} path="references/" md={`/${lang}/references/index.md`} title={t(lang, 'navReferences')} description={C.description[lang]}>
+  <div class="wrap narrow">
+    <h1>{t(lang, 'navReferences')}</h1>
+    <p class="lede">{C.lede[lang]}</p>
+    <p class="note">{C.noteBefore[lang]}<a href={href(lang, 'about/#sources')}>{C.noteLink[lang]}</a>.</p>
+
+    {REFERENCES.map((r) => {
+      const date = formatDate(r.date, lang);
+      const related = [
+        ...r.pages.map((p) => ({ href: href(lang, p.path), label: p.label[lang], c: undefined as string | undefined })),
+        ...r.practices.map((id) => { const p = PRACTICE_BY_ID.get(id)!; return { href: href(lang, `practices/${id}/`), label: p.name[lang], c: `var(--l-${p.layer})` }; }),
+      ];
+      return (
+        <section class="ref" id={r.id} aria-labelledby={`${r.id}-title`}>
+          <p class="eyebrow">{REFERENCE_KIND[r.kind][lang]}</p>
+          <h2 id={`${r.id}-title`}>{r.title}</h2>
+          <dl class="meta">
+            <dt>{(r.kind === 'talk' ? C.speaker : C.author)[lang]}</dt><dd>{r.author}</dd>
+            <dt>{C.venue[lang]}</dt><dd>{r.venue[lang]}</dd>
+            {date && <><dt>{C.date[lang]}</dt><dd><time datetime={r.date}>{date}</time></dd></>}
+          </dl>
+          <p>{r.about[lang]}</p>
+          <p class="out">
+            <a href={r.url} rel="noopener">{C.open[r.kind][lang]}<span class="visually-hidden"> ({C.external[lang]})</span></a>
+            <span class="domain">{domainOf(r.url)} <span aria-hidden="true">↗</span></span>
+          </p>
+          {r.points && r.points.length > 0 && (
+            <details class="points">
+              <summary>{C.points[lang]}</summary>
+              <ul>{r.points.map((p) => <li>{p[lang]}</li>)}</ul>
+            </details>
+          )}
+          <h3>{C.related[lang]}</h3>
+          <ul class="related">
+            {related.map((x) => <li><a class="chip" href={x.href} style={x.c && `--c: ${x.c}`}>{x.c && <span class="dot" aria-hidden="true"></span>}{x.label}</a></li>)}
+          </ul>
+        </section>
+      );
+    })}
+  </div>
+</Base>
+<style>
+  .note { border-left: 4px solid var(--rule-strong); padding: 6px 14px; color: var(--ink-2); }
+  .ref { padding: 26px 0; border-top: 1px solid var(--rule); scroll-margin-top: 5rem; }
+  .ref h2 { margin-top: 0; }
+  .meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: var(--fs-ui); margin: 0 0 14px; }
+  .meta dt { color: var(--ink-3); }
+  .meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .out { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 600; }
+  .domain { font-weight: 400; font-size: var(--fs-sm); color: var(--ink-3); }
+  .points summary { cursor: pointer; font-weight: 600; }
+  .points ul { margin-top: 8px; }
+  .points li { margin-bottom: .35em; }
+  h3 { font-size: var(--fs-body); margin: 18px 0 8px; }
+  .related { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .related .chip { white-space: normal; }
+</style>

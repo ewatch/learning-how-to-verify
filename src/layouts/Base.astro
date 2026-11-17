@@ -113,9 +113,10 @@ const fullTitle = path === '' ? `${t(lang, 'siteName')}: ${t(lang, 'tagline')}` 
       <div class="wrap">
         <p>{t(lang, 'footerNote')}</p>
         <p>
-          <a href={href(lang, 'about/')}>{t(lang, 'navAbout')}</a> ·
-          <a href={`${BASE}/llms.txt`}>llms.txt</a> ·
-          {md && <><a href={md}>{t(lang, 'markdown')}</a> · </>}
+          <a href={href(lang, 'about/')}>{t(lang, 'navAbout')}</a>{' · '}
+          <a href={href(lang, 'references/')}>{t(lang, 'navReferences')}</a>{' · '}
+          <a href={`${BASE}/llms.txt`}>llms.txt</a>{' · '}
+          {md && <><a href={md}>{t(lang, 'markdown')}</a>{' · '}</>}
           <a href={href(lang, 'about/#self-verification')}>{lang === 'en' ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</a>
         </p>
       </div>

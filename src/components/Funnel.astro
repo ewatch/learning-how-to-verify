@@ -2,7 +2,7 @@
 import type { Locale, Practice } from '../data/types';
 import { LAYERS } from '../data/taxonomy';
 import { PRACTICES } from '../data/practices';
-import { t } from '../i18n/ui';
+import { t, href } from '../i18n/ui';
 import PracticeCard from './PracticeCard.astro';
 import CardKey from './CardKey.astro';
 
@@ -48,7 +48,7 @@ const split = (list: Practice[]) => {
         </a>
       ))}
     </svg>
-    <p class="credit">{en ? 'After a talk by Lauren Tan (@poteto). A rule of thumb, not a law: see the evidence notes.' : 'Nach einem Vortrag von Lauren Tan (@poteto). Eine Faustregel, kein Gesetz: siehe die Hinweise zur Evidenz.'}</p>
+    <p class="credit"><a href={href(lang, 'references/#lauren-tan-talk')}>{en ? 'After a talk by Lauren Tan (@poteto)' : 'Nach einem Vortrag von Lauren Tan (@poteto)'}</a>. {en ? 'A rule of thumb, not a law: see the evidence notes.' : 'Eine Faustregel, kein Gesetz: siehe die Hinweise zur Evidenz.'}</p>
   </div>
 
   <div class="panels">

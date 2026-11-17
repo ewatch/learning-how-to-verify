@@ -5,7 +5,7 @@ import { SOURCES } from '../../data/sources';
 import { TOOLS } from '../../data/tools';
 import { PRACTICES } from '../../data/practices';
 import { langPaths } from '../../lib/paths';
-import { t } from '../../i18n/ui';
+import { t, href } from '../../i18n/ui';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -18,9 +18,10 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
 
     <h2>{en ? 'Credits' : 'Quellen der Ideen'}</h2>
     <ul>
-      <li>{en ? 'The funnel (codebase → static analysis → verification → prose → human review) and the use of the lifecycle overview come from a talk by ' : 'Der Trichter (Codebasis → statische Analyse → Verifikation → Prosa → menschliches Review) und die Nutzung der Lebenszyklus-Übersicht stammen aus einem Vortrag von '}<strong>Lauren Tan (@poteto)</strong>.</li>
+      <li>{en ? 'The funnel (codebase → static analysis → verification → prose → human review) and the use of the lifecycle overview come from a talk by ' : 'Der Trichter (Codebasis → statische Analyse → Verifikation → Prosa → menschliches Review) und die Nutzung der Lebenszyklus-Übersicht stammen aus einem Vortrag von '}<strong>Lauren Tan (@poteto)</strong> (<a href={href(lang, 'references/#lauren-tan-talk')}>{en ? 'see the talk' : 'zum Vortrag'}</a>).</li>
       <li>{en ? 'The lifecycle overview of practices from pre-production to post-release was originally drawn by ' : 'Die Lebenszyklus-Übersicht der Praktiken von vor der Produktion bis nach dem Release zeichnete ursprünglich '}<strong>Cindy Sridharan (@copyconstruct)</strong>.</li>
       <li>{en ? 'Both diagrams are redrawn here; the content of each practice page is our own.' : 'Beide Diagramme sind hier neu gezeichnet; die Inhalte der Praktikseiten sind eigene.'}</li>
+      <li>{en ? 'Talks and articles from practice that this site builds on are on the page ' : 'Vorträge und Artikel aus der Praxis, auf denen diese Seite aufbaut, stehen auf der Seite '}<a href={href(lang, 'references/')}>{t(lang, 'navReferences')}</a>.</li>
     </ul>
 
     <h2 id="self-verification">{en ? 'How this site verifies itself' : 'Wie diese Seite sich selbst prüft'}</h2>
@@ -38,7 +39,7 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
     <h2>{en ? 'Privacy' : 'Datenschutz'}</h2>
     <p>{en ? 'No cookies, no analytics, no external fonts or scripts. Your theme and language choice are stored only in your own browser. Simulators run entirely in your browser.' : 'Keine Cookies, keine Analyse, keine externen Schriften oder Skripte. Theme- und Sprachwahl werden nur im eigenen Browser gespeichert. Simulatoren laufen vollständig im Browser.'}</p>
 
-    <h2>{en ? 'All sources' : 'Alle Quellen'} ({SOURCES.length})</h2>
+    <h2 id="sources">{en ? 'All sources' : 'Alle Quellen'} ({SOURCES.length})</h2>
     <p class="muted small">{en ? 'Each citation was checked against the publisher, DOI or arXiv page. Preprints are marked.' : 'Jede Quelle wurde gegen Verlag, DOI- oder arXiv-Seite geprüft. Preprints sind markiert.'}</p>
     <ol class="sources">
       {sorted.map((s) => <li id={`src-${s.id}`}>{s.authors}. <a href={s.url} rel="noopener">{s.title}</a>. <em>{s.venue}</em>, {s.year}.{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</li>)}
@@ -46,7 +47,7 @@ const sorted = [...SOURCES].sort((a, b) => a.authors.localeCompare(b.authors));
   </div>
 </Base>
 <style>
-  h2 { margin-top: 2rem; }
+  h2 { margin-top: 2rem; scroll-margin-top: 5rem; }
   .sources { font-size: var(--fs-ui); }
   .sources li { margin-bottom: .5em; }
 </style>

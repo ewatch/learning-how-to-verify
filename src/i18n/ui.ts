@@ -11,6 +11,7 @@ export const UI = {
   navGuides: { en: 'Guides', de: 'Anleitungen' },
   navGlossary: { en: 'Glossary', de: 'Glossar' },
   navAbout: { en: 'About', de: 'Über' },
+  navReferences: { en: 'References', de: 'Vorträge und Artikel' },
   forAgents: { en: 'For agents', de: 'Für Agenten' },
   switchLang: { en: 'Deutsch', de: 'English' },
   switchLangShort: { en: 'DE', de: 'EN' },

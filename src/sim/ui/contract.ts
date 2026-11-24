@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, pill, codeRows, type Lang } from './kit';
 import { CHANGES, CONTRACT, BASE_RESPONSE, applyChanges, contractLine, jsonLines, violationPaths, verifyEach, verifyAll, type Verdict, type Violation } from '../engine/contract';
 import './contract.css';
@@ -12,7 +13,7 @@ const T = {
     lesson: 'Additive changes are safe. Renames, type changes and enum changes break consumers that the agent never saw.',
   },
   de: {
-    intro: 'Die Reservierungs-UI verlässt sich auf vier Felder. Ein Agent ändert den Provider. Schalte Änderungen ein und verifiziere dann den Contract.',
+    intro: EXERCISE_DE.contract.intro,
     contract: 'Consumer-Contract (was die UI nutzt)', response: 'Provider-Antwort', changes: 'Änderungen des Agents', verify: 'Contract verifizieren',
     compatible: 'kompatibel', breaking: 'Breaking', fails: 'scheitert', missing: 'Feld fehlt', type: 'falscher Typ', enum: 'Wert nicht erlaubt', range: 'außerhalb des Bereichs',
     stale: 'Änderungen angepasst. Erneut verifizieren.', none: 'Schalte mindestens eine Änderung ein.',

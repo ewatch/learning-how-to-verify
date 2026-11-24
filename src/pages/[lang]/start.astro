@@ -6,6 +6,7 @@ import { START_COPY as C, START_TOUR, DIAGNOSE_COPY } from '../../data/start';
 import { GUIDE_BY_ID } from '../../data/guides';
 import { href, t } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
+import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const steps = START_TOUR.map((step) => {
@@ -22,7 +23,7 @@ const steps = START_TOUR.map((step) => {
 <Base lang={lang} path="start/" nav="start" title={C.title[lang]} description={C.description[lang]} md={`/${lang}/start/index.md`}>
   <article class="wrap start" data-tour data-resume={C.resume[lang]} data-review={C.allOpened[lang]} data-progress={C.progress[lang]}
     data-states={JSON.stringify({ done: C.stateDone[lang], opened: C.stateOpened[lang], current: C.stateCurrent[lang] })}>
-    <header class="intro">
+    <header class="intro" {...devMark('tighter intro, outcomes & time')}>
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
       <div class="facts">
@@ -45,7 +46,7 @@ const steps = START_TOUR.map((step) => {
       </div>
     </header>
 
-    <aside class="example card" aria-labelledby="example">
+    <aside class="example card" aria-labelledby="example" {...devMark('shorter example copy')}>
       <h2 id="example" class="eyebrow">{C.example[lang]}</h2>
       <p class="ex-text">{C.exampleText[lang]} <strong>{C.rule[lang]}</strong></p>
       <ol class="ex-run" aria-label={C.rule[lang]}>
@@ -56,9 +57,8 @@ const steps = START_TOUR.map((step) => {
       <p class="petstore"><a href={href(lang, 'petstore/')}>{C.petstore[lang]} <span aria-hidden="true">→</span></a></p>
     </aside>
 
-    <section class="tour" aria-labelledby="tour">
+    <section class="tour" aria-labelledby="tour" {...devMark('dropped hint + shorter step blurbs')}>
       <h2 id="tour">{C.learn[lang]}</h2>
-      <p class="muted narrow">{C.learnHint[lang]}</p>
       <ol class="path">
         {steps.map((s, i) => <li data-step={s.id}>
           <a href={s.url} data-step={s.id}>
@@ -74,7 +74,7 @@ const steps = START_TOUR.map((step) => {
       </ol>
     </section>
 
-    <section class="next-block" aria-labelledby="what-next">
+    <section class="next-block" aria-labelledby="what-next" {...devMark('shorter next-step cards')}>
       <h2 id="what-next">{C.whatNext[lang]}</h2>
       <div class="next-grid">
         <div class="card diag">

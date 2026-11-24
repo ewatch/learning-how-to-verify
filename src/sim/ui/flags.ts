@@ -1,17 +1,18 @@
-import { h, segmented, roleTag, resultPanel, type Lang, type ResultView } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, segmented, roleTag, resultPanel, devMark, type Lang, type ResultView } from './kit';
 import { USERS, flagOn, flagsOutcome, flagsReport, type Target, type FlagsOutcome } from '../engine/flags';
 
 type FV = FlagsOutcome['values'];
 const T = {
   en: {
-    intro: 'The new reservation flow (v2) is already deployed, switched off. A feature flag decides at runtime who sees it. Turn it on for staff, then beta users, then a percentage of everyone. When v2 starts failing, hit the kill switch: no deploy, no rollback, one click.',
+    intro: 'v2 is already deployed dark behind a feature flag. Enable it for staff, beta, or a share of traffic — then hit the kill switch when an incident strikes.',
     target: 'Flag "reservation-v2" is on for', off: 'nobody', staff: 'staff', beta: 'staff + beta', percent: 'percentage of everyone', pct: 'Percentage',
     incident: 'Simulate an incident in v2', kill: 'Kill switch: turn the flag off', staffL: 'staff', betaL: 'beta', allL: 'everyone else',
     legend: ['v1 (old flow)', 'v2 (new flow)', 'v2 failing'], deployed: 'Deploys so far: 1 (v2 shipped dark). Flag changes are not deploys.',
     stable: 'Same user, same answer: the flag hashes the user id, so a person does not flip between v1 and v2 on every request.',
   },
   de: {
-    intro: 'Der neue Reservierungsablauf (v2) ist bereits deployt, aber ausgeschaltet. Ein Feature Flag entscheidet zur Laufzeit, wer ihn sieht. Schalte ihn für Mitarbeitende ein, dann für Beta-Nutzer, dann für einen Prozentsatz aller. Wenn v2 zu scheitern beginnt, drück den Notschalter: kein Deploy, kein Zurückrollen, ein Klick.',
+    intro: EXERCISE_DE.flags.intro,
     target: 'Flag „reservation-v2“ ist an für', off: 'niemanden', staff: 'Mitarbeitende', beta: 'Mitarbeitende + Beta', percent: 'Prozentsatz aller', pct: 'Prozentsatz',
     incident: 'Vorfall in v2 simulieren', kill: 'Notschalter: Flag ausschalten', staffL: 'Mitarbeitende', betaL: 'Beta', allL: 'alle anderen',
     legend: ['v1 (alter Ablauf)', 'v2 (neuer Ablauf)', 'v2 scheitert'], deployed: 'Bisherige Deploys: 1 (v2 ausgeschaltet ausgeliefert). Flag-Änderungen sind keine Deploys.',
@@ -95,7 +96,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const on = (u: (typeof USERS)[number]) => flagOn(u, S.target, S.pct);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     h('div', { class: 'sim-row' }, seg),
     pctRow,
     h('div', { class: 'sim-row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.incident = true; S.killedFrom = null; render(); } }, `⚡ ${t.incident} `, roleTag('bug', lang)), killBtn),

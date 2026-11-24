@@ -6,6 +6,7 @@ import { GUIDES, type Guide } from '../../../../data/guides';
 import { PRACTICE_BY_ID } from '../../../../data/practices';
 import { href, t } from '../../../../i18n/ui';
 import { inline } from '../../../../lib/inline';
+import { devMark } from '../../../../lib/dev-mark';
 export function getStaticPaths() {
   return (['en', 'de'] as Locale[]).flatMap((lang) => GUIDES.map((g) => ({ params: { lang, id: g.id }, props: { lang, g } })));
 }
@@ -16,9 +17,10 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
 <Base lang={lang} path={`guides/${g.id}/`} md={`/${lang}/guides/${g.id}/index.md`} nav="guides" title={g.title[lang]} description={g.outcome[lang]}>
   <article class="wrap narrow guide" style={`--c: var(--l-${practice.layer})`}>
     <nav class="small muted"><a href={href(lang, 'guides/')}>{t(lang, 'navGuides')}</a> / <a href={href(lang, `practices/${practice.id}/`)}>{practice.name[lang]}</a></nav>
-    <h1>{g.title[lang]}</h1>
-    <p class="lede">{t(lang, 'guideLede')}</p>
-    <div class="card outcome"><p class="eyebrow">{t(lang, 'outcome')}</p><p set:html={inline(g.outcome[lang])} /></div>
+    <header {...devMark('dropped guideLede + tighter outcome')}>
+      <h1>{g.title[lang]}</h1>
+      <div class="card outcome"><p class="eyebrow">{t(lang, 'outcome')}</p><p set:html={inline(g.outcome[lang])} /></div>
+    </header>
 
     <section><h2>{t(lang, 'install')}</h2>
       {g.install.map((i, k) => <CodeBlock code={i.cmd} file={i.os[lang]} lang={lang} id={`inst-${k}`} />)}
@@ -26,7 +28,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
     </section>
 
     {g.steps.map((s, i) => (
-      <section class="step">
+      <section class="step" {...devMark('tighter step prose')}>
         <h2><span class="n">{i + 1}</span>{s.title[lang]}</h2>
         <p set:html={inline(s.text[lang])} />
         {s.code && <CodeBlock code={s.code.body.trimEnd()} file={s.code.file} lang={lang} id={`code-${i}`} />}
@@ -34,7 +36,7 @@ const agentText = g.agent.map((a, i) => `${i + 1}. ${a[lang]}`).join('\n');
       </section>
     ))}
 
-    <section><h2>{t(lang, 'mistakes')}</h2><ul>{g.mistakes.map((m) => <li set:html={inline(m[lang])} />)}</ul></section>
+    <section {...devMark('tighter mistakes')}><h2>{t(lang, 'mistakes')}</h2><ul>{g.mistakes.map((m) => <li set:html={inline(m[lang])} />)}</ul></section>
     <section><h2>{t(lang, 'nextSteps')}</h2><ul>{g.next.map((n) => <li><a href={n.url} rel="noopener">{n.label}</a></li>)}</ul></section>
     <section class="card agent">
       <div class="row"><strong>{t(lang, 'copyForAgent')}</strong><button type="button" class="btn" data-copy="guide-agent" command="--copy" commandfor="guide-agent">{t(lang, 'copyForAgent')}</button></div>

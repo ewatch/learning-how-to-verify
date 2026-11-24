@@ -1,28 +1,27 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { LIFECYCLE_COPY } from '../../data/page-copy';
 import type { Locale } from '../../data/types';
 import { PHASES } from '../../data/taxonomy';
 import { PRACTICES } from '../../data/practices';
 import { href } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
+import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 const nCore = PRACTICES.filter((p) => p.core).length;
 ---
 <Base lang={lang} path="lifecycle/" md={`/${lang}/lifecycle/index.md`} nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
-  description={en ? 'All verification practices by when they happen: pre-production, deploy, release, post-release.' : 'Alle Verifikationspraktiken danach, wann sie stattfinden: vor der Produktion, Deploy, Release, nach dem Release.'}>
+  description={LIFECYCLE_COPY.intro[lang]}>
   <div class="wrap">
-    <header class="narrow">
+    <header class="narrow" {...devMark('tighter intro + 1-line legend')}>
       <p class="eyebrow">{en ? 'Second view' : 'Zweite Ansicht'}</p>
-      <h1>{en ? 'When does each check happen?' : 'Wann findet welche Prüfung statt?'}</h1>
-      <p class="lede">{en
-        ? 'This map sorts the practices by when they run: before production, at deploy, at release and after release. Some bugs show up only with real traffic, data and users, so the right-hand columns test in production, with care and a small blast radius.'
-        : 'Diese Karte sortiert die Praktiken danach, wann sie laufen: vor der Produktion, beim Deploy, beim Release und nach dem Release. Manche Fehler zeigen sich erst mit echtem Verkehr, echten Daten und echten Nutzern. Darum testen die rechten Spalten in Produktion, vorsichtig und mit kleinem Wirkungsradius.'}</p>
-      <ul class="key small">
-        <li><strong>{en ? 'Bold' : 'Fett'}</strong> {en ? <>marks a core practice: one of {nCore} to start with. The <a href={href(lang, 'start/')}>Getting Started</a> tour covers most of them.</> : <>kennzeichnet eine Kernpraktik: eine von {nCore} für den Anfang. Der Einstieg <a href={href(lang, 'start/')}>Erste Schritte</a> deckt die meisten ab.</>}</li>
-        <li>{en ? 'The colour bar on the left of each name shows its funnel layer.' : 'Der Farbbalken links neben jedem Namen zeigt seine Trichterschicht.'}</li>
-      </ul>
+      <h1>{LIFECYCLE_COPY.heading[lang]}</h1>
+      <p class="lede">{LIFECYCLE_COPY.intro[lang]}</p>
+      <p class="key small">
+        <strong>{en ? 'Bold' : 'Fett'}</strong>: {en ? <>{nCore} core practices (<a href={href(lang, 'start/')}>Getting Started</a>)</> : <>{nCore} Kernpraktiken (<a href={href(lang, 'start/')}>Erste Schritte</a>)</>} · {en ? 'Left colour bar: funnel layer.' : 'Farbbalken links: Trichterschicht.'}
+      </p>
     </header>
 
     <div class="groups" aria-hidden="true">
@@ -66,8 +65,6 @@ const nCore = PRACTICES.filter((p) => p.core).length;
   li a { color: var(--ink); text-decoration: none; }
   li a:hover { text-decoration: underline; }
   li.is-core a { font-weight: 700; }
-  .key { list-style: none; padding: 0; margin: 10px 0 0; color: var(--ink-2); }
-  .key li { padding: 0; border: 0; margin: 0 0 4px; }
-  .key li::before { display: none; }
+  .key { margin: 10px 0 0; color: var(--ink-2); }
   .key a { color: var(--link); text-decoration: underline; }
 </style>

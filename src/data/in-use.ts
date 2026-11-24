@@ -15,7 +15,7 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   canarying: [
     u('case', 'sre2018canary',
-      'Google\'s SRE Workbook defines canarying as a partial, time-limited deployment of a change that is evaluated against the rest of the service as control. It states that in Google\'s experience a majority of incidents are triggered by binary or configuration pushes.',
+      'The Google SRE Workbook defines canarying as a partial deployment for a limited time. The rest of the service is the control group. Google reports that binary or configuration changes cause most incidents in its experience.',
       'Das SRE Workbook von Google definiert Canarying als teilweises, zeitlich begrenztes Ausrollen einer Änderung, die mit dem Rest des Dienstes als Kontrollgruppe verglichen wird. Es nennt als Erfahrung bei Google, dass die Mehrheit der Incidents durch Binary- oder Konfigurations-Pushes ausgelöst wird.'),
   ],
   'config-tests': [
@@ -45,8 +45,8 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   'integration-tests': [
     u('case', 'swe2020overview',
-      '"Software Engineering at Google" gives as a very rough guideline a mix of about 80% narrow unit tests, 15% medium-scoped integration tests and 5% end-to-end tests, counted by test case. It says every team\'s mix will differ a little.',
-      '„Software Engineering at Google“ nennt als grobe Richtschnur eine Mischung aus etwa 80 % eng gefassten Unit Tests, 15 % Integration Tests mittlerer Reichweite und 5 % End-to-End-Tests, gezählt nach Testfällen. Die Mischung jedes Teams weiche etwas ab.'),
+      'Software Engineering at Google gives an approximate mix by test case: 80% unit tests, 15% integration tests and 5% end-to-end tests. The proportions can vary by team.',
+      '„Software Engineering at Google“ gibt eine ungefähre Verteilung pro Testfall an. Sie umfasst 80 % Unit Tests, 15 % Integration Tests und 5 % End-to-End Tests. Die Anteile können je nach Team variieren.'),
   ],
   'e2e-tests': [
     u('case', 'swe2020larger',
@@ -70,7 +70,7 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   'agent-rules': [
     u('adoption', 'agentsmd2026',
-      'According to its website, the AGENTS.md format is used by over 60,000 open-source projects, is supported by many coding tools, and is stewarded by the Agentic AI Foundation under the Linux Foundation.',
+      'The AGENTS.md website reports that more than 60,000 open-source projects use the format. It says that many coding tools support the format. The Agentic AI Foundation, part of the Linux Foundation, maintains the format.',
       'Laut eigener Website nutzen über 60.000 Open-Source-Projekte das AGENTS.md-Format; viele Coding-Werkzeuge unterstützen es, und die Agentic AI Foundation unter der Linux Foundation betreut es.'),
   ],
   tracing: [
@@ -80,7 +80,7 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   'unit-tests': [
     u('adoption', 'stateofjs2024testing',
-      'In the State of JavaScript 2024 survey, 7,262 respondents named Jest and 3,986 named Vitest among the testing tools they use in a professional context. The survey is self-selected and covers JavaScript developers.',
+      'The State of JavaScript 2024 survey asked about tools that respondents use at work. In the survey, 7,262 respondents named Jest and 3,986 named Vitest. JavaScript developers chose whether to participate.',
       'In der Umfrage State of JavaScript 2024 nannten 7.262 Teilnehmende Jest und 3.986 Vitest unter den Testwerkzeugen, die sie beruflich nutzen. Die Umfrage ist selbst ausgewählt und erfasst JavaScript-Entwickler.'),
   ],
   'contract-tests': [
@@ -90,7 +90,7 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   'feature-flags': [
     u('adoption', 'cncfopenfeature2023',
-      'OpenFeature, whose tagline is "Standardizing Feature Flagging for Everyone", was accepted into the CNCF in June 2022 and reached the Incubating level on 21 November 2023.',
+      'The CNCF accepted OpenFeature in June 2022. OpenFeature reached the Incubating level on 21 November 2023.',
       'OpenFeature, dessen Leitsatz „Standardizing Feature Flagging for Everyone“ lautet, wurde im Juni 2022 in die CNCF aufgenommen und erreichte am 21. November 2023 die Stufe Incubating.'),
   ],
   'fuzz-tests': [
@@ -105,7 +105,7 @@ export const IN_USE: Record<string, UseFinding[]> = {
   ],
   monitoring: [
     u('guidance', 'sre2017monitoring',
-      'Google\'s SRE book names four golden signals of monitoring: latency, traffic, errors and saturation. It says that measuring all four and paging a human when one is problematic covers a service at least decently, and that every page should be actionable.',
+      'The Google SRE book gives four golden signals: latency, traffic, errors and saturation. It recommends an alert when a signal indicates a problem. The alert must give the on-call person an action to take.',
       'Das SRE-Buch von Google nennt vier Golden Signals fürs Monitoring: Latency, Traffic, Errors und Saturation. Wer alle vier misst und einen Menschen alarmiert, wenn eines problematisch ist, deckt einen Dienst mindestens ordentlich ab. Jede Alarmierung solle handlungsrelevant sein.'),
   ],
   'oncall-experience': [
@@ -113,8 +113,8 @@ export const IN_USE: Record<string, UseFinding[]> = {
       'Google\'s SRE book says SREs are on call for the services they support. Assuming week-long shifts, each engineer is on call for one week every month, and many teams have a primary and a secondary rotation.',
       'Das SRE-Buch von Google sagt, dass SREs für die Dienste in Bereitschaft sind, die sie betreuen. Bei wöchentlichen Schichten ist jeder Engineer eine Woche pro Monat in Bereitschaft, und viele Teams haben eine primäre und eine sekundäre Rotation.'),
     u('guidance', 'sre2017oncall',
-      'The same chapter sets a maximum of two incidents per 12-hour on-call shift and warns that the fatigue from too many alerts can cause serious alerts to get less attention than they need.',
-      'Dasselbe Kapitel setzt höchstens zwei Incidents pro 12-Stunden-Bereitschaftsschicht an und warnt, dass die Ermüdung durch zu viele Alarme dazu führen kann, dass ernste Alarme weniger Aufmerksamkeit bekommen als nötig.'),
+      'The chapter sets a maximum of two incidents in a 12-hour shift. Too many alerts can cause fatigue. As a result, the on-call person can give too little attention to serious alerts.',
+      'Das Kapitel empfiehlt höchstens zwei Incidents pro 12-Stunden-Schicht. Zu viele Alerts können zu Ermüdung führen. Dadurch kann die Rufbereitschaft wichtige Alerts übersehen.'),
   ],
   'penetration-tests': [
     u('guidance', 'nist800115',

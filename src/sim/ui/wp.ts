@@ -1,10 +1,11 @@
-import { h, highlight, rich, sleep, reducedMotion, type Lang } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, highlight, rich, sleep, reducedMotion, devMark, type Lang } from './kit';
 import { PRESETS, ParseError, analyse, checkAt, exec, ev, makeSearch, envAt, show, type Analysis, type Env, type Expr, type Preset, type Seg, type WpStep } from '../engine/wp';
 
 const KWS = new Set(['if', 'else', 'true', 'false']);
 const T = {
   en: {
-    intro: 'A verifier works backwards: it starts from the postcondition Q and pushes it up through the program, one line at a time, to get the weakest precondition wp. Then it checks that your precondition P implies it. Here a brute-force "mini solver" stands in for the real one.',
+    intro: 'A verifier works backwards from postcondition Q through each line to compute the weakest precondition wp, then checks that P implies wp. Here a finite mini solver stands in for Z3.',
     example: 'Example', pre: 'Precondition P (requires)', post: 'Postcondition Q (ensures)',
     play: '▶ Animate proof', step: '→ One step', reset: '↺ Reset', edit: '✎ Edit program', apply: 'Apply', syntax: 'Syntax: `v := expr;` and `if cond { … } else { … }`. Operators: + − * / % == != < <= > >= && || ! ==>',
     legend: 'Dashed lines are the computed assertions at each program point. The highlighted part is the expression substituted last.',
@@ -21,7 +22,7 @@ const T = {
     program: 'Program',
   },
   de: {
-    intro: 'Ein Verifizierer rechnet rückwärts: Er startet bei der Nachbedingung Q und schiebt sie Zeile für Zeile durch das Programm nach oben. Heraus kommt die schwächste Vorbedingung wp. Dann prüft er, ob deine Vorbedingung P sie impliziert. Hier ersetzt ein Brute-Force-„Mini-Solver“ den echten Solver.',
+    intro: EXERCISE_DE.wp.intro,
     example: 'Beispiel', pre: 'Vorbedingung P (requires)', post: 'Nachbedingung Q (ensures)',
     play: '▶ Beweis animieren', step: '→ Ein Schritt', reset: '↺ Zurücksetzen', edit: '✎ Programm bearbeiten', apply: 'Übernehmen', syntax: 'Syntax: `v := ausdruck;` und `if bedingung { … } else { … }`. Operatoren: + − * / % == != < <= > >= && || ! ==>',
     legend: 'Die gestrichelten Zeilen sind die berechneten Zusicherungen an jeder Programmstelle. Markiert ist der zuletzt eingesetzte Ausdruck.',
@@ -33,7 +34,7 @@ const T = {
     constOk: '✓ Die Bedingung ist konstant wahr: bewiesen.', constBad: '✗ Die Bedingung ist konstant falsch.',
     cex: 'Gegenbeispiel:', cexTail: 'P ist dort wahr, wp(C, Q) aber falsch. Das Programm erfüllt die Spezifikation also nicht.', probe: 'Probe durch echte Ausführung:', nothing: '(nichts)', qIs: 'Q ist',
     ok: '✓ Kein Gegenbeispiel im Suchbereich. Ein echter SMT-Solver (z. B. Z3) zeigt, dass P ∧ ¬wp symbolisch unerfüllbar ist, für alle ganzen Zahlen. Diese Demo hat nur einen kleinen endlichen Bereich durchsucht.',
-    note: 'Ehrlicher Hinweis: Die Demo prüft nur einen kleinen endlichen Zahlenbereich. Echte Verifizierer wie Dafny nutzen einen SMT-Solver (Z3), der die Bedingung symbolisch für alle Eingaben beweist.',
+    note: EXERCISE_DE.wp.note,
     errLabel: 'Fehler', requires: 'requires', ensures: 'ensures', replaceEvery: 'Ersetze jedes', by: 'durch', divZero: 'Division durch 0',
     program: 'Programm',
   },
@@ -68,7 +69,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const stepBtn = h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.playing = false; advance(); } }, t.step);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     h('div', { class: 'sim-row' },
       h('label', { class: 'inline' }, t.example, sel),
       h('label', { class: 'inline' }, t.pre, preIn),

@@ -5,6 +5,7 @@ import { PRACTICE_BY_ID } from '../../data/practices';
 import { DIAGNOSE_COPY as C, START_ROUTES, START_LOOP, startAgentPrompt } from '../../data/start';
 import { href } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
+import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const practiceUrl = (id: string) => href(lang, `practices/${id}/`);
@@ -12,15 +13,14 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
 ---
 <Base lang={lang} path="diagnose/" title={C.title[lang]} description={C.description[lang]} md={`/${lang}/diagnose/index.md`}>
   <article class="wrap diagnose">
-    <header class="narrow">
+    <header class="narrow" {...devMark('tighter intro')}>
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
       <p class="small muted">{C.tour[lang]} <a href={href(lang, 'start/')}>{C.tourLink[lang]} →</a></p>
     </header>
 
-    <section class="layer-section" aria-labelledby="where-start" data-start-picker>
+    <section class="layer-section" aria-labelledby="where-start" data-start-picker {...devMark('dropped hint + shorter cards')}>
       <h2 id="where-start">{C.chooser[lang]}</h2>
-      <p class="muted narrow">{C.chooseHint[lang]}</p>
       <div class="starting-points" role="group" aria-labelledby="where-start">
         {START_ROUTES.map((route, i) => <button type="button" class="starting-point" data-start-choice={route.id} aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`start-${route.id}`}>
           <span class="small muted">{String(i + 1).padStart(2, '0')}</span><span>{route.label[lang]}</span>
@@ -46,7 +46,7 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
       </div>
     </section>
 
-    <section class="layer-section" aria-labelledby="feedback-loop">
+    <section class="layer-section" aria-labelledby="feedback-loop" {...devMark('tighter 4-step loop')}>
       <h2 id="feedback-loop">{C.loop[lang]}</h2>
       <p class="muted narrow">{C.loopHint[lang]}</p>
       <ol class="loop">

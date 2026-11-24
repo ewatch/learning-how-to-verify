@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeView, codeEditor, pill, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { STUB, SOLUTION, REFACTORED, TESTS, TITLES, runTdd, allGreen, advance, tddOutcome, tddReport, type TddState, type TddOutcome } from '../engine/tdd';
 import type { TestResult } from '../engine/jsrun';
@@ -11,7 +12,7 @@ const T = {
     impl: 'Your implementation', run: 'Run tests', solution: 'Show a solution', clean: 'Use cleaner version', label: 'reserve implementation',
   },
   de: {
-    intro: 'Die Tests sind freigegeben und gesperrt. Schreibe `reserve`, bis alle vier grün sind, und räume den Code dann auf, ohne sie zu brechen.',
+    intro: EXERCISE_DE.tdd.intro,
     steps: ['Red', 'Green', 'Refactor'], tests: 'Freigegebene Tests', locked: 'gesperrt', change: 'Tests ändern',
     gate: 'Vom Gate blockiert. Könnte der Agent (oder du) die Tests anpassen, bis sie bestehen, würde ein grüner Lauf nichts beweisen. Die Tests bleiben fest; nur die Implementierung ändert sich.',
     impl: 'Deine Implementierung', run: 'Tests ausführen', solution: 'Lösung zeigen', clean: 'Sauberere Version nutzen', label: 'reserve-Implementierung',

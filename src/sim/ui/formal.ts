@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, segmented, sleep, reducedMotion, type Lang } from './kit';
 import { modelCheck, type Step } from '../engine/modelcheck';
 import adopt from '../../../guides-src/tla/Adopt.tla?raw';
@@ -16,7 +17,7 @@ const T = {
     lesson: (people: number) => `A unit test would need to hit exactly this interleaving by luck. The checker found it by brute force on a model with ${people} people; with the atomic design it proves there is no such path.`,
   },
   de: {
-    intro: 'Tests probieren einige Reihenfolgen von Ereignissen. Ein Model Checker probiert alle. Hier versuchen mehrere Personen gleichzeitig, Rex zu reservieren. Wähle, wie die App arbeitet, und lass den Checker jede mögliche Verschränkung erkunden.',
+    intro: EXERCISE_DE.formal.intro,
     design: 'Entwurf', twoSteps: 'Prüfen, dann reservieren (zwei Anfragen)', atomic: 'Prüfen und reservieren in einem Schritt (Server)', people: 'Personen',
     run: 'Alle Verschränkungen prüfen', spec: 'Dasselbe Modell in TLA+', explored: (d: number, g: number) => `${d} verschiedene Zustände erkundet (${g} erzeugt)`,
     ok: (d: number) => `✓ Kein Fehler: In allen ${d} erreichbaren Zuständen hat Rex höchstens einen Besitzer. Das gilt für jede mögliche Reihenfolge der Schritte, nicht nur für die, die ein Test zufällig probierte.`,

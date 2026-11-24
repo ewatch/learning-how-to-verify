@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { STACK_COPY } from '../../../../data/page-copy';
 import type { LangId, Locale, Practice } from '../../../../data/types';
 import { LANGS, LAYERS } from '../../../../data/taxonomy';
 import { PRACTICES } from '../../../../data/practices';
@@ -19,7 +20,7 @@ export const GET: APIRoute = ({ params }) => {
   };
   const out = [`# ${lg.name}: ${en ? 'verification practices and tools' : 'Verifikationspraktiken und Werkzeuge'}`, ''];
   out.push(`## ${en ? 'Start with these' : 'Damit anfangen'}`, '',
-    en ? 'The core practices, top of the funnel first. Each one also appears in its layer below.' : 'Die Kernpraktiken, von oben im Trichter nach unten. Jede steht auch unten in ihrer Schicht.', '',
+    STACK_COPY.coreIntro[lang], '',
     ...PRACTICES.filter((p) => p.core).map(row), '',
     `## ${en ? `All ${PRACTICES.length} practices by layer` : `Alle ${PRACTICES.length} Praktiken nach Schicht`}`, '');
   for (const layer of LAYERS) {

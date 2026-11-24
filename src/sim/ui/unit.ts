@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeView, pill, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { IMPLS, SPEC, BUG_LABEL, evaluate, toVitest, unitOutcome, type Case, type Species, type UnitOutcome } from '../engine/unitsim';
 
@@ -82,7 +83,7 @@ const T = {
     code: 'As a Vitest file', dog: 'dog', cat: 'cat', passOnCorrect: 'passes', fails: 'fails', caughtBy: 'caught', notCaught: 'not caught',
   },
   de: {
-    intro: 'Sechs Implementierungen der Adoptionsgebühr. Eine ist korrekt, fünf enthalten einen plausiblen Fehler. Schreibe Beispiele (Eingabe → erwartete Ausgabe), bis sie auf der korrekten bestehen und jeden Fehler fangen. Start: Die zwei Beispiele unten fangen nichts.',
+    intro: EXERCISE_DE.unit.intro,
     spec: 'Die Anforderung', examples: 'Deine Beispiele', species: 'Tierart', age: 'Alter (Jahre)', expected: 'Erwartet (Cent)', throws: 'Fehler', add: 'Beispiel hinzufügen', remove: 'Entfernen',
     impls: 'Implementierungen', caught: (n: number, t: number) => `${n} von ${t} Fehlern gefangen`, wrong: 'Dieses Beispiel scheitert an der korrekten Implementierung; die Erwartung ist also falsch. Anforderung prüfen.',
     code: 'Als Vitest-Datei', dog: 'Hund', cat: 'Katze', passOnCorrect: 'besteht', fails: 'scheitert', caughtBy: 'gefangen', notCaught: 'nicht gefangen',

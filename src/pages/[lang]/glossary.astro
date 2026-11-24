@@ -1,19 +1,23 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { GLOSSARY_COPY } from '../../data/page-copy';
 import type { Locale } from '../../data/types';
 import { GLOSSARY } from '../../data/glossary';
 import { PRACTICE_BY_ID } from '../../data/practices';
 import { href } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
+import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 const terms = [...GLOSSARY].sort((a, b) => a.term[lang].localeCompare(b.term[lang], lang));
 ---
-<Base lang={lang} path="glossary/" md={`/${lang}/glossary/index.md`} nav="glossary" title={en ? 'Glossary' : 'Glossar'} description={en ? 'Short definitions of the terms used on this site.' : 'Kurze Definitionen der Begriffe auf dieser Seite.'}>
+<Base lang={lang} path="glossary/" md={`/${lang}/glossary/index.md`} nav="glossary" title={en ? 'Glossary' : 'Glossar'} description={GLOSSARY_COPY.description[lang]}>
   <div class="wrap narrow">
-    <h1>{en ? 'Glossary' : 'Glossar'}</h1>
-    <p class="lede">{en ? 'Short definitions of the terms that this site uses. A dotted line under a term on a practice page links to its entry here.' : 'Kurze Definitionen der Begriffe, die diese Seite verwendet. Eine gepunktete Linie unter einem Begriff auf einer Praktikseite verlinkt auf seinen Eintrag hier.'}</p>
+    <header {...devMark('tighter lede')}>
+      <h1>{en ? 'Glossary' : 'Glossar'}</h1>
+      <p class="lede">{GLOSSARY_COPY.intro[lang]}</p>
+    </header>
     <dl>
       {terms.map((x) => (
         <div id={x.id} class="term">

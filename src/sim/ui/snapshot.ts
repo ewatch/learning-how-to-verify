@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, pill, codeRows, rich, type Lang } from './kit';
 import { CHANGES, diffFor, diffAfterAutoUpdate, changed, score, type Verdict, type DiffLine } from '../engine/snapshot';
 import './snapshot.css';
@@ -13,7 +14,7 @@ const T = {
     reset: 'Start over', snapshotLabel: 'Snapshot (recorded)',
   },
   de: {
-    intro: 'Ein Agent hat `renderInvoice` geändert. Der Snapshot-Test schlägt bei jeder Änderung fehl. Approve den Diff, wenn die Änderung gewollt ist, sonst reject.',
+    intro: EXERCISE_DE.snapshot.intro,
     auto: 'Agent aktualisiert Snapshots automatisch', code: 'Code-Änderung des Agents', diff: 'Ausgabe vs. Snapshot', approve: 'Approve', reject: 'Reject',
     right: 'Richtig', wrong: 'Falsch', progress: (n: number, t: number) => `${n} von ${t} entschieden`, score: (n: number, t: number) => `${n} von ${t} richtig`,
     pass: 'Test grün', fail: 'Test rot', updated: 'Snapshot stillschweigend neu aufgezeichnet, der Test besteht',

@@ -1,10 +1,11 @@
-import { h, codeRows, pill, esc, highlightJs, type Lang, type CodeRow } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, codeRows, pill, esc, highlightJs, devMark, type Lang, type CodeRow } from './kit';
 import { GATES, PATCHES, evaluate, judge, decide, type GateId, type PatchId } from '../engine/integrity';
 import './integrity.css';
 
 const T = {
   en: {
-    intro: 'The test "a reserved pet cannot be reserved again" fails, and an agent proposes five patches to make it green. Switch on one gate at a time: which cheat does each one catch, and which cheat only the hidden tests catch?',
+    intro: 'An agent proposes five patches to make a failing test green. Toggle gates one by one to see which cheats each catches — and which only hidden tests catch.',
     gatesLabel: 'Gates', patchCol: 'Patch', verdict: 'Result',
     gate: {
       protected: ['Protected test paths', 'CODEOWNERS: tests/ needs a human'],
@@ -28,7 +29,7 @@ const T = {
     cheatBadge: 'cheat', realBadge: 'real fix',
   },
   de: {
-    intro: 'Der Test „a reserved pet cannot be reserved again“ schlägt fehl, und ein Agent schlägt fünf Patches vor, um ihn grün zu machen. Schalte ein Gate nach dem anderen ein: Welche Schummelei fängt jedes, und welche fangen nur die versteckten Tests?',
+    intro: EXERCISE_DE.integrity.intro,
     gatesLabel: 'Gates', patchCol: 'Patch', verdict: 'Ergebnis',
     gate: {
       protected: ['Geschützte Testpfade', 'CODEOWNERS: tests/ braucht einen Menschen'],
@@ -69,7 +70,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const detail = h('div', { class: 'sim-card' });
   const status = h('div', { 'aria-live': 'polite' });
 
-  root.append(h('div', { class: 'sim' }, h('p', { class: 'sim-intro' }, t.intro), gatesBox, matrix, status, detail));
+  root.append(h('div', { class: 'sim' }, h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro), gatesBox, matrix, status, detail));
 
   function render() {
     const j = judge(enabled, evals);

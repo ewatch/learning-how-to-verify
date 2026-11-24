@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeView, rich, segmented, type Lang, type LineMark } from './kit';
 import { run, INPUT_IDS, ALLOCATE_SRC, CLAUSE_LINE, SCENARIOS, type InputId, type Clause, type RunResult, type Anomaly } from '../engine/dbc';
 import './dbc.css';
@@ -31,7 +32,7 @@ const T = {
     fine: 'Valid input: both modes agree, the contracts cost nothing.',
   },
   de: {
-    intro: 'Wähle eine Eingabe und schalte die Contracts um. Wo taucht der Fehler auf?',
+    intro: EXERCISE_DE.dbc.intro,
     input: 'Eingabe', contracts: 'Contracts an',
     inputs: { normal: 'Normaler Warenkorb', negDiscount: 'Negativer Rabatt', tooBig: 'Rabatt über Summe', empty: 'Leerer Warenkorb', negWeight: 'Negativer Preis' } as Record<InputId, string>,
     steps: ['checkout(cart)', 'allocate(discount, weights)', 'renderInvoice(shares)'],
@@ -53,7 +54,7 @@ const T = {
     offHead: 'Contracts aus: Der Fehler zeigt sich erst in Schritt 3, weit weg von der Ursache in Schritt 2.',
     onHead: (c: string) => `Contracts an: Stopp in Schritt 2, direkt an der Ursache. ${c}`,
     code: 'allocate mit seinen Contracts', notChecked: 'Contracts sind aus: Diese Zeilen werden nicht geprüft.',
-    hint: 'Schalte jetzt um und vergleiche.',
+    hint: EXERCISE_DE.dbc.hint,
     lesson: 'Contracts verschieben den Fehler an seine Ursache: allocate weist schlechte Eingaben sofort ab, statt dass die Rechnung drei Schritte später falsch ist.',
     fine: 'Gültige Eingabe: Beide Modi stimmen überein, die Contracts kosten nichts.',
   },

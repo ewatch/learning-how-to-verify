@@ -7,7 +7,9 @@ import { BASE } from '../../lib/site';
 import { PRACTICES } from '../../data/practices';
 import { langPaths } from '../../lib/paths';
 import { START_TOUR } from '../../data/start';
+import { HOME } from '../../data/home';
 import { PETSTORE_COPY } from '../../data/petstore';
+import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -17,55 +19,43 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
 ---
 <Base lang={lang} path="" md={`/${lang}/index.md`} nav="funnel"
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
-  description={en ? `How to verify software, especially when coding agents write it. ${n} practices along a funnel from cheap to expensive, with tools for each language and exercises in the browser.` : `Wie man Software verifiziert, besonders wenn Coding-Agenten sie schreiben. ${n} Praktiken entlang eines Trichters von billig nach teuer, mit Werkzeugen pro Sprache und Übungen im Browser.`}>
+  description={HOME.lead[lang]}>
   <div class="wrap">
-    <section class="hero">
+    <section class="hero" {...devMark('tighter hero copy')}>
       <p class="eyebrow">{en ? `${n} practices · ${sims} simulators in your browser · English & Deutsch` : `${n} Praktiken · ${sims} Simulatoren im Browser · Deutsch & English`}</p>
-      <h1>{en ? <>Catch it early.<br />Catch it cheap.</> : <>Früh finden.<br />Billig finden.</>}</h1>
-      <p class="lede">
-        {en
-          ? 'This site is for developers who let coding agents write code. It shows which checks catch which bugs, from cheap automatic checks to slow human review. Each practice lists open-source tools and shows an exercise or an animated diagram.'
-          : 'Diese Seite ist für Entwicklerinnen und Entwickler, die Coding-Agenten Code schreiben lassen. Sie zeigt, welche Prüfungen welche Fehler finden, von billigen automatischen Prüfungen bis zum langsamen menschlichen Review. Jede Praktik nennt Open-Source-Werkzeuge und zeigt eine Übung oder ein animiertes Diagramm.'}
-      </p>
+      <h1>{HOME.headline[lang]}</h1>
+      <p class="lede">{HOME.lead[lang]}</p>
       <div class="cta">
-        <a class="btn primary" href={href(lang, 'start/')}>{en ? `Getting Started: ${steps} steps` : `Erste Schritte: ${steps} Schritte`} <span aria-hidden="true">→</span></a>
-        <a class="secondary" href="#funnel">{en ? 'Or see the whole map' : 'Oder die ganze Übersicht ansehen'} <span aria-hidden="true">↓</span></a>
+        <a class="btn primary" href={href(lang, 'start/')}>{HOME.start[lang](steps)} <span aria-hidden="true">→</span></a>
+        <a class="secondary" href="#funnel">{HOME.overview[lang]} <span aria-hidden="true">↓</span></a>
       </div>
     </section>
 
-    <section id="funnel" class="map" aria-labelledby="funnel-title">
-      <h2 id="funnel-title">{en ? 'The map: a funnel from cheap to expensive' : 'Die Übersicht: ein Trichter von billig nach teuer'}</h2>
-      <p class="intro">
-        {en
-          ? 'Each layer of the funnel can catch a bug. If a higher layer catches the bug, the fix is cheaper and faster, and a person has less to review.'
-          : 'Jede Schicht des Trichters kann einen Fehler finden. Findet ihn eine höhere Schicht, ist die Korrektur billiger und schneller, und ein Mensch muss weniger prüfen.'}
-      </p>
+    <section id="funnel" class="map" aria-labelledby="funnel-title" {...devMark('shorter funnel intro')}>
+      <h2 id="funnel-title">{HOME.funnelTitle[lang]}</h2>
+      <p class="intro">{HOME.funnelIntro[lang]}</p>
       <Funnel lang={lang} />
     </section>
 
-    <section class="ways">
-      <h2>{en ? 'Other ways in' : 'Andere Einstiege'}</h2>
+    <section class="ways" {...devMark('tighter card copy')}>
+      <h2>{HOME.waysTitle[lang]}</h2>
       <div class="grid cols-2">
-        <a class="way card" href={href(lang, 'diagnose/')}><strong>{en ? 'Diagnose my project →' : 'Mein Projekt diagnostizieren →'}</strong><span>{en ? 'Pick the problem you have. You get a first check, an exercise and a task for your agent.' : 'Das eigene Problem wählen und einen ersten Check, eine Übung und eine Aufgabe für den Agenten bekommen.'}</span></a>
-        <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{en ? 'The same practices, sorted by the time when they run: before production, at deploy, at release and after release.' : 'Dieselben Praktiken, sortiert nach dem Zeitpunkt: vor der Produktion, beim Deploy, beim Release und nach dem Release.'}</span></a>
-        <a class="way card" href={href(lang, 'stack/')}><strong>{'Tech Stack →'}</strong><span>{en ? 'Select your programming language. You see each practice with the open-source tools for that language.' : 'Programmiersprache wählen und jede Praktik mit den passenden Open-Source-Werkzeugen sehen.'}</span></a>
+        <a class="way card" href={href(lang, 'diagnose/')}><strong>{HOME.diagnoseTitle[lang]} →</strong><span>{HOME.diagnose[lang]}</span></a>
+        <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{HOME.lifecycle[lang]}</span></a>
+        <a class="way card" href={href(lang, 'stack/')}><strong>{'Tech Stack →'}</strong><span>{HOME.stack[lang]}</span></a>
         <a class="way card" href={href(lang, 'petstore/')}><strong>{PETSTORE_COPY.open[lang]} →</strong><span>{PETSTORE_COPY.homeWay[lang]}</span></a>
       </div>
     </section>
 
-    <aside class="honest card" aria-label={en ? 'How sure are we?' : 'Wie sicher ist das?'}>
-      <h2>{en ? 'How sure are we?' : 'Wie sicher ist das?'}</h2>
-      <p>
-        {en
-          ? 'The funnel is a rule of thumb from practice, not a proven law. The evidence is strongest for the middle layers: tests as feedback for agents, mutation testing, fuzzing and formal methods. For prose such as AGENTS.md, the evidence is mixed. For the claim that a well-designed codebase makes agents more successful, we found no evidence. Each practice page rates its evidence for software engineering in general and for AI agents, with sources.'
-          : 'Der Trichter ist eine Faustregel aus der Praxis, kein bewiesenes Gesetz. Am stärksten ist die Evidenz für die mittleren Schichten: Tests als Feedback für Agenten, Mutation Testing, Fuzzing und formale Methoden. Für Prosa wie AGENTS.md ist die Evidenz gemischt. Für die Behauptung, dass eine gut gestaltete Codebasis Agenten erfolgreicher macht, haben wir keine Evidenz gefunden. Jede Praktikseite bewertet ihre Evidenz für die Softwaretechnik allgemein und für KI-Agenten, mit Quellen.'}
-      </p>
-      <p><a href={href(lang, 'why-layers/')}>{en ? 'Why one layer is not enough with agents →' : 'Warum eine Schicht bei Agenten nicht reicht →'}</a></p>
+    <aside class="honest card" aria-label={HOME.evidenceTitle[lang]} {...devMark('halved evidence note')}>
+      <h2>{HOME.evidenceTitle[lang]}</h2>
+      <p>{HOME.evidence[lang]}</p>
+      <p><a href={href(lang, 'why-layers/')}>{HOME.whyLayers[lang]} <span aria-hidden="true">→</span></a></p>
     </aside>
 
-    <aside class="agents" aria-label={en ? 'For coding agents' : 'Für Coding-Agenten'}>
-      <p class="eyebrow">{en ? 'For coding agents' : 'Für Coding-Agenten'}</p>
-      <p>{en ? <>Give your agent the file <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>. Each page is also available as Markdown: add <code>index.md</code> to its URL. Each practice has a task for a coding agent, with steps and a definition of done.</> : <>Dem Agenten die Datei <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a> geben. Jede Seite gibt es auch als Markdown: <code>index.md</code> an ihre URL anhängen. Jede Praktik hat eine Aufgabe für einen Coding-Agenten, mit Schritten und einer Definition von „fertig“.</>}</p>
+    <aside class="agents" aria-label={HOME.forAgents[lang]} {...devMark('1-line agents note')}>
+      <p class="eyebrow">{HOME.forAgents[lang]}</p>
+      <p>{HOME.giveAgent[lang]} <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>{HOME.appendMarkdown[lang]} <code>index.md</code> {HOME.markdownEnd[lang]}</p>
     </aside>
   </div>
 </Base>

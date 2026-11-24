@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeView, codeEditor, pill, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { OLD_CODE, FIXED_CODE, CHANGED_LINE, START_TEST, SAMPLE_TEST, checkRegression, regressionOutcome, regressionReport, type RegressionResult, type RegressionOutcome } from '../engine/regression';
 
@@ -79,7 +80,7 @@ const T = {
     failsOld: 'fails on old', passesFix: 'passes on fix', passesOld: 'passes on old', failsFix: 'fails on fix',
   },
   de: {
-    intro: 'Fehlerbericht: Ben konnte Rex reservieren, obwohl Anna schon reserviert hatte, weil seine Tier-ID `"rex "` ein Leerzeichen am Ende hatte. Schreibe einen Test, der auf dem alten Code scheitert und auf dem Fix besteht.',
+    intro: EXERCISE_DE.regression.intro,
     diff: 'Alt (rot) vs. korrigiert (grün)', test: 'Dein Test', run: 'Auf alt und Fix ausführen', hint: 'Beispieltest zeigen', label: 'Regressionstest',
     failsOld: 'scheitert auf alt', passesFix: 'besteht auf Fix', passesOld: 'besteht auf alt', failsFix: 'scheitert auf Fix',
   },

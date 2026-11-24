@@ -1,21 +1,22 @@
-import { h, highlight, rich, sleep, reducedMotion, type Lang } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, highlight, rich, sleep, reducedMotion, devMark, type Lang } from './kit';
 import { LEAN_EXAMPLES, type LeanExample } from '../engine/lean';
 
 const KWS = new Set(['def', 'theorem', 'example', 'by', 'with', 'if', 'then', 'else', 'fun', 'match', 'induction', 'simp', 'omega', 'unfold', 'split', 'rw', 'exact', 'intro', 'decide', 'Nat', 'List']);
 const T = {
   en: {
-    intro: 'Lean 4 is a programming language and a proof assistant. You state a claim as a theorem and prove it step by step with tactics; after each step the Infoview shows what is known (above ⊢) and what is still to show. When no goal is left, a small trusted kernel checks the whole proof.',
+    intro: 'In Lean 4, you prove a theorem step by step with tactics. After each step, the Infoview shows known facts (above ⊢) and open goals until a small kernel checks the proof.',
     example: 'Example', prev: '◀ Back', next: 'Next ▶', play: '▶ Play proof', reset: '↺ Reset', or: 'or click a line with a coloured number',
     infoview: 'Lean Infoview', idle: 'With "Next ▶" the cursor moves through the proof. Here Lean shows what it knows at that point and what is still to show.',
     goal: '1 goal', goals: (n: number) => `${n} goals`, noGoals: 'No goals', caseWord: 'case',
     note: 'Honest note: Lean itself does not run in the browser. The code is real Lean 4; the goal states are transcribed from what the Infoview shows (error messages slightly shortened). Try it all at live.lean-lang.org.',
   },
   de: {
-    intro: 'Lean 4 ist Programmiersprache und Beweisassistent zugleich. Man formuliert eine Behauptung als theorem und beweist sie Schritt für Schritt mit Taktiken; nach jedem Schritt zeigt der Infoview, was bekannt ist (über ⊢) und was noch zu zeigen ist. Ist kein Ziel mehr offen, prüft ein kleiner, vertrauenswürdiger Kernel den ganzen Beweis.',
+    intro: EXERCISE_DE.lean.intro,
     example: 'Beispiel', prev: '◀ Zurück', next: 'Weiter ▶', play: '▶ Beweis abspielen', reset: '↺ Zurücksetzen', or: 'oder auf eine Zeile mit farbiger Nummer klicken',
     infoview: 'Lean Infoview', idle: 'Mit „Weiter ▶“ wandert der Cursor durch den Beweis. Hier erscheint dann, was Lean an dieser Stelle weiß und was noch zu zeigen ist.',
     goal: '1 goal', goals: (n: number) => `${n} goals`, noGoals: 'No goals', caseWord: 'case',
-    note: 'Ehrlicher Hinweis: Lean selbst läuft hier nicht im Browser. Der Code ist echtes Lean 4, die Zielzustände entsprechen dem, was der Infoview anzeigt (Fehlermeldungen leicht gekürzt). Ausprobieren lässt sich alles unter live.lean-lang.org.',
+    note: EXERCISE_DE.lean.note,
   },
 };
 
@@ -38,7 +39,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   } }, e.name[lang])));
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     chips, desc,
     h('div', { class: 'sim-row' }, prev, next,
       h('button', { class: 'btn', type: 'button', onclick: () => play() }, t.play),

@@ -1,4 +1,5 @@
-import { h, codeView, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, codeView, roleTag, resultPanel, devMark, type Lang, type ResultView, type TagKind } from './kit';
 import { createFuzzer, step, fuzzOutcome, jazzerReport, PARSER_SOURCE, TOTAL_BRANCHES, type FuzzState, type FuzzOutcome } from '../engine/fuzz';
 
 type FV = FuzzOutcome['values'];
@@ -63,18 +64,18 @@ export function fuzzView(o: FuzzOutcome, lang: Lang): ResultView {
 
 const T = {
   en: {
-    intro: 'Two fuzzers attack the petstore\'s search parser, which reads queries such as flat -category:fish price<50. Both start from the same one example and mutate it randomly. The blind one never learns; the coverage-guided one keeps every input that reached new code and mutates those further. Somewhere deep inside the parser is a crash.',
+    intro: 'Two fuzzers mutate inputs for the petstore search parser (e.g. flat -category:fish price<50). The blind one guesses randomly; the coverage-guided one keeps every input that reaches new code. A crash hides deep inside.',
     start: 'Start both fuzzers', stop: 'Stop', reset: 'Reset', dict: 'Use a dictionary of keywords', blind: 'Blind', guided: 'Coverage-guided',
     its: 'inputs tried', branches: 'branches covered', corpus: 'corpus size', newInputs: 'Inputs that found new code', crash: 'Crash found', minimal: 'minimised to', after: (n: number) => `after ${n.toLocaleString('en')} inputs`,
     noCrash: 'No crash yet.', parser: 'Show the parser', chart: 'Branches covered over time',
     lesson: 'The blind fuzzer almost never gets past "p", "pr", "pri"…: hitting "price<" by chance is like rolling the right 6 characters at once. The guided fuzzer keeps each small step that reached new code, so it walks in one character at a time.',
   },
   de: {
-    intro: 'Zwei Fuzzer greifen den Suchparser des Petstores an, der Anfragen wie flat -category:fish price<50 liest. Beide starten mit demselben einen Beispiel und mutieren es zufällig. Der blinde lernt nie; der coverage-gelenkte behält jede Eingabe, die neuen Code erreichte, und mutiert diese weiter. Tief im Parser steckt ein Absturz.',
+    intro: EXERCISE_DE.fuzz.intro,
     start: 'Beide Fuzzer starten', stop: 'Stopp', reset: 'Zurücksetzen', dict: 'Wörterbuch mit Schlüsselwörtern nutzen', blind: 'Blind', guided: 'Coverage-gelenkt',
     its: 'Eingaben probiert', branches: 'Zweige abgedeckt', corpus: 'Korpusgröße', newInputs: 'Eingaben, die neuen Code fanden', crash: 'Absturz gefunden', minimal: 'minimiert zu', after: (n: number) => `nach ${n.toLocaleString('de')} Eingaben`,
     noCrash: 'Noch kein Absturz.', parser: 'Parser zeigen', chart: 'Abgedeckte Zweige über die Zeit',
-    lesson: 'Der blinde Fuzzer kommt fast nie über „p“, „pr“, „pri“ … hinaus: „price<“ zufällig zu treffen ist, als würfle man 6 richtige Zeichen auf einmal. Der gelenkte Fuzzer behält jeden kleinen Schritt, der neuen Code erreichte, und arbeitet sich Zeichen für Zeichen hinein.',
+    lesson: EXERCISE_DE.fuzz.lesson,
   },
 };
 
@@ -103,7 +104,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const pb = fuzzerCard(t.blind, 'blind'), pg = fuzzerCard(t.guided, 'guided');
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     h('details', { class: 'disclose' }, h('summary', {}, t.parser), h('div', { class: 'body' }, codeView(PARSER_SOURCE))),
     h('div', { class: 'sim-row' }, startBtn, resetBtn, dict),
     panel.el,

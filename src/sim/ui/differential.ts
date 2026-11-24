@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeView, segmented, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { OLD, NEW, compare, differentialOutcome, differentialReport, type Diff, type DiffOutcome } from '../engine/differential';
 
@@ -70,7 +71,7 @@ const T = {
     intended: 'intended', cents: 'cents', voucher: 'voucher', empty: '(none)',
   },
   de: {
-    intro: 'Ein Agent sollte die Gutschein-Preisberechnung „aufräumen“. Alle bestehenden Beispieltests sind weiter grün. Lass alte und neue Version nebeneinander auf 2.000 zufälligen Preisen und Gutscheincodes laufen und vergleiche.',
+    intro: EXERCISE_DE.differential.intro,
     old: 'Alt (Referenz)', neu: 'Neu', run: 'Auf 2.000 Eingaben vergleichen', allow: 'Gewollte Änderung akzeptieren: Gutscheincodes in Kleinbuchstaben funktionieren jetzt',
     versions: { round: 'Refactor 1', ceil: 'Refactor 2', integer: 'Refactor 3' },
     agree: (a: number, n: number) => `${a.toLocaleString('de')} von ${n.toLocaleString('de')} Eingaben stimmen überein`,

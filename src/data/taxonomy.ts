@@ -12,10 +12,10 @@ export const LAYERS: Layer[] = [
   {
     id: 'codebase',
     name: { en: 'Codebase', de: 'Codebasis' },
-    examples: { en: 'good API design, architecture, refactoring', de: 'gutes API-Design, Architektur, Refactoring' },
+    examples: { en: 'API design, architecture, refactoring', de: 'gutes API-Design, Architektur, Refactoring' },
     idea: {
-      en: 'Make wrong code hard to write. Clear module boundaries and narrow interfaces give a bug fewer places to hide.',
-      de: 'Falschen Code schwer schreibbar machen. Klare Modulgrenzen und schmale Schnittstellen geben Fehlern weniger Verstecke.',
+      en: 'An API is easier to use correctly if it has a small number of entry points. Clear module boundaries help you find where to change the code.',
+      de: 'Eine API mit wenigen Einstiegspunkten lässt sich leichter richtig benutzen. Klare Modulgrenzen zeigen, wo eine Änderung hingehört.',
     },
   },
   {
@@ -23,8 +23,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Static analysis', de: 'Statische Analyse' },
     examples: { en: 'linters, types, compilers, tests, CI', de: 'Linter, Typen, Compiler, Tests, CI' },
     idea: {
-      en: 'Machines check every change in seconds, and they check it the same way every time. An agent can use this feedback again and again without a person.',
-      de: 'Maschinen prüfen jede Änderung in Sekunden, jedes Mal gleich. Ein Agent kann dieses Feedback immer wieder nutzen, ohne einen Menschen zu fragen.',
+      en: 'Linters, compilers and tests apply the same rules to each change. A coding agent can read the results, change the code and run the checks again.',
+      de: 'Linter, Compiler und Tests prüfen jede Änderung nach denselben Regeln. Ein Coding-Agent kann die Ergebnisse lesen. Danach kann er den Code ändern und die Checks erneut ausführen.',
     },
   },
   {
@@ -32,8 +32,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Verification', de: 'Verifikation' },
     examples: { en: 'formal, runtime', de: 'formal, zur Laufzeit' },
     idea: {
-      en: 'Prove properties for all inputs, or compare the running system with its expected behaviour. These checks are slower and more expensive, but they find bugs that examples miss.',
-      de: 'Eigenschaften für alle Eingaben beweisen oder das laufende System mit seinem erwarteten Verhalten vergleichen. Diese Prüfungen sind langsamer und teurer, finden aber Fehler, die Beispiele übersehen.',
+      en: 'Formal methods can show that a property is true for all inputs. Runtime checks compare actual behavior with expected behavior. Both can find errors that a set of test cases does not show.',
+      de: 'Formale Methoden können zeigen, dass eine Eigenschaft für alle Eingaben gilt. Checks zur Laufzeit vergleichen das tatsächliche Verhalten mit dem erwarteten. Beide Verfahren können Fehler finden, die einzelne Testfälle übersehen.',
     },
   },
   {
@@ -41,8 +41,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Prose', de: 'Prosa' },
     examples: { en: 'rules, skills, AGENTS.md', de: 'Regeln, Skills, AGENTS.md' },
     idea: {
-      en: 'Rules files give written instructions to people and agents. They are cheap to write, but no tool enforces them. A rule has an effect only if someone reads it and obeys it.',
-      de: 'Regeldateien geben Menschen und Agenten schriftliche Anweisungen. Sie sind billig zu schreiben, aber kein Werkzeug setzt sie durch. Eine Regel wirkt nur, wenn jemand sie liest und befolgt.',
+      en: 'Files such as AGENTS.md give instructions to coding agents. A coding agent must read and obey a rule for the rule to have an effect.',
+      de: 'AGENTS.md enthält Regeln für Coding-Agenten. Die Regeln wirken nur, wenn der Coding-Agent sie liest und befolgt.',
     },
   },
   {
@@ -50,8 +50,8 @@ export const LAYERS: Layer[] = [
     name: { en: 'Human review', de: 'Menschliches Review' },
     examples: { en: 'code review, approval', de: 'Code-Review, Freigabe' },
     idea: {
-      en: 'A person judges the change. This is the most expensive check, and it does not scale well. Give it only what the layers above cannot catch.',
-      de: 'Ein Mensch beurteilt die Änderung. Das ist die teuerste Prüfung, und sie skaliert schlecht. Sie sollte nur sehen, was die Schichten darüber nicht finden können.',
+      en: 'In code review, a person examines the change to make sure that it is correct for the project. Each error that an earlier check finds decreases the work for the reviewer.',
+      de: 'Im Code Review prüft eine Person, ob die Änderung die Anforderungen erfüllt. Früh gefundene Fehler verringern den Aufwand für die Person.',
     },
   },
 ];

@@ -1,19 +1,21 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import { STACK_COPY } from '../../../data/page-copy';
 import type { Locale } from '../../../data/types';
 import { LANGS } from '../../../data/taxonomy';
 import { PRACTICES } from '../../../data/practices';
 import { href, t } from '../../../i18n/ui';
 import { langPaths } from '../../../lib/paths';
+import { devMark } from '../../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 ---
-<Base lang={lang} path="stack/" md={`/${lang}/stack/index.md`} nav="stack" title={t(lang, 'navStack')} description={en ? 'Pick your programming language and see every verification practice with open-source tools for it.' : 'Programmiersprache wählen und jede Verifikationspraktik mit passenden Open-Source-Werkzeugen sehen.'}>
+<Base lang={lang} path="stack/" md={`/${lang}/stack/index.md`} nav="stack" title={t(lang, 'navStack')} description={STACK_COPY.intro[lang]}>
   <div class="wrap">
-    <header class="narrow">
-      <h1>{en ? 'Which language do you work in?' : 'In welcher Sprache arbeitest du?'}</h1>
-      <p class="lede">{en ? 'Use these pages to find tools for your programming language. Each page lists every practice with its open-source tools for that language. Each page also shows the language-independent tools, for example TLA+, k6 and OpenTelemetry.' : 'Diese Seiten helfen, Werkzeuge für deine Programmiersprache zu finden. Jede Seite nennt jede Praktik mit ihren Open-Source-Werkzeugen für diese Sprache. Jede Seite zeigt auch die sprachunabhängigen Werkzeuge, zum Beispiel TLA+, k6 und OpenTelemetry.'}</p>
+    <header class="narrow" {...devMark('tighter lede')}>
+      <h1>{STACK_COPY.heading[lang]}</h1>
+      <p class="lede">{STACK_COPY.intro[lang]}</p>
     </header>
     <div class="grid cols-3 langs">
       {LANGS.map((lg) => {

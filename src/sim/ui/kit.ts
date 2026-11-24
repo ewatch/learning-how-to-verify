@@ -91,6 +91,7 @@ export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export { rng } from '../engine/rng';
+export { devMark } from '../../lib/dev-mark';
 
 /** A segmented control (radio group). An option may carry a role tag (see `roleTag`). */
 export function segmented<T extends string>(label: string, options: { value: T; label: string; tag?: Node }[], value: T, onChange: (v: T) => void): HTMLElement {

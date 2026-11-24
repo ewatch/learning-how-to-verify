@@ -1,9 +1,11 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import { GUIDES_INDEX_COPY } from '../../../data/page-copy';
 import type { Locale } from '../../../data/types';
 import { GUIDES } from '../../../data/guides';
 import { href } from '../../../i18n/ui';
 import { langPaths } from '../../../lib/paths';
+import { devMark } from '../../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -11,8 +13,10 @@ const planned = ['Lean 4', 'Z3', 'fast-check / Hypothesis', 'Stryker / mutmut', 
 ---
 <Base lang={lang} path="guides/" md={`/${lang}/guides/index.md`} nav="guides" title={en ? 'Getting-started guides' : 'Einstiegsanleitungen'} description={en ? 'Step-by-step guides for verification tools, with real recorded output.' : 'Schritt-für-Schritt-Anleitungen für Verifikationswerkzeuge, mit echter aufgezeichneter Ausgabe.'}>
   <div class="wrap narrow">
-    <h1>{en ? 'Getting started' : 'Einstieg'}</h1>
-    <p class="lede">{en ? 'These guides cover the first hour with a tool. That hour is often the hardest part. Each guide uses the pet reservation example and shows the real output of the tool. In each guide, you break the example on purpose and read the failure.' : 'Diese Anleitungen begleiten die erste Stunde mit einem Werkzeug. Diese Stunde ist oft der schwerste Teil. Jede Anleitung nutzt das Beispiel der Tier-Reservierung und zeigt die echte Ausgabe des Werkzeugs. In jeder Anleitung machst du das Beispiel absichtlich kaputt und liest den Fehler.'}</p>
+    <header {...devMark('tighter lede')}>
+      <h1>{en ? 'Getting started' : 'Einstieg'}</h1>
+      <p class="lede">{GUIDES_INDEX_COPY.intro[lang]}</p>
+    </header>
     <div class="grid">
       {GUIDES.map((g) => <a class="card g" href={href(lang, `guides/${g.id}/`)}><strong>{g.title[lang]}</strong><span>{g.outcome[lang]}</span></a>)}
     </div>

@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeRows, pill, esc, highlightJs, type Lang, type CodeRow } from './kit';
 import { PR, SCANNERS, ISSUES, analyse, type IssueId, type ScannerId } from '../engine/secrets';
 import './secrets.css';
@@ -27,7 +28,7 @@ const T = {
     hint: 'The vulnerability check alone cannot see left-padd: nothing is known about it yet.',
   },
   de: {
-    intro: 'Ein Agent hat diesen PR geöffnet. Schalte Scanner ein und sieh, welche Probleme markiert werden; lass nichts durchrutschen.',
+    intro: EXERCISE_DE.secrets.intro,
     scanners: 'Scanner',
     sc: {
       patterns: ['Secret-Muster', 'bekannte Schlüsselformate, z. B. AKIA…'],
@@ -47,7 +48,7 @@ const T = {
     sample: 'Beispieldaten: Alle Schlüssel und Pakete sind erfunden; die Advisory-Liste ist ein winziges eingebautes Beispiel, kein Live-Feed.',
     win: 'Alles gefunden.',
     lesson: 'Jeder Scanner ist billig und findet eine Problemklasse. Ein brandneues bösartiges Paket hat noch keine CVE, deshalb helfen dort nur das Gate für neue Abhängigkeiten und der Typosquat-Check.',
-    hint: 'Der Schwachstellen-Check allein sieht left-padd nicht: Über das Paket ist noch nichts bekannt.',
+    hint: EXERCISE_DE.secrets.hint,
   },
 };
 

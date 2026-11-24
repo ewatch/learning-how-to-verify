@@ -1,4 +1,5 @@
-import { h, segmented, sleep, reducedMotion, rng, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, segmented, sleep, reducedMotion, rng, roleTag, resultPanel, devMark, type Lang, type ResultView, type TagKind } from './kit';
 import { STAGES, runStage, canaryOutcome, canaryReport, type Bug, type StageResult, type CanaryOutcome } from '../engine/canary';
 
 type CV = CanaryOutcome['values'];
@@ -84,7 +85,7 @@ export function canaryView(o: CanaryOutcome, report: string, lang: Lang): Result
 
 const T = {
   en: {
-    intro: 'Version 2 of the reservation service is rolled out in steps: 5%, 25%, 50%, 100% of traffic. After each step an automated analysis compares v2 with v1 and either continues or rolls back. Choose what is wrong with v2 and whether the analysis watches a business metric.',
+    intro: 'v2 rolls out at 5%, 25%, 50%, and 100% traffic; automated checks compare v2 to v1 after each stage. Pick a bug in v2 and whether a business metric is checked.',
     bug: 'Version 2 has…', bugs: { none: 'no bug', errors: 'a crash bug (8% errors)', silent: 'a silent bug (wrong price, status 200)' },
     biz: 'Analysis also watches a business metric: share of reservations with the correct price',
     start: 'Start rollout', users: 'users', stage: 'Stage', err: 'errors', wrong: 'wrong price', decision: 'Decision',
@@ -93,7 +94,7 @@ const T = {
     chart: 'Traffic diagram: requests go from users to v1 or v2; the share for v2 grows with each stage. Requests that hit the bug are coloured. The table below lists each stage.',
   },
   de: {
-    intro: 'Version 2 des Reservierungsdienstes wird stufenweise ausgerollt: 5 %, 25 %, 50 %, 100 % des Verkehrs. Nach jeder Stufe vergleicht eine automatische Analyse v2 mit v1 und macht weiter oder rollt zurück. Wähle, was an v2 falsch ist, und ob die Analyse eine Geschäftsmetrik beobachtet.',
+    intro: EXERCISE_DE.canary.intro,
     bug: 'Version 2 hat …', bugs: { none: 'keinen Fehler', errors: 'einen Absturzfehler (8 % Fehler)', silent: 'einen stillen Fehler (falscher Preis, Status 200)' },
     biz: 'Analyse beobachtet auch eine Geschäftsmetrik: Anteil der Reservierungen mit korrektem Preis',
     start: 'Rollout starten', users: 'Nutzer', stage: 'Stufe', err: 'Fehler', wrong: 'falscher Preis', decision: 'Entscheidung',
@@ -117,7 +118,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const startBtn = h('button', { class: 'btn', type: 'button', onclick: () => start() }, t.start);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     h('div', { class: 'sim-row' }, segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b], tag: roleTag(BUG_TAG[b], lang) })), S.bug, (v) => { S.bug = v; reset(); })),
     h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { S.biz = (e.target as HTMLInputElement).checked; reset(); } }), t.biz, ' ', roleTag('gate', lang)),
     h('div', { class: 'sim-row' }, startBtn),

@@ -1,10 +1,11 @@
-import { h, highlight, rich, pill, sleep, reducedMotion, type Lang } from './kit';
+import { EXERCISE_DE } from '../../data/exercise-copy';
+import { h, highlight, rich, pill, sleep, reducedMotion, devMark, type Lang } from './kit';
 import { OBLIGATIONS, VARIANTS, checkState, linesFor, spaceFor, states, type Arr, type Failure, type FailureCode, type ObligationKey, type State, type Variant } from '../engine/invariant';
 
 const KWS = new Set(['method', 'returns', 'requires', 'ensures', 'invariant', 'decreases', 'var', 'while', 'if', 'forall', 'exists', 'array', 'int']);
 const T = {
   en: {
-    intro: 'A loop cannot be run for "all iterations", so a verifier like Dafny asks for a loop invariant: a statement that holds before and after every iteration. That gives four proof obligations. After the loop the verifier knows only the invariant, not what actually happened. This demo checks each obligation exhaustively over small arrays; real Dafny proves it symbolically with Z3.',
+    intro: 'Verifiers like Dafny require a loop invariant that holds before and after each iteration, creating four proof obligations. After the loop, Dafny knows only the invariant. This demo checks small arrays; Dafny proves all arrays symbolically.',
     pick: 'Variant (changed lines are wavy-underlined)', verify: '▶ Verify', checks: (n: string) => `checks every obligation over up to ${n} states`,
     open: 'open', running: 'checking …', proven: '✓ proven', failed: '✗ failed', relevant: 'relevant states', allOk: 'all ✓', cex: 'Counterexample:',
     removed: '(line with `invariant forall …` removed)', term: 'Dafny-style output',
@@ -12,11 +13,11 @@ const T = {
     errors: (n: number) => `${n} error${n === 1 ? '' : 's'}`,
   },
   de: {
-    intro: 'Eine Schleife lässt sich nicht für „alle Durchläufe“ ausführen. Deshalb verlangt ein Verifizierer wie Dafny eine Schleifeninvariante: eine Aussage, die vor und nach jedem Durchlauf gilt. Daraus entstehen vier Beweisverpflichtungen. Nach der Schleife kennt der Verifizierer nur die Invariante, nicht den tatsächlichen Ablauf. Die Demo prüft jede Verpflichtung erschöpfend über kleine Arrays; echtes Dafny beweist sie symbolisch mit Z3.',
+    intro: EXERCISE_DE.invariant.intro,
     pick: 'Variante (geänderte Zeilen sind wellig unterstrichen)', verify: '▶ Verifizieren', checks: (n: string) => `prüft jede Verpflichtung für bis zu ${n} Zustände`,
     open: 'offen', running: 'prüft …', proven: '✓ bewiesen', failed: '✗ fehlgeschlagen', relevant: 'relevante Zustände', allOk: 'alle ✓', cex: 'Gegenbeispiel:',
     removed: '(Zeile mit `invariant forall …` entfernt)', term: 'Ausgabe im Dafny-Stil',
-    note: 'Ehrlicher Hinweis: Das ist eine endliche Prüfung (Arrays der Länge 1–4 mit Werten −2…2). Dafny testet nicht, sondern beweist die Verpflichtungen für alle Arrays.',
+    note: EXERCISE_DE.invariant.note,
     errors: (n: number) => `${n} error${n === 1 ? '' : 's'}`,
   },
 };
@@ -60,7 +61,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   } }, v.name[lang])));
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro' }, t.intro),
+    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
     chips,
     h('div', { class: 'sim-cols' },
       h('div', {}, code, desc),

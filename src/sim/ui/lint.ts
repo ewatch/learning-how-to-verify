@@ -1,3 +1,4 @@
+import { EXERCISE_DE } from '../../data/exercise-copy';
 import { h, codeEditor, codeRows, pill, segmented, reducedMotion, sleep, esc, roleTag, resultPanel, type Lang, type CodeRow, type ResultView } from './kit';
 import { lint, SNIPPET, RULE_IDS, PATCH_BEFORE, PATCH_AFTER, lintOutcome, ciOutcome, eslintReport, type RuleId, type Finding, type LintOutcome } from '../engine/lint';
 
@@ -115,7 +116,7 @@ const T = {
     loc: (f: Finding) => `line ${f.line}:${f.col}`,
   },
   de: {
-    intro: 'Dieser Code hat Probleme, die ein Linter sieht. Behebe jeden Fund im Editor.',
+    intro: EXERCISE_DE.lint.intro,
     modes: [{ value: 'fix', label: 'Code reparieren' }, { value: 'ci', label: 'Regel als Text vs. Lint' }],
     mode: 'Modus', rules: 'Regeln', editor: 'Petstore-Domain-Code', findings: 'Funde',
     msg: {
@@ -125,7 +126,7 @@ const T = {
       'no-explicit-any': 'Vermeide any: Es schaltet den Type-Checker hier ab.',
     } as Record<RuleId, string>,
     none: 'Keine Funde.', hidden: 'Ausgeschaltete Regeln werden nicht geprüft.',
-    ciIntro: 'Ein Agent öffnet einen Pull Request. Ist die Regel nur ein Satz oder eine Prüfung?',
+    ciIntro: EXERCISE_DE.lint.ciIntro,
     diff: 'Patch des Agenten', run: 'Pull Request öffnen', prose: 'Regel als Text', proseRule: 'AGENTS.md: „Bitte immer repo-Aufrufe awaiten.“',
     lintSide: 'Regel als Lint', lintRule: 'CI führt no-floating-promise aus',
     merged: 'Gemergt', mergedNote: 'Der Satz wird von nichts geprüft. Das Speichern kann in Produktion verloren gehen.',

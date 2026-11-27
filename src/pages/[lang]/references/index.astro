@@ -1,7 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import type { Locale } from '../../../data/types';
-import { REFERENCES, REFERENCE_KIND, REFERENCES_COPY as C, domainOf, formatDate } from '../../../data/references';
+import { REFERENCES, REFERENCES_COPY as C, domainOf, formatDate } from '../../../data/references';
 import { PRACTICE_BY_ID } from '../../../data/practices';
 import { t, href } from '../../../i18n/ui';
 import { langPaths } from '../../../lib/paths';
@@ -23,7 +23,6 @@ const { lang } = Astro.props as { lang: Locale };
       ];
       return (
         <section class="ref" id={r.id} aria-labelledby={`${r.id}-title`}>
-          <p class="eyebrow">{REFERENCE_KIND[r.kind][lang]}</p>
           <h2 id={`${r.id}-title`}>{r.title}</h2>
           <dl class="meta">
             <dt>{(r.kind === 'talk' ? C.speaker : C.author)[lang]}</dt><dd>{r.author}</dd>

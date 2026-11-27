@@ -5,15 +5,17 @@ import type { Locale } from '../../../data/types';
 import { WHY } from '../../../data/why';
 import { SOURCE_BY_ID } from '../../../data/sources';
 import { PRACTICE_BY_ID } from '../../../data/practices';
-import { t } from '../../../i18n/ui';
+import { t, href } from '../../../i18n/ui';
+import { START_TOUR } from '../../../data/start';
 import { langPaths } from '../../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
+const step = START_TOUR.findIndex((s) => s.id === 'why-layers') + 1;
 ---
 <Base lang={lang} path="why-layers/" md={`/${lang}/why-layers/index.md`} nav="start" title={WHY.title[lang]} description={WHY.intro[lang]}>
   <div class="wrap narrow">
     <header>
-      <p class="eyebrow">{lang === 'en' ? 'Getting Started · step 2' : 'Erste Schritte · Schritt 2'}</p>
+      <nav class="breadcrumb small" aria-label={lang === 'en' ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'start/')}>{t(lang, 'navStart')}</a></li><li><a href={href(lang, 'why-layers/')} aria-current="page">{lang === 'en' ? `Step ${step}` : `Schritt ${step}`}</a></li></ol></nav>
       <h1>{WHY.title[lang]}</h1>
       <p class="lede">{WHY.intro[lang]}</p>
     </header>

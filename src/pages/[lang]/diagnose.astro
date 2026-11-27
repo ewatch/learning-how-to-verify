@@ -25,11 +25,10 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
           {route.label[lang]}
         </button>)}
       </div>
-      <p class="visually-hidden" role="status" data-start-status data-label={C.first[lang]}></p>
+      <p class="visually-hidden" role="status" data-start-status></p>
       <div>
         {START_ROUTES.map((route) => <section id={`start-${route.id}`} class="recommendation card" data-start-result={route.id} aria-labelledby={`heading-${route.id}`}>
-          <p class="eyebrow">{C.first[lang]}</p>
-          <h3 id={`heading-${route.id}`}><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
+          <h3 id={`heading-${route.id}`}><span class="lead">{C.first[lang]}: </span><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
           <p class="narrow">{route.why[lang]}</p>
           <dl class="exercise">
             <div><dt>{C.exercise[lang]}</dt><dd>{route.exercise[lang]}</dd></div>
@@ -65,7 +64,7 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
     function select(id: string, announce: boolean) {
       choices.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.startChoice === id)));
       results.forEach((panel) => { panel.hidden = panel.dataset.startResult !== id; });
-      if (announce) status.textContent = `${status.dataset.label}: ${root.querySelector(`#heading-${id}`)?.textContent ?? ''}`;
+      if (announce) status.textContent = root.querySelector(`#heading-${id}`)?.textContent ?? '';
     }
     choices.forEach((button) => button.addEventListener('click', () => select(button.dataset.startChoice!, true)));
     select(choices[0].dataset.startChoice!, false);
@@ -79,7 +78,9 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
   .starting-point:hover { border-color: var(--l-static); }
   .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: 0 0 0 1px var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
   .recommendation { border-color: color-mix(in srgb, var(--l-static) 45%, var(--rule)); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
-  .recommendation h3 { font-size: var(--fs-h2); }
+  /* long German compounds (spezifikationsgetriebene) need to break at 320px */
+  .recommendation h3 { font-size: var(--fs-h2); hyphens: auto; overflow-wrap: break-word; }
+  .recommendation h3 .lead { color: var(--ink-2); font-weight: 400; }
   .exercise { margin: 24px 0; display: grid; gap: 16px; }
   .exercise > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 16px; }
   .exercise dt { font-weight: 700; line-height: 1.4; }

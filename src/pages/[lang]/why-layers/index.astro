@@ -34,7 +34,7 @@ const { lang } = Astro.props as { lang: Locale };
 </Base>
 <style>
   .finding { padding: 26px 0; border-top: 1px solid var(--rule); }
-  .fix { background: var(--card); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+  .fix { background: color-mix(in srgb, var(--ok) 7%, var(--card)); border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--rule)); padding: 10px 14px; border-radius: var(--radius); }
   .src { color: var(--ink-3); }
   .badge { margin-left: 4px; }
   .outro { font-size: var(--fs-lg); margin-top: 28px; font-family: var(--font-display); }

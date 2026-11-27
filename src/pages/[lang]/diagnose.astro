@@ -73,7 +73,7 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
   .starting-points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 24px 0 14px; }
   .starting-point { display: flex; align-items: baseline; gap: 12px; text-align: left; cursor: pointer; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--card); line-height: 1.4; }
   .starting-point:hover { border-color: var(--l-static); }
-  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: inset 4px 0 var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
+  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: 0 0 0 1px var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
   .recommendation { border-top: 3px solid var(--l-static); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
   .recommendation h3 { font-size: var(--fs-h2); }
   .exercise { margin: 24px 0; display: grid; gap: 16px; }

@@ -37,7 +37,7 @@ const steps = START_TOUR.map((step) => {
       </div>
       <div class="begin">
         <a class="btn primary" href={steps[0].url} data-tour-begin data-step={steps[0].id}>{C.begin[lang]} →</a>
-        <p class="finished" role="status" data-tour-finished hidden>{C.finished[lang].replace('{total}', String(steps.length))}</p>
+        <p class="finished" role="status" data-tour-finished hidden>{C.finished[lang].replaceAll('{total}', String(steps.length))}</p>
         <p class="small muted progress" data-tour-status hidden>
           <span data-tour-count></span>
           <button type="button" class="linkish" data-tour-reset>{C.reset[lang]}</button>
@@ -160,7 +160,7 @@ const steps = START_TOUR.map((step) => {
   .progress[hidden] { display: none; }
   .linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--link); text-decoration: underline; cursor: pointer; }
 
-  .example { border-left: 3px solid var(--l-static); max-width: 44rem; margin: 0 0 32px; }
+  .example { max-width: 44rem; margin: 0 0 32px; }
   .example h2 { margin: 0 0 8px; }
   .ex-text { margin: 0 0 12px; }
   .ex-run { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
@@ -190,7 +190,7 @@ const steps = START_TOUR.map((step) => {
   li[data-state='opened'] .n { border-color: var(--ok); border-style: dashed; }
   li[data-state='current'] .n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--l-static) 30%, transparent); border-color: var(--l-static); }
   li[data-state='current'] strong { color: var(--l-static); }
-  .finished { flex-basis: 100%; margin: 0; padding: 10px 14px; border-left: 4px solid var(--ok); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; font-weight: 600; max-width: 40rem; }
+  .finished { flex-basis: 100%; margin: 0; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--rule)); background: color-mix(in srgb, var(--ok) 7%, var(--card)); border-radius: var(--radius); font-weight: 600; max-width: 40rem; }
   .finished[hidden] { display: none; }
   .petstore { margin: 10px 0 0; }
 

@@ -40,8 +40,6 @@ const TIGHTENED_PROSE = new Set([
   'architecture', 'security-scanning', 'code-review', 'auditing',
 ]);
 const proseTightened = TIGHTENED_PROSE.has(p.id);
-let n = 0;
-const num = () => String(++n).padStart(2, '0');
 ---
 <Base lang={lang} path={`practices/${p.id}/`} md={`/${lang}/practices/${p.id}/index.md`} title={p.name[lang]} description={p.oneLiner[lang]}>
   <article class="wrap practice" style={`--c: var(--l-${p.layer})`}>
@@ -72,20 +70,20 @@ const num = () => String(++n).padStart(2, '0');
     </nav>
 
     {!p.sim && p.viz && (
-      <section class="layer-section" id="see"><h2><span class="num">{num()}</span>{t(lang, 'seeIt')}</h2>
+      <section class="layer-section" id="see"><h2>{t(lang, 'seeIt')}</h2>
         <p class="ps-what-m small" set:html={psWhat} />
         <VizMount kind={p.viz.kind} mode={p.viz.mode} lang={lang} />
       </section>
     )}
 
     {p.sim && (
-      <section class="layer-section" id="try" {...devMark('dropped tryItHint')}><h2><span class="num">{num()}</span>{t(lang, 'tryIt')}</h2>
+      <section class="layer-section" id="try" {...devMark('dropped tryItHint')}><h2>{t(lang, 'tryIt')}</h2>
         <p class="ps-what-m small" set:html={psWhat} />
         <SimMount sim={p.sim} lang={lang} />
       </section>
     )}
 
-    <section class="layer-section" id="worth" {...(proseTightened ? devMark('tighter strengths/limits/AI') : {})}><h2><span class="num">{num()}</span>{t(lang, 'strengthsLimits')}</h2>
+    <section class="layer-section" id="worth" {...(proseTightened ? devMark('tighter strengths/limits/AI') : {})}><h2>{t(lang, 'strengthsLimits')}</h2>
       <div class="grid cols-2">
         <div><h3>{t(lang, 'strengths')}</h3><ul class="checks">{p.worth.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
         <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
@@ -96,15 +94,15 @@ const num = () => String(++n).padStart(2, '0');
       </aside>
     </section>
 
-    <section class="layer-section" id="evidence" {...devMark('dropped evidenceLead')}><h2><span class="num">{num()}</span>{t(lang, 'evidence')}</h2>
+    <section class="layer-section" id="evidence" {...devMark('dropped evidenceLead')}><h2>{t(lang, 'evidence')}</h2>
       <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} inUse={IN_USE[p.id]} gl={gl} />
     </section>
 
-    <section class="layer-section" id="setup"><h2><span class="num">{num()}</span>{t(lang, 'setUp')}</h2>
+    <section class="layer-section" id="setup"><h2>{t(lang, 'setUp')}</h2>
       <LangTabs p={p} lang={lang} socratic={socratic} />
     </section>
 
-    <section class="layer-section" id="deeper" {...devMark('dropped CardKey legend')}><h2><span class="num">{num()}</span>{t(lang, 'goDeeper')}</h2>
+    <section class="layer-section" id="deeper" {...devMark('dropped CardKey legend')}><h2>{t(lang, 'goDeeper')}</h2>
       <h3>{t(lang, 'thinkFirst')}</h3>
       <div class="think">
         {p.think.slice(0, 1).map((q) => (
@@ -171,16 +169,15 @@ const num = () => String(++n).padStart(2, '0');
   /* the strip may use the full width, so the petstore line stays on one line */
   .head > :not(.strip) { max-width: 58rem; }
   /* why first (a concrete problem), then the definition and the bug class as a compact block */
-  .head .intro { max-width: 42rem; margin: 0 0 12px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+  .head .intro { max-width: 42rem; margin: 0 0 20px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
   /* the two definitions: small label above, same pattern as the facts strip below */
   .def { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 14px 40px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); max-width: 58rem; }
-  .def dt { margin-bottom: 3px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--ink-3); }
+  .def dt { margin-bottom: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); }
   .def dd { margin: 0; color: var(--ink); }
   .toc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin: 4px 0 8px; padding: 10px 0; font-size: var(--fs-sm); border-block: 1px solid var(--rule); }
+  .toc + .layer-section { border-top: 0; }
   .toc a { color: var(--ink-2); text-decoration: none; padding-block: 2px; }
   .toc a:hover, .toc a:focus-visible { color: var(--ink); text-decoration: underline; }
-  .head h1 { border-left: 6px solid var(--c); padding-left: 14px; margin-left: -20px; }
-  @media (max-width: 760px) { .head h1 { margin-left: 0; } }
   /* phones: keep "Try it" / "See it" on the first screen */
   @media (max-width: 560px) {
     .head h1 { margin-bottom: 10px; }
@@ -193,7 +190,7 @@ const num = () => String(++n).padStart(2, '0');
   @media (max-width: 560px) { .ps-what-m { display: block; } }
   ul.checks li::marker { content: '✓  '; color: var(--ok); }
   ul.limits li::marker { content: '–  '; color: var(--ink-3); }
-  .ai { margin: 16px 0; padding: 10px 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }
+  .ai { margin: 20px 0 0; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--rule)); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }
   .ai-label { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-weight: 700; font-size: var(--fs-ui); color: var(--ink); }
   .ai-label svg { color: var(--c); flex: none; }
   .ai-text { margin: 0; font-size: var(--fs-ui); }

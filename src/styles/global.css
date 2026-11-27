@@ -282,9 +282,8 @@ a.chip:hover { border-color: var(--ink-2); color: var(--ink); }
 .btn.sm { padding: 5px 10px; font-size: var(--fs-sm); }
 
 /* section rhythm on practice pages */
-.layer-section { padding: 28px 0; border-top: 1px solid var(--rule); }
-.layer-section > h2 { display: flex; align-items: baseline; gap: 12px; }
-.layer-section > h2 .num { font: 600 var(--fs-code)/1 var(--font-mono); color: var(--ink-3); }
+.layer-section { padding: 2.5rem 0 2rem; border-top: 1px solid var(--rule); }
+.layer-section > h2 { margin-bottom: 0.75em; }
 
 /* ---------- disclosures: two variants, one marker ----------
    details.disclose = a block (bordered card; the summary is its full-width header row).
@@ -368,7 +367,7 @@ details.more[open] > summary { margin-bottom: 6px; }
 .codeblock pre { max-height: 32rem; border: 0; border-radius: 0; }
 .codeblock pre:focus-visible { outline-offset: -2px; }
 .codeblock.terminal { --code-bg: #15130f; --code-ink: #e7e1d4; border-color: #2c2822; }
-.codeblock.terminal.fail pre { box-shadow: inset 3px 0 0 #e0705f; }
+.codeblock.terminal.fail { border-color: #e0705f; }
 @media (max-width: 40rem), (pointer: coarse) { .codeblock .btn.sm { min-block-size: 2.75rem; } }
 
 .rating { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }

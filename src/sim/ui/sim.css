@@ -67,7 +67,7 @@
 .sim-log .ok { color: var(--ok); }
 .sim-log .new { color: var(--l-static); }
 
-.sim-callout { border-left: 4px solid var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: var(--fs-ui); }
+.sim-callout { border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); padding: 10px 12px; border-radius: 6px; font-size: var(--fs-ui); }
 .sim-callout.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
 .sim-callout.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
 .sim-callout p { margin: 0 0 .4em; }

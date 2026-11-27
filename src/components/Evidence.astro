@@ -24,7 +24,7 @@ const count = general.findings.length + ai.findings.length + inUse.length;
     <div class="body">
       {rows.map(([k, e]) => (
         <div class="ev">
-          <p class="eyebrow">{t(lang, k)}</p>
+          <h3 class="ev-h">{t(lang, k)}</h3>
           {e.findings.length === 0 ? <p class="muted small">{t(lang, 'evidenceNone')}</p> : (
             <ul>
               {e.findings.map((fi) => {
@@ -43,7 +43,7 @@ const count = general.findings.length + ai.findings.length + inUse.length;
       ))}
       {inUse.length > 0 && (
         <div class="ev">
-          <p class="eyebrow">{t(lang, 'evidenceUse')}</p>
+          <h3 class="ev-h">{t(lang, 'evidenceUse')}</h3>
           <p class="muted small">{t(lang, 'evidenceUseNote')}</p>
           <ul>
             {inUse.map((fi) => {
@@ -71,7 +71,7 @@ const count = general.findings.length + ai.findings.length + inUse.length;
   .ev ul { padding-left: 1.1em; margin: 0; font-size: var(--fs-ui); }
   .ev li { margin-bottom: .6em; }
   .ev + .ev { margin-top: 12px; }
-  .ev .eyebrow { margin-bottom: 6px; }
+  .ev-h { font: 700 var(--fs-ui)/1.3 var(--font-body); color: var(--ink); margin: 0 0 6px; }
   .src { font-size: var(--fs-sm); color: var(--ink-3); }
   .badge { margin-left: 4px; vertical-align: 1px; }
 </style>

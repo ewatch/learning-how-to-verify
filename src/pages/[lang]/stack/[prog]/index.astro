@@ -6,7 +6,6 @@ import { LANGS, LAYERS } from '../../../../data/taxonomy';
 import { PRACTICES } from '../../../../data/practices';
 import { href, t } from '../../../../i18n/ui';
 import { toolsFor } from '../../../../lib/prompts';
-import { devMark } from '../../../../lib/dev-mark';
 export function getStaticPaths() {
   return (['en', 'de'] as Locale[]).flatMap((lang) => LANGS.map((lg) => ({ params: { lang, prog: lg.id }, props: { lang, prog: lg.id } })));
 }
@@ -22,14 +21,14 @@ const groups = [
 <Base lang={lang} path={`stack/${prog}/`} md={`/${lang}/stack/${prog}/index.md`} nav="stack" title={lg.name} description={en ? `Verification practices and open-source tools for ${lg.name}.` : `Verifikationspraktiken und Open-Source-Werkzeuge für ${lg.name}.`}>
   <div class="wrap">
     <nav class="breadcrumb small" aria-label={en ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'stack/')}>{t(lang, 'navStack')}</a></li><li><a href={href(lang, `stack/${prog}/`)} aria-current="page">{lg.name}</a></li></ol></nav>
-    <header {...devMark('tighter lede')}>
+    <header>
       <h1>{lg.name}</h1>
       <p class="lede">{STACK_COPY.languageIntro[lang]}</p>
     </header>
     {groups.map((g, gi) => (
       <>
         {gi === 1 && <h2 class="all">{en ? `All ${PRACTICES.length} practices by layer` : `Alle ${PRACTICES.length} Praktiken nach Schicht`}</h2>}
-        <section class:list={['layer', { core: g.core }]} style={`--c: ${g.c}`} {...(g.core ? devMark('dropped core subtitle') : {})}>
+        <section class:list={['layer', { core: g.core }]} style={`--c: ${g.c}`}>
           {g.core ? <h2>{g.title}</h2> : <h3>{g.title}</h3>}
           <table>
             <tbody>

@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, highlight, rich, sleep, reducedMotion, devMark, type Lang } from './kit';
+import { h, highlight, rich, sleep, reducedMotion, type Lang } from './kit';
 import { PRESETS, ParseError, analyse, checkAt, exec, ev, makeSearch, envAt, show, type Analysis, type Env, type Expr, type Preset, type Seg, type WpStep } from '../engine/wp';
 
 const KWS = new Set(['if', 'else', 'true', 'false']);
@@ -69,7 +69,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const stepBtn = h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.playing = false; advance(); } }, t.step);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     h('div', { class: 'sim-row' },
       h('label', { class: 'inline' }, t.example, sel),
       h('label', { class: 'inline' }, t.pre, preIn),

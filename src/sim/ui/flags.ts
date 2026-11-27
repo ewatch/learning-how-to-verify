@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, segmented, roleTag, resultPanel, devMark, type Lang, type ResultView } from './kit';
+import { h, segmented, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { USERS, flagOn, flagsOutcome, flagsReport, type Target, type FlagsOutcome } from '../engine/flags';
 
 type FV = FlagsOutcome['values'];
@@ -96,7 +96,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const on = (u: (typeof USERS)[number]) => flagOn(u, S.target, S.pct);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     h('div', { class: 'sim-row' }, seg),
     pctRow,
     h('div', { class: 'sim-row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.incident = true; S.killedFrom = null; render(); } }, `⚡ ${t.incident} `, roleTag('bug', lang)), killBtn),

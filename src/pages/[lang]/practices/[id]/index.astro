@@ -18,7 +18,6 @@ import { glosser } from '../../../../lib/gloss';
 import { practiceMarkdown } from '../../../../lib/markdown';
 import { socraticPrompt } from '../../../../lib/prompts';
 import { PETSTORE_COPY } from '../../../../data/petstore';
-import { devMark } from '../../../../lib/dev-mark';
 
 export function getStaticPaths() {
   return (['en', 'de'] as Locale[]).flatMap((lang) => PRACTICES.map((p) => ({ params: { lang, id: p.id }, props: { lang, p } })));
@@ -34,12 +33,6 @@ const gl = glosser(lang); // first occurrence of each glossary term per page
 const thinkMore = p.think.slice(1);
 // phones only: the petstore sentence of the strip, shown under the first heading
 const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.domain.what[lang])}`;
-const TIGHTENED_PROSE = new Set([
-  'e2e-tests', 'test-integrity', 'agent-rules', 'formal-verification',
-  'property-based-tests', 'ci', 'threat-modeling', 'differential-testing',
-  'architecture', 'security-scanning', 'code-review', 'auditing',
-]);
-const proseTightened = TIGHTENED_PROSE.has(p.id);
 ---
 <Base lang={lang} path={`practices/${p.id}/`} md={`/${lang}/practices/${p.id}/index.md`} title={p.name[lang]} description={p.oneLiner[lang]}>
   <article class="wrap practice" style={`--c: var(--l-${p.layer})`}>
@@ -51,7 +44,7 @@ const proseTightened = TIGHTENED_PROSE.has(p.id);
       </ol>
     </nav>
 
-    <header class="head" {...devMark(proseTightened ? 'dropped eyebrow + tighter intro' : 'dropped layer eyebrow')}>
+    <header class="head">
       <h1>{p.name[lang]}</h1>
       <p class="intro" set:html={gl(p.intro[lang])} />
       <dl class="def">
@@ -77,13 +70,13 @@ const proseTightened = TIGHTENED_PROSE.has(p.id);
     )}
 
     {p.sim && (
-      <section class="layer-section" id="try" {...devMark('dropped tryItHint')}><h2>{t(lang, 'tryIt')}</h2>
+      <section class="layer-section" id="try"><h2>{t(lang, 'tryIt')}</h2>
         <p class="ps-what-m small" set:html={psWhat} />
         <SimMount sim={p.sim} lang={lang} />
       </section>
     )}
 
-    <section class="layer-section" id="worth" {...(proseTightened ? devMark('tighter strengths/limits/AI') : {})}><h2>{t(lang, 'strengthsLimits')}</h2>
+    <section class="layer-section" id="worth"><h2>{t(lang, 'strengthsLimits')}</h2>
       <div class="grid cols-2">
         <div><h3>{t(lang, 'strengths')}</h3><ul class="checks">{p.worth.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
         <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
@@ -94,7 +87,7 @@ const proseTightened = TIGHTENED_PROSE.has(p.id);
       </aside>
     </section>
 
-    <section class="layer-section" id="evidence" {...devMark('dropped evidenceLead')}><h2>{t(lang, 'evidence')}</h2>
+    <section class="layer-section" id="evidence"><h2>{t(lang, 'evidence')}</h2>
       <Evidence general={p.evidence.general} ai={p.evidence.ai} lang={lang} inUse={IN_USE[p.id]} gl={gl} />
     </section>
 
@@ -102,7 +95,7 @@ const proseTightened = TIGHTENED_PROSE.has(p.id);
       <LangTabs p={p} lang={lang} socratic={socratic} />
     </section>
 
-    <section class="layer-section" id="deeper" {...devMark('dropped CardKey legend')}><h2>{t(lang, 'goDeeper')}</h2>
+    <section class="layer-section" id="deeper"><h2>{t(lang, 'goDeeper')}</h2>
       <h3>{t(lang, 'thinkFirst')}</h3>
       <div class="think">
         {p.think.slice(0, 1).map((q) => (

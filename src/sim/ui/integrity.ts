@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, codeRows, pill, esc, highlightJs, devMark, type Lang, type CodeRow } from './kit';
+import { h, codeRows, pill, esc, highlightJs, type Lang, type CodeRow } from './kit';
 import { GATES, PATCHES, evaluate, judge, decide, type GateId, type PatchId } from '../engine/integrity';
 import './integrity.css';
 
@@ -70,7 +70,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const detail = h('div', { class: 'sim-card' });
   const status = h('div', { 'aria-live': 'polite' });
 
-  root.append(h('div', { class: 'sim' }, h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro), gatesBox, matrix, status, detail));
+  root.append(h('div', { class: 'sim' }, h('p', { class: 'sim-intro' }, t.intro), gatesBox, matrix, status, detail));
 
   function render() {
     const j = judge(enabled, evals);

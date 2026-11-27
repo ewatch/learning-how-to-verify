@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, highlight, rich, pill, sleep, reducedMotion, devMark, type Lang } from './kit';
+import { h, highlight, rich, pill, sleep, reducedMotion, type Lang } from './kit';
 import { OBLIGATIONS, VARIANTS, checkState, linesFor, spaceFor, states, type Arr, type Failure, type FailureCode, type ObligationKey, type State, type Variant } from '../engine/invariant';
 
 const KWS = new Set(['method', 'returns', 'requires', 'ensures', 'invariant', 'decreases', 'var', 'while', 'if', 'forall', 'exists', 'array', 'int']);
@@ -61,7 +61,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   } }, v.name[lang])));
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     chips,
     h('div', { class: 'sim-cols' },
       h('div', {}, code, desc),

@@ -81,7 +81,11 @@ const guideId = `${id}-steps`;
   .view code { display: block; width: max-content; min-width: 100%; }
   .ln { display: block; min-height: 1.5em; padding-left: 1.9em; margin-left: -12px; border-left: 3px solid transparent; position: relative; transition: color .2s, background-color .2s; }
   .ln.f { background: color-mix(in srgb, var(--c, var(--link)) 13%, transparent); border-left-color: var(--c, var(--link)); }
-  .ln[data-n]::before { content: attr(data-n); position: absolute; left: .35em; top: 0; font-family: var(--font-sans, inherit); font-size: var(--fs-ui); line-height: 1.5; font-weight: 700; color: var(--c, var(--link)); }
+  /* step numbers: the layer hue pulled toward the code ink, so they stay >= 4.5:1 on the tinted line in both themes */
+  .fc { --badge-ink: color-mix(in srgb, var(--c, var(--link)) 55%, var(--code-ink)); }
+  .ln[data-n]::before { content: attr(data-n); position: absolute; left: .35em; top: 0; /* the circled digits come from the code font (the body font has none) */ font: 700 var(--fs-ui)/1.5 var(--font-mono); color: var(--badge-ink); }
+  /* with script the numbers are buttons: marked lines grow to 26px so each badge is a 24px target with room to the next one (WCAG 2.5.8) */
+  .fc.js .ln.f { padding-block: calc((1.625rem - 1.5em) / 2); }
   /* no script: the notes are a plain list under the code */
   .notebox { padding: 10px 14px 12px; border-top: 1px solid var(--rule); background: var(--card); }
   /* hidden=until-found keeps the box: drop its padding and rule so no empty band shows */
@@ -106,8 +110,9 @@ const guideId = `${id}-steps`;
   .btn.sm:not(.ghost):disabled:hover { background: var(--ink); }
   /* with script: the badges on the lines open the matching step; the list stays findable (hidden=until-found) */
   .fc.js .ln[data-n]::before { content: none; }
-  :global(.badge-btn) { position: absolute; left: .15em; top: 0; width: 1.7em; height: 1.5em; padding: 0; border: 0; background: transparent; cursor: pointer; font: 700 var(--fs-ui)/1.5 var(--font-sans, inherit); color: var(--c, var(--link)); user-select: none; border-radius: 4px; }
-  :global(.badge-btn:hover), :global(.badge-btn[aria-expanded='true']) { background: color-mix(in srgb, var(--c, var(--link)) 22%, transparent); }
+  :global(.badge-btn) { position: absolute; inset-inline-start: 0; inset-block: 0; margin-block: auto; display: grid; place-items: center; inline-size: 1.5rem; block-size: 1.5rem; padding: 0; border: 0; background: transparent; cursor: pointer; font: 700 var(--fs-ui)/1 var(--font-mono); color: var(--badge-ink); user-select: none; border-radius: 4px; }
+  /* a solid tint over the code background, not stacked on the line tint, so the number keeps its contrast */
+  :global(.badge-btn:hover), :global(.badge-btn[aria-expanded='true']) { background: color-mix(in srgb, var(--c, var(--link)) 18%, var(--code-bg)); }
   :global(.badge-btn[aria-expanded='true']) { outline: 1.5px solid var(--c, var(--link)); outline-offset: -1.5px; }
   :global(.badge-btn:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
   /* walkthrough on: the current lines stand out, the rest is quieter (still readable) */

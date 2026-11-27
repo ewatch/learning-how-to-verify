@@ -59,13 +59,25 @@ export function codeView(src: string, marks: LineMark[] = [], replace?: { line: 
 /** Editable code: a CodeMirror 6 editor, loaded on demand. Falls back to a textarea. */
 export async function codeEditor(parent: HTMLElement, doc: string, onChange: (s: string) => void, label: string): Promise<{ get: () => string; set: (s: string) => void; destroy: () => void }> {
   try {
-    const [{ EditorView, basicSetup }, { javascript }] = await Promise.all([import('codemirror'), import('@codemirror/lang-javascript')]);
+    const [{ EditorView, basicSetup }, { javascript }, { HighlightStyle, syntaxHighlighting }, { tags }] = await Promise.all([
+      import('codemirror'), import('@codemirror/lang-javascript'), import('@codemirror/language'), import('@lezer/highlight'),
+    ]);
+    // the same --syn-* colors as the static code views (sim.css); CodeMirror's default style is light-only
+    const siteHighlight = HighlightStyle.define([
+      { tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword, tags.definitionKeyword, tags.moduleKeyword], color: 'var(--syn-kw)', fontWeight: '600' },
+      { tag: [tags.string, tags.special(tags.string), tags.regexp], color: 'var(--syn-str)' },
+      { tag: [tags.number, tags.bool, tags.null, tags.atom], color: 'var(--syn-num)' },
+      { tag: [tags.function(tags.variableName), tags.function(tags.propertyName), tags.typeName, tags.className], color: 'var(--syn-fn)' },
+      { tag: [tags.comment, tags.lineComment, tags.blockComment], color: 'var(--syn-com)', fontStyle: 'italic' },
+      { tag: tags.invalid, color: 'var(--bad)' },
+    ]);
     const view = new EditorView({
       doc,
       parent,
       extensions: [
         basicSetup,
         javascript(),
+        syntaxHighlighting(siteHighlight),
         EditorView.updateListener.of((u) => { if (u.docChanged) onChange(u.state.doc.toString()); }),
         EditorView.contentAttributes.of({ 'aria-label': label }),
         EditorView.theme({ '&': { fontSize: '13px' }, '.cm-scroller': { fontFamily: 'var(--font-mono)' } }),
@@ -91,7 +103,6 @@ export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export { rng } from '../engine/rng';
-export { devMark } from '../../lib/dev-mark';
 
 /** A segmented control (radio group). An option may carry a role tag (see `roleTag`). */
 export function segmented<T extends string>(label: string, options: { value: T; label: string; tag?: Node }[], value: T, onChange: (v: T) => void): HTMLElement {

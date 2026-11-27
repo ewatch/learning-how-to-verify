@@ -9,7 +9,6 @@ import { langPaths } from '../../lib/paths';
 import { START_TOUR } from '../../data/start';
 import { HOME } from '../../data/home';
 import { PETSTORE_COPY } from '../../data/petstore';
-import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -21,7 +20,7 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
   description={HOME.lead[lang]}>
   <div class="wrap">
-    <section class="hero" {...devMark('tighter hero copy')}>
+    <section class="hero">
       <h1>{HOME.headline[lang]}</h1>
       <p class="lede">{HOME.lead[lang]}</p>
       <div class="cta">
@@ -31,13 +30,13 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
       <p class="facts">{HOME.facts[lang](n, sims)}</p>
     </section>
 
-    <section id="funnel" class="map" aria-labelledby="funnel-title" {...devMark('shorter funnel intro')}>
+    <section id="funnel" class="map" aria-labelledby="funnel-title">
       <h2 id="funnel-title">{HOME.funnelTitle[lang]}</h2>
       <p class="intro">{HOME.funnelIntro[lang]}</p>
       <Funnel lang={lang} />
     </section>
 
-    <section class="ways" aria-labelledby="ways-title" {...devMark('tighter card copy')}>
+    <section class="ways" aria-labelledby="ways-title">
       <h2 id="ways-title">{HOME.waysTitle[lang]}</h2>
       <ul class="way-list">
         <li><a class="way" href={href(lang, 'diagnose/')}><strong>{HOME.diagnoseTitle[lang]} <span aria-hidden="true">→</span></strong><span>{HOME.diagnose[lang]}</span></a></li>
@@ -48,12 +47,12 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
     </section>
 
     <div class="notes">
-      <section class="note" aria-labelledby="evidence-title" {...devMark('halved evidence note')}>
+      <section class="note" aria-labelledby="evidence-title">
         <h2 id="evidence-title">{HOME.evidenceTitle[lang]}</h2>
         <p>{HOME.evidence[lang]}</p>
         <p><a href={href(lang, 'why-layers/')}>{HOME.whyLayers[lang]} <span aria-hidden="true">→</span></a></p>
       </section>
-      <section class="note" aria-labelledby="agents-title" {...devMark('1-line agents note')}>
+      <section class="note" aria-labelledby="agents-title">
         <h2 id="agents-title">{HOME.forAgents[lang]}</h2>
         <p>{HOME.giveAgent[lang]} <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>{HOME.appendMarkdown[lang]} <code>index.md</code> {HOME.markdownEnd[lang]}</p>
       </section>

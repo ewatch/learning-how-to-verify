@@ -5,7 +5,6 @@ import { t } from '../i18n/ui';
 import { agentPrompt, toolsFor, langName } from '../lib/prompts';
 import CodeBlock from './CodeBlock.astro';
 import { inline } from '../lib/inline';
-import { devMark } from '../lib/dev-mark';
 interface Props { p: Practice; lang: Locale; socratic: string }
 const { p, lang, socratic } = Astro.props;
 const hasAnyTools = Object.values(p.tools).some((x) => x?.length);
@@ -13,6 +12,8 @@ const firstSnippet = p.snippets?.[0];
 // every tool and example is language-independent: one panel, no tab bar, no per-language notice
 const single = LANGS.every((lg) => !p.tools[lg.id]?.length) && (p.snippets ?? []).every((x) => x.lang === 'any');
 const shown = single ? LANGS.slice(0, 1) : LANGS;
+// the agent box sits under "Set it up" (h2); with tabs, a hidden per-language h3 comes in between
+const AgentH = single ? 'h3' : 'h4';
 ---
 <div class="langtabs" data-langtabs data-single={single ? '' : undefined}>
   {!single && <div class="tabs" role="tablist" aria-label={t(lang, 'yourLanguage')}>
@@ -26,7 +27,7 @@ const shown = single ? LANGS.slice(0, 1) : LANGS;
     const fallback = snippets.length === 0 && firstSnippet ? (p.snippets ?? []).filter((s) => s.lang === firstSnippet.lang) : [];
     const promptId = `prompt-${p.id}-${lg.id}`;
     return (
-      <section role="tabpanel" id={`panel-${lg.id}`} aria-labelledby={`tab-${lg.id}`} data-panel={lg.id} class="panel" hidden={li === 0 ? undefined : 'until-found'}>
+      <section role={single ? undefined : 'tabpanel'} id={`panel-${lg.id}`} aria-labelledby={single ? undefined : `tab-${lg.id}`} data-panel={lg.id} class="panel" hidden={li === 0 ? undefined : 'until-found'}>
         {!single && <h3 class="visually-hidden">{lg.name}</h3>}
         {!hasAnyTools && <p class="muted">{t(lang, 'noTools')}</p>}
         {!single && hasAnyTools && own.length === 0 && any.length > 0 && <p class="muted small">{t(lang, 'noToolsForLang')}</p>}
@@ -54,8 +55,8 @@ const shown = single ? LANGS.slice(0, 1) : LANGS;
             </>)}
           </>
         )}
-        <div class="agent card" role="group" aria-labelledby={`agent-h-${lg.id}`} {...devMark('tighter agent box')}>
-          <h4 class="agent-h" id={`agent-h-${lg.id}`}>{t(lang, 'useWithAgent')}</h4>
+        <div class="agent card" role="group" aria-labelledby={`agent-h-${lg.id}`}>
+          <AgentH class="agent-h" id={`agent-h-${lg.id}`}>{t(lang, 'useWithAgent')}</AgentH>
           <div class="agent-actions">
             <button type="button" class="btn" data-copy={promptId} command="--copy" commandfor={promptId}>{t(lang, 'copyTask')}</button>
           </div>

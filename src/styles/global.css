@@ -220,6 +220,14 @@ button { font: inherit; color: inherit; }
 @media (max-width: 36rem) {
   .search-toggle .search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+/* Phones: the menu button shows its icon only (the label stays its accessible name), so the site name fits on two lines.
+   Below 360px even that is too narrow for "Verifizieren" (88px): the funnel mark alone is the home link there. */
+@media (max-width: 26rem) {
+  .menu-button .menu-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (max-width: 22.4375rem) {
+  .site-header:not(.is-wide) .brand-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 /* Collapsed layout is the default (and what no-script gets): the links live in a popover opened by the menu button. */
 .menu-button { border: 1px solid var(--rule-strong); anchor-name: --menu-button; }
 .site-menu { position: fixed; inset: auto; inset-block-start: 4.25rem; inset-block-start: anchor(--menu-button bottom); inset-inline-end: var(--gutter); margin: 0.5rem 0 0; inline-size: min(80dvw, 20rem); max-block-size: calc(100dvh - 6rem); overflow: auto; list-style: none; padding: 6px; background: var(--card); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
@@ -282,7 +290,8 @@ a.chip:hover { border-color: var(--ink-2); color: var(--ink); }
 .btn.sm { padding: 5px 10px; font-size: var(--fs-sm); }
 
 /* section rhythm on practice pages */
-.layer-section { padding: 2.5rem 0 2rem; border-top: 1px solid var(--rule); }
+/* scroll-margin: table-of-contents jumps land below the sticky header, same offset as .map and .panel */
+.layer-section { padding: 2.5rem 0 2rem; border-top: 1px solid var(--rule); scroll-margin-top: 4.5rem; }
 .layer-section > h2 { margin-bottom: 0.75em; }
 
 /* ---------- disclosures: two variants, one marker ----------

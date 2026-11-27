@@ -6,14 +6,13 @@ import { LANGS } from '../../../data/taxonomy';
 import { PRACTICES } from '../../../data/practices';
 import { href, t } from '../../../i18n/ui';
 import { langPaths } from '../../../lib/paths';
-import { devMark } from '../../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
 ---
 <Base lang={lang} path="stack/" md={`/${lang}/stack/index.md`} nav="stack" title={t(lang, 'navStack')} description={STACK_COPY.intro[lang]}>
   <div class="wrap">
-    <header class="narrow" {...devMark('tighter lede')}>
+    <header class="narrow">
       <h1>{STACK_COPY.heading[lang]}</h1>
       <p class="lede">{STACK_COPY.intro[lang]}</p>
     </header>

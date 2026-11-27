@@ -1,5 +1,5 @@
 import { IMPL_LABEL, PBT_COPY } from '../../data/pbt-copy';
-import { h, codeView, segmented, sleep, reducedMotion, roleTag, resultPanel, devMark, type Lang, type ResultView } from './kit';
+import { h, codeView, segmented, sleep, reducedMotion, roleTag, resultPanel, type Lang, type ResultView } from './kit';
 import { IMPLS, PROPERTIES, check, pbtOutcome, fastCheckReport, type Input, type PbtOutcome } from '../engine/pbt';
 
 /** Reference example for the shared result panel: see the comment block in kit.ts. */
@@ -34,7 +34,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const implOptions = (Object.keys(IMPLS) as (keyof typeof IMPLS)[]).map((k) => ({ value: k, label: IMPL_LABEL[lang][k], tag: roleTag(IMPLS[k].correct ? 'correct' : 'bug', lang) }));
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     h('div', { class: 'sim-row' }, segmented(t.impl, implOptions, S.impl, (v) => { S.impl = v; renderCode(); clear(); })),
     h('div', { class: 'sim-row' }, segmented(t.prop, PROPERTIES.map((p) => ({ value: p.id, label: t.props[p.id as keyof typeof t.props] })), S.prop, (v) => { S.prop = v; clear(); })),
     codeBox,

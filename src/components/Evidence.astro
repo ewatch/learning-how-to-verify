@@ -63,9 +63,17 @@ const count = general.findings.length + ai.findings.length + inUse.length;
 </div>
 <style>
   /* three rows, three aligned columns: what, how strong, verdict */
-  .meters { display: grid; grid-template-columns: max-content max-content 1fr; gap: 8px 14px; align-items: center; margin-bottom: 14px; }
+  .evidence { container-type: inline-size; }
+  .meters { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); gap: 8px 14px; align-items: center; margin-bottom: 14px; }
   .rating { display: contents; }
   .rating > strong:nth-child(2) { grid-column: 2 / -1; }
+  /* small containers: the label sits above its meter and verdict, so the three columns never overflow */
+  @container (max-width: 26rem) {
+    .meters { grid-template-columns: max-content minmax(0, 1fr); row-gap: 2px; }
+    .lbl { grid-column: 1 / -1; }
+    .rating:not(:first-child) > .lbl { margin-top: 10px; }
+    .rating > strong:nth-child(2) { grid-column: 1 / -1; }
+  }
   .rating > strong.none { color: var(--ink-3); font-weight: 500; }
   .lbl { color: var(--ink-3); font-size: var(--fs-sm); }
   .ev ul { padding-left: 1.1em; margin: 0; font-size: var(--fs-ui); }

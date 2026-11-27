@@ -21,7 +21,6 @@ const { lang } = Astro.props as { lang: Locale };
       const s = SOURCE_BY_ID.get(f.src)!;
       return (
         <section class="finding" id={`finding-${i + 1}`}>
-          <p class="eyebrow">{String(i + 1).padStart(2, '0')}</p>
           <h2>{f.claim[lang]}</h2>
           <p>{f.text[lang]} <a class="src small" href={s.url} rel="noopener">{s.authors.split(',')[0]}, {s.venue} {s.year}</a>{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</p>
           <p class="fix"><strong>{lang === 'en' ? 'Which layer catches it: ' : 'Welche Schicht es fängt: '}</strong>{f.fix[lang]}</p>

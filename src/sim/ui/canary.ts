@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, segmented, sleep, reducedMotion, rng, roleTag, resultPanel, devMark, type Lang, type ResultView, type TagKind } from './kit';
+import { h, segmented, sleep, reducedMotion, rng, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
 import { STAGES, runStage, canaryOutcome, canaryReport, type Bug, type StageResult, type CanaryOutcome } from '../engine/canary';
 
 type CV = CanaryOutcome['values'];
@@ -118,7 +118,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const startBtn = h('button', { class: 'btn', type: 'button', onclick: () => start() }, t.start);
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     h('div', { class: 'sim-row' }, segmented(t.bug, (['none', 'errors', 'silent'] as Bug[]).map((b) => ({ value: b, label: t.bugs[b], tag: roleTag(BUG_TAG[b], lang) })), S.bug, (v) => { S.bug = v; reset(); })),
     h('label', { class: 'inline' }, h('input', { type: 'checkbox', onchange: (e: Event) => { S.biz = (e.target as HTMLInputElement).checked; reset(); } }), t.biz, ' ', roleTag('gate', lang)),
     h('div', { class: 'sim-row' }, startBtn),

@@ -6,7 +6,6 @@ import { PHASES } from '../../data/taxonomy';
 import { PRACTICES } from '../../data/practices';
 import { href } from '../../i18n/ui';
 import { langPaths } from '../../lib/paths';
-import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -15,7 +14,7 @@ const nCore = PRACTICES.filter((p) => p.core).length;
 <Base lang={lang} path="lifecycle/" md={`/${lang}/lifecycle/index.md`} nav="lifecycle" title={en ? 'Lifecycle map' : 'Lebenszyklus'}
   description={LIFECYCLE_COPY.intro[lang]}>
   <div class="wrap">
-    <header class="narrow" {...devMark('tighter intro + 1-line legend')}>
+    <header class="narrow">
       <p class="eyebrow">{en ? 'Second view' : 'Zweite Ansicht'}</p>
       <h1>{LIFECYCLE_COPY.heading[lang]}</h1>
       <p class="lede">{LIFECYCLE_COPY.intro[lang]}</p>

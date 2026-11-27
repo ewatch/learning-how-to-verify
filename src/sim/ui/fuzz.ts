@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, codeView, roleTag, resultPanel, devMark, type Lang, type ResultView, type TagKind } from './kit';
+import { h, codeView, roleTag, resultPanel, type Lang, type ResultView, type TagKind } from './kit';
 import { createFuzzer, step, fuzzOutcome, jazzerReport, PARSER_SOURCE, TOTAL_BRANCHES, type FuzzState, type FuzzOutcome } from '../engine/fuzz';
 
 type FV = FuzzOutcome['values'];
@@ -104,7 +104,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   const pb = fuzzerCard(t.blind, 'blind'), pg = fuzzerCard(t.guided, 'guided');
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     h('details', { class: 'disclose' }, h('summary', {}, t.parser), h('div', { class: 'body' }, codeView(PARSER_SOURCE))),
     h('div', { class: 'sim-row' }, startBtn, resetBtn, dict),
     panel.el,

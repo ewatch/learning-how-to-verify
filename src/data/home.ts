@@ -4,20 +4,24 @@ export const HOME = {
     de: 'Code von Coding-Agenten prüfen',
   },
   lead: {
-    en: 'Different checks find different errors. This site shows what each check can find. The site has exercises that you can do in your browser. It also gives links to open-source tools for your programming language.',
-    de: 'Verschiedene Checks finden verschiedene Fehler. Die Seite zeigt, welche Fehler jeder Check finden kann. Du findest Übungen für den Browser und Links zu Open-Source-Tools.',
+    en: 'Different checks find different bugs. Learn what each check finds, try it in your browser and get open-source tools for your programming language.',
+    de: 'Verschiedene Checks finden verschiedene Fehler. Hier lernst du, was jeder Check findet, probierst ihn im Browser aus und findest Open-Source-Tools für deine Programmiersprache.',
   },
   start: {
     en: (steps: number) => `Start with ${steps} steps`,
     de: (steps: number) => `In ${steps} Schritten einsteigen`,
   },
   overview: { en: 'Find checks in the funnel', de: 'Alle Checks ansehen' },
+  facts: {
+    en: (n: number, sims: number) => `${n} practices · ${sims} simulators in your browser · English and Deutsch`,
+    de: (n: number, sims: number) => `${n} Praktiken · ${sims} Simulatoren im Browser · Deutsch und English`,
+  },
   funnelTitle: {
     en: 'The verification funnel',
     de: 'Welche Checks kommen zuerst?',
   },
   funnelIntro: {
-    en: 'Start with the checks at the top of the funnel. These checks usually have lower costs and give results sooner. Each error they find decreases the work for code reviewers.',
+    en: 'Start with the checks at the top of the funnel. They usually cost less and give results sooner. Each bug that they find is less work in code review.',
     de: 'Beginne mit den Checks oben im Trichter. Sie liefern meist schneller Ergebnisse und kosten weniger. Jeder früh gefundene Fehler verringert den Aufwand im Code Review.',
   },
   markdownStart: {
@@ -33,7 +37,7 @@ export const HOME = {
     en: 'Select a layer in the funnel or in the list to see its checks.',
     de: 'Wähle eine Schicht im Trichter oder in der Liste, um ihre Checks zu sehen.',
   },
-  waysTitle: { en: 'Checks, tools and examples', de: 'Checks, Tools und Beispiele' },
+  waysTitle: { en: 'Other starting points', de: 'Weitere Einstiege' },
   diagnoseTitle: { en: 'Find a check for your project', de: 'Einen Check für dein Projekt finden' },
   diagnose: {
     en: 'Select a problem in your project. For each problem, the page gives you a check, an exercise and a task for your coding agent.',

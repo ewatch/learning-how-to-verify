@@ -220,6 +220,14 @@ button { font: inherit; color: inherit; }
 @media (max-width: 36rem) {
   .search-toggle .search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+/* Phones: the menu button shows its icon only (the label stays its accessible name), so the site name fits on two lines.
+   Below 360px even that is too narrow for "Verifizieren" (88px): the funnel mark alone is the home link there. */
+@media (max-width: 26rem) {
+  .menu-button .menu-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (max-width: 22.4375rem) {
+  .site-header:not(.is-wide) .brand-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 /* Collapsed layout is the default (and what no-script gets): the links live in a popover opened by the menu button. */
 .menu-button { border: 1px solid var(--rule-strong); anchor-name: --menu-button; }
 .site-menu { position: fixed; inset: auto; inset-block-start: 4.25rem; inset-block-start: anchor(--menu-button bottom); inset-inline-end: var(--gutter); margin: 0.5rem 0 0; inline-size: min(80dvw, 20rem); max-block-size: calc(100dvh - 6rem); overflow: auto; list-style: none; padding: 6px; background: var(--card); color: var(--ink); border: 1px solid var(--rule-strong); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
@@ -282,9 +290,9 @@ a.chip:hover { border-color: var(--ink-2); color: var(--ink); }
 .btn.sm { padding: 5px 10px; font-size: var(--fs-sm); }
 
 /* section rhythm on practice pages */
-.layer-section { padding: 28px 0; border-top: 1px solid var(--rule); }
-.layer-section > h2 { display: flex; align-items: baseline; gap: 12px; }
-.layer-section > h2 .num { font: 600 var(--fs-code)/1 var(--font-mono); color: var(--ink-3); }
+/* scroll-margin: table-of-contents jumps land below the sticky header, same offset as .map and .panel */
+.layer-section { padding: 2.5rem 0 2rem; border-top: 1px solid var(--rule); scroll-margin-top: 4.5rem; }
+.layer-section > h2 { margin-bottom: 0.75em; }
 
 /* ---------- disclosures: two variants, one marker ----------
    details.disclose = a block (bordered card; the summary is its full-width header row).
@@ -368,7 +376,7 @@ details.more[open] > summary { margin-bottom: 6px; }
 .codeblock pre { max-height: 32rem; border: 0; border-radius: 0; }
 .codeblock pre:focus-visible { outline-offset: -2px; }
 .codeblock.terminal { --code-bg: #15130f; --code-ink: #e7e1d4; border-color: #2c2822; }
-.codeblock.terminal.fail pre { box-shadow: inset 3px 0 0 #e0705f; }
+.codeblock.terminal.fail { border-color: #e0705f; }
 @media (max-width: 40rem), (pointer: coarse) { .codeblock .btn.sm { min-block-size: 2.75rem; } }
 
 .rating { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }

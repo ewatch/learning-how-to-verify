@@ -12,7 +12,6 @@ import type { Practice } from '../../../data/types';
 import { inline } from '../../../lib/inline';
 import { langPaths } from '../../../lib/paths';
 import { practicesFor, operationsFor } from '../../../lib/petstore';
-import { devMark } from '../../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const of = (kind: DomainPart['kind']) => PARTS.filter((p) => p.kind === kind);
@@ -25,14 +24,14 @@ const acceptance = PRACTICE_BY_ID.get('acceptance-tests')!;
 ---
 <Base lang={lang} path="petstore/" md={`/${lang}/petstore/index.md`} title={C.title[lang]} description={C.description[lang]}>
   <div class="wrap">
-    <header class="ps-head" {...devMark('tighter header, dropped howTo')}>
+    <header class="ps-head">
       <h1>{C.title[lang]}</h1>
       <p class="lede">{C.intro[lang]}</p>
       <p class="story">{C.story[lang]}</p>
     </header>
 
     <!-- the picture: three zones; the running petstore in the middle holds the domain code with data, operations and rules -->
-    <figure class="map" aria-label={C.mapLabel[lang]} {...devMark('removed duplicate index below map')}>
+    <figure class="map" aria-label={C.mapLabel[lang]}>
       {ZONE_ORDER.map((z) => (
         <section class={`zone z-${z}`} aria-labelledby={`zone-${z}`}>
           <p class="zone-h" id={`zone-${z}`}>{C.zone[z][lang]}</p>
@@ -67,13 +66,13 @@ const acceptance = PRACTICE_BY_ID.get('acceptance-tests')!;
       <figcaption class="small muted">{C.mapHint[lang]}</figcaption>
     </figure>
 
-    <aside class="gherkin-note" aria-labelledby="gherkin-h" {...devMark('compact Gherkin note')}>
+    <aside class="gherkin-note" aria-labelledby="gherkin-h">
       <h2 id="gherkin-h">{C.gherkinTitle[lang]}</h2>
       <p><span set:html={inline(C.gherkinText[lang])} /> <a href={href(lang, 'glossary/#gherkin')}>{C.gherkinGlossary[lang]}</a> · <a href={href(lang, `practices/${acceptance.id}/`)}>{acceptance.name[lang]}</a></p>
     </aside>
 
     {KIND_ORDER.map((kind) => (
-      <section class={`kind kind-${kind}`} aria-labelledby={`kind-${kind}`} {...(kind === 'operation' || kind === 'rule' ? devMark('Gherkin scenarios collapsed') : {})}>
+      <section class={`kind kind-${kind}`} aria-labelledby={`kind-${kind}`}>
         <h2 id={`kind-${kind}`} tabindex="-1">{C.kindHeading[kind][lang]}</h2>
         <div class="parts">
           {of(kind).map((p) => {

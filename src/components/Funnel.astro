@@ -6,7 +6,6 @@ import { PRACTICES } from '../data/practices';
 import { t, href } from '../i18n/ui';
 import PracticeCard from './PracticeCard.astro';
 import CardKey from './CardKey.astro';
-import { devMark } from '../lib/dev-mark';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -15,18 +14,33 @@ const en = lang === 'en';
 /** Panels with more practices than this show the core ones first and fold the rest. */
 const FOLD_ABOVE = 6;
 
-// geometry: inverted funnel, cheap/early at the top, expensive at the bottom
-const W = 800, TOP = 8, BAND = 78, MID = W / 2, WIDE = 384, NARROW = 110;
-const hw = (y: number) => WIDE - (WIDE - NARROW) * ((y - TOP) / (BAND * 5));
 const byLayer = (id: string) => PRACTICES.filter((p) => p.layer === id);
 const countLabel = (n: number) => `${n} ${t(lang, 'practices')}`;
-const bands = LAYERS.map((layer, i) => {
-  const y0 = TOP + i * BAND, y1 = y0 + BAND;
-  const a = hw(y0), b = hw(y1);
-  return { layer, i, y0, d: `M${MID - a} ${y0} L${MID + a} ${y0} L${MID + b} ${y1} L${MID - b} ${y1} Z`, count: byLayer(layer.id).length };
-});
-const H = TOP + BAND * 5 + 8;
+
+// geometry: inverted funnel, cheap/early at the top, expensive at the bottom.
+// Two drawings from one function: `wide` (axis label in a left gutter) and `narrow` for small containers
+// (no gutter, gentler taper, taller bands, so the names stay readable instead of shrinking with the figure).
+// Each name gets the largest size up to `name` that fits its band where the band is narrowest under the text.
+const EM_PER_CHAR = 0.56; // Fraunces 650, measured ~0.50–0.55 em per character; rounded up so estimates err on fitting
+const W = 800, TOP = 8, MID = W / 2, PAD = 14;
+const funnel = (g: { wide: number; narrow: number; band: number; name: number; small: number; count: number; nameY: number; countY: number }) => {
+  const H = TOP + g.band * 5 + 8;
+  const hw = (y: number) => g.wide - (g.wide - g.narrow) * ((y - TOP) / (g.band * 5));
+  const bands = LAYERS.map((layer, i) => {
+    const y0 = TOP + i * g.band, y1 = y0 + g.band;
+    const a = hw(y0), b = hw(y1);
+    const name = layer.name[lang];
+    const room = 2 * (hw(y0 + g.nameY + 2) - PAD);
+    const size = Math.min(i >= 3 ? g.small : g.name, Math.floor(room / (name.length * EM_PER_CHAR)));
+    return { layer, i, y0, name, size, d: `M${MID - a} ${y0} L${MID + a} ${y0} L${MID + b} ${y1} L${MID - b} ${y1} Z`, count: byLayer(layer.id).length };
+  });
+  return { H, bands, g };
+};
+const wide = funnel({ wide: 384, narrow: 110, band: 78, name: 30, small: 26, count: 23, nameY: 40, countY: 67 });
+const narrow = funnel({ wide: 392, narrow: 230, band: 92, name: 40, small: 40, count: 32, nameY: 44, countY: 80 });
+const bands = wide.bands; // the chooser list and panels use the same order and counts
 const costLabel = en ? 'cost of a missed bug' : 'Kosten eines übersehenen Fehlers';
+const svgLabel = en ? 'Verification funnel' : 'Verifikationstrichter';
 
 const split = (list: Practice[]) => {
   const core = list.filter((p) => p.core);
@@ -36,33 +50,48 @@ const split = (list: Practice[]) => {
 ---
 <div class="funnel" data-funnel>
   <div class="figure">
-    <svg viewBox={`-60 0 ${W + 60} ${H}`} role="group" aria-label={en ? 'Verification funnel' : 'Verifikationstrichter'}>
-      <defs>
-        <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)" /></marker>
-      </defs>
-      <line x1="-30" y1={TOP + 6} x2="-30" y2={H - 14} stroke="var(--ink-2)" stroke-width="2" marker-end="url(#arrowhead)" />
-      <text x="-40" y={H / 2} transform={`rotate(-90 -40 ${H / 2})`} text-anchor="middle" class="axis">{costLabel}</text>
-      {bands.map(({ layer, i, y0, d, count }) => (
-        <a href={`#layer-${layer.id}`} data-band={layer.id} aria-label={`${layer.name[lang]}: ${layer.examples[lang]} (${countLabel(count)})`}>
-          <path d={d} class="band" style={`--c: var(--l-${layer.id})`} />
-          <text x={MID} y={y0 + 40} text-anchor="middle" class:list={['name', { small: i >= 3 }]}>{layer.name[lang]}</text>
-          <text x={MID} y={y0 + 67} text-anchor="middle" class="count">{countLabel(count)}</text>
-        </a>
-      ))}
+    <!-- small containers: the axis label is text that can wrap, the funnel takes the full width -->
+    <p class="axis-cap"><span aria-hidden="true">↓</span> {costLabel}</p>
+    <!-- One link per layer; inside it, a wide and a narrow drawing (nested SVGs with their own viewBox),
+         one of them shown by the container query below. -->
+    <svg class="fig" role="group" aria-label={svgLabel} style={`--ar-wide: ${W + 60} / ${wide.H}; --ar-narrow: ${W} / ${narrow.H}`}>
+      <svg class="w" viewBox={`-60 0 ${W + 60} ${wide.H}`}>
+        <defs>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)" /></marker>
+        </defs>
+        <line x1="-30" y1={TOP + 6} x2="-30" y2={wide.H - 14} stroke="var(--ink-2)" stroke-width="2" marker-end="url(#arrowhead)" />
+        <text x="-40" y={wide.H / 2} transform={`rotate(-90 -40 ${wide.H / 2})`} text-anchor="middle" class="axis">{costLabel}</text>
+      </svg>
+      {wide.bands.map(({ layer, y0, d, count, name, size }, i) => {
+        const n = narrow.bands[i]!;
+        return (
+          <a href={`#layer-${layer.id}`} data-band={layer.id} aria-label={`${name}: ${layer.examples[lang]} (${countLabel(count)})`} style={`--c: var(--l-${layer.id})`}>
+            <svg class="w" viewBox={`-60 0 ${W + 60} ${wide.H}`}>
+              <path d={d} class="band" />
+              <text x={MID} y={y0 + wide.g.nameY} text-anchor="middle" class="name" font-size={size}>{name}</text>
+              <text x={MID} y={y0 + wide.g.countY} text-anchor="middle" class="count" font-size={wide.g.count}>{countLabel(count)}</text>
+            </svg>
+            <svg class="n" viewBox={`0 0 ${W} ${narrow.H}`}>
+              <path d={n.d} class="band" />
+              <text x={MID} y={n.y0 + narrow.g.nameY} text-anchor="middle" class="name" font-size={n.size}>{name}</text>
+              <text x={MID} y={n.y0 + narrow.g.countY} text-anchor="middle" class="count" font-size={narrow.g.count}>{countLabel(count)}</text>
+            </svg>
+          </a>
+        );
+      })}
     </svg>
     <p class="credit"><a href={href(lang, 'references/#lauren-tan-talk')}>{en ? 'After a talk by Lauren Tan (@poteto)' : 'Nach einem Vortrag von Lauren Tan (@poteto)'}</a>.</p>
   </div>
 
   <div class="panels">
-    <div class="prompt" data-funnel-prompt hidden {...devMark('tighter chooser prompt')}>
-      <p class="eyebrow">{en ? 'Five layers' : 'Fünf Schichten'}</p>
-      <h2>{HOME.chooseLayer[lang]}</h2>
-      <p>{HOME.chooseLayerHint[lang]}</p>
+    <div class="prompt" data-funnel-prompt hidden>
+      <h3>{HOME.chooseLayer[lang]}</h3>
+      <p class="hint">{HOME.chooseLayerHint[lang]}</p>
       <ol class="layers">
         {bands.map(({ layer, i, count }) => (
           <li style={`--c: var(--l-${layer.id})`}>
             <a href={`#layer-${layer.id}`} data-band-link={layer.id}>
-              <span class="n">{i + 1}</span>
+              <span class="n" aria-hidden="true">{i + 1}</span>
               <span class="what"><strong>{layer.name[lang]}</strong><span class="ex">{layer.examples[lang]}</span></span>
               <span class="cnt">{countLabel(count)}</span>
             </a>
@@ -78,8 +107,8 @@ const split = (list: Practice[]) => {
       const { core, rest, fold } = split(list);
       return (
         <section class="panel" id={`layer-${layer.id}`} data-panel={layer.id} style={`--c: var(--l-${layer.id})`}>
-          <p class="eyebrow"><span class="n">{i + 1}/5</span> {layer.examples[lang]}</p>
-          <h2>{layer.name[lang]}</h2>
+          <h3 class="layer-title"><span class="n" aria-hidden="true">{i + 1}</span>{layer.name[lang]}</h3>
+          <p class="examples">{layer.examples[lang]}</p>
           <p>{layer.idea[lang]}</p>
           {fold ? (
             <>
@@ -111,27 +140,42 @@ const split = (list: Practice[]) => {
   a[aria-current='true'] .band { fill: color-mix(in srgb, var(--c) 42%, var(--card)); stroke-width: 2.5; }
   a:focus-visible { outline: none; }
   a:focus-visible .band { stroke: var(--focus); stroke-width: 3; }
-  /* SVG units: the figure renders at roughly 0.7x on desktop and 0.42x at 390px */
-  .name { font-family: var(--font-display); font-weight: 650; font-size: 30px; fill: var(--ink); }
-  .name.small { font-size: 26px; }
-  .count { font: 600 23px var(--font-body); fill: var(--ink-2); }
+  /* SVG text sizes are font-size attributes in viewBox units, fitted per band in the frontmatter */
+  .name { font-family: var(--font-display); font-weight: 650; fill: var(--ink); }
+  .count { font-family: var(--font-body); font-weight: 600; fill: var(--ink-2); }
   .axis { font-size: 20px; fill: var(--ink-2); letter-spacing: .04em; }
-  @media (max-width: 560px) { .name { font-size: 40px; } .name.small { font-size: 32px; } .count { font-size: 30px; } .axis { font-size: 28px; } }
+  /* one drawing at a time, chosen by the figure's own width (also narrow beside the panels at ~900px) */
+  .figure { container-type: inline-size; }
+  .fig { aspect-ratio: var(--ar-wide); height: auto; }
+  .fig svg { width: 100%; height: 100%; overflow: visible; }
+  .fig .n, .axis-cap { display: none; }
+  @container (max-width: 30rem) {
+    .fig { aspect-ratio: var(--ar-narrow); }
+    .fig .w { display: none; }
+    .fig .n { display: inline; }
+    .axis-cap { display: block; margin: 0 0 6px; font-size: var(--fs-sm); color: var(--ink-2); }
+  }
   .credit { font-size: var(--fs-sm); color: var(--ink-3); margin-top: 8px; }
 
-  .prompt { padding: 22px 0 10px; border-top: 3px solid var(--rule-strong); }
-  .layers { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 6px; }
-  .layers li { margin: 0; }
-  .layers a { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-left: 4px solid var(--c); border-radius: var(--radius); background: var(--card); color: var(--ink); text-decoration: none; }
-  .layers a:hover { border-color: var(--rule-strong); border-left-color: var(--c); }
-  .layers .n { font: 600 var(--fs-code) var(--font-mono); color: var(--ink-3); }
+  /* the layer number in the layer colour: one marker for the chooser rows and the panel heading */
+  .n { flex: none; display: inline-grid; place-items: center; inline-size: 1.75rem; block-size: 1.75rem; border-radius: 50%; font: 700 var(--fs-sm)/1 var(--font-body); color: var(--ink); background: color-mix(in srgb, var(--c) 22%, var(--card)); border: 1.5px solid var(--c); }
+
+  .prompt { padding-top: 4px; }
+  .prompt h3 { font-size: var(--fs-lg); margin-bottom: 4px; }
+  .hint { color: var(--ink-2); font-size: var(--fs-ui); margin-bottom: 0; }
+  .layers { list-style: none; padding: 0; margin: 12px 0 0; border-top: 1px solid var(--rule); }
+  .layers li { margin: 0; border-bottom: 1px solid var(--rule); }
+  .layers a { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 12px 8px; border-radius: var(--radius); color: var(--ink); text-decoration: none; }
+  .layers a:hover { background: var(--paper-2); }
+  .layers a:hover strong { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
   .layers .what { display: flex; flex-direction: column; min-width: 0; }
   .layers .ex { color: var(--ink-2); font-size: var(--fs-sm); }
   .layers .cnt { font-size: var(--fs-sm); color: var(--ink-2); white-space: nowrap; }
 
   .panel { padding: 22px 0 26px; border-top: 3px solid var(--c); scroll-margin-top: 4.5rem; }
   .panel + .panel { margin-top: 8px; }
-  .panel .n { font-family: var(--font-mono); color: var(--c); }
+  .layer-title { display: flex; align-items: center; gap: 12px; font-size: var(--fs-h2); margin-bottom: 4px; }
+  .examples { color: var(--ink-3); font-size: var(--fs-sm); margin-bottom: 0.75rem; }
   .list { margin-top: 10px; }
   .sub { font: 700 var(--fs-xs)/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin: 18px 0 0; }
   .fold { margin-top: 14px; }

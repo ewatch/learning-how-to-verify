@@ -9,7 +9,6 @@ import { langPaths } from '../../lib/paths';
 import { START_TOUR } from '../../data/start';
 import { HOME } from '../../data/home';
 import { PETSTORE_COPY } from '../../data/petstore';
-import { devMark } from '../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -21,63 +20,76 @@ const sims = new Set(PRACTICES.map((p) => p.sim).filter(Boolean)).size;
   title={en ? 'Learning how to verify' : 'Verifizieren lernen'}
   description={HOME.lead[lang]}>
   <div class="wrap">
-    <section class="hero" {...devMark('tighter hero copy')}>
-      <p class="eyebrow">{en ? `${n} practices · ${sims} simulators in your browser · English & Deutsch` : `${n} Praktiken · ${sims} Simulatoren im Browser · Deutsch & English`}</p>
+    <section class="hero">
       <h1>{HOME.headline[lang]}</h1>
       <p class="lede">{HOME.lead[lang]}</p>
       <div class="cta">
         <a class="btn primary" href={href(lang, 'start/')}>{HOME.start[lang](steps)} <span aria-hidden="true">→</span></a>
         <a class="secondary" href="#funnel">{HOME.overview[lang]} <span aria-hidden="true">↓</span></a>
       </div>
+      <p class="facts">{HOME.facts[lang](n, sims)}</p>
     </section>
 
-    <section id="funnel" class="map" aria-labelledby="funnel-title" {...devMark('shorter funnel intro')}>
+    <section id="funnel" class="map" aria-labelledby="funnel-title">
       <h2 id="funnel-title">{HOME.funnelTitle[lang]}</h2>
       <p class="intro">{HOME.funnelIntro[lang]}</p>
       <Funnel lang={lang} />
     </section>
 
-    <section class="ways" {...devMark('tighter card copy')}>
-      <h2>{HOME.waysTitle[lang]}</h2>
-      <div class="grid cols-2">
-        <a class="way card" href={href(lang, 'diagnose/')}><strong>{HOME.diagnoseTitle[lang]} →</strong><span>{HOME.diagnose[lang]}</span></a>
-        <a class="way card" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map →' : 'Lebenszyklus →'}</strong><span>{HOME.lifecycle[lang]}</span></a>
-        <a class="way card" href={href(lang, 'stack/')}><strong>{'Tech Stack →'}</strong><span>{HOME.stack[lang]}</span></a>
-        <a class="way card" href={href(lang, 'petstore/')}><strong>{PETSTORE_COPY.open[lang]} →</strong><span>{PETSTORE_COPY.homeWay[lang]}</span></a>
-      </div>
+    <section class="ways" aria-labelledby="ways-title">
+      <h2 id="ways-title">{HOME.waysTitle[lang]}</h2>
+      <ul class="way-list">
+        <li><a class="way" href={href(lang, 'diagnose/')}><strong>{HOME.diagnoseTitle[lang]} <span aria-hidden="true">→</span></strong><span>{HOME.diagnose[lang]}</span></a></li>
+        <li><a class="way" href={href(lang, 'stack/')}><strong>Tech Stack <span aria-hidden="true">→</span></strong><span>{HOME.stack[lang]}</span></a></li>
+        <li><a class="way" href={href(lang, 'lifecycle/')}><strong>{en ? 'Lifecycle map' : 'Lebenszyklus'} <span aria-hidden="true">→</span></strong><span>{HOME.lifecycle[lang]}</span></a></li>
+        <li><a class="way" href={href(lang, 'petstore/')}><strong>{PETSTORE_COPY.open[lang]} <span aria-hidden="true">→</span></strong><span>{PETSTORE_COPY.homeWay[lang]}</span></a></li>
+      </ul>
     </section>
 
-    <aside class="honest card" aria-label={HOME.evidenceTitle[lang]} {...devMark('halved evidence note')}>
-      <h2>{HOME.evidenceTitle[lang]}</h2>
-      <p>{HOME.evidence[lang]}</p>
-      <p><a href={href(lang, 'why-layers/')}>{HOME.whyLayers[lang]} <span aria-hidden="true">→</span></a></p>
-    </aside>
-
-    <aside class="agents" aria-label={HOME.forAgents[lang]} {...devMark('1-line agents note')}>
-      <p class="eyebrow">{HOME.forAgents[lang]}</p>
-      <p>{HOME.giveAgent[lang]} <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>{HOME.appendMarkdown[lang]} <code>index.md</code> {HOME.markdownEnd[lang]}</p>
-    </aside>
+    <div class="notes">
+      <section class="note" aria-labelledby="evidence-title">
+        <h2 id="evidence-title">{HOME.evidenceTitle[lang]}</h2>
+        <p>{HOME.evidence[lang]}</p>
+        <p><a href={href(lang, 'why-layers/')}>{HOME.whyLayers[lang]} <span aria-hidden="true">→</span></a></p>
+      </section>
+      <section class="note" aria-labelledby="agents-title">
+        <h2 id="agents-title">{HOME.forAgents[lang]}</h2>
+        <p>{HOME.giveAgent[lang]} <a href={`${BASE}/llms.txt`}><code>/llms.txt</code></a>{HOME.appendMarkdown[lang]} <code>index.md</code> {HOME.markdownEnd[lang]}</p>
+      </section>
+    </div>
   </div>
 </Base>
 
 <style>
-  .hero { padding: 18px 0 40px; max-width: 46rem; }
-  .hero h1 { margin-bottom: 18px; }
-  .hero .lede { max-width: 42rem; }
-  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 26px; }
+  /* rhythm: 4.5rem between sections, 0.75–1.5rem inside them */
+  .hero { padding: 1.5rem 0 2.75rem; max-width: 46rem; }
+  .hero h1 { margin-bottom: 1.25rem; }
+  .hero .lede { max-width: 40rem; margin-bottom: 0; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 2rem; }
   .btn.primary { font-size: var(--fs-body); font-weight: 700; padding: 12px 20px; }
   .secondary { color: var(--ink-2); }
   .secondary:hover { color: var(--ink); }
-  .map { padding-top: 30px; border-top: 1px solid var(--rule); scroll-margin-top: 4.5rem; }
-  .map > h2 { margin-bottom: 8px; }
-  .intro { color: var(--ink-2); max-width: 42rem; margin-bottom: 22px; }
-  .ways { margin-top: 56px; }
-  /* four doors: two by two, never three plus one */
-  .ways .grid { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 640px) { .ways .grid { grid-template-columns: 1fr; } }
-  .way { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink); }
-  .way span { color: var(--ink-2); font-size: var(--fs-ui); }
-  .way:hover { border-color: var(--rule-strong); }
-  .honest { margin-top: 40px; max-width: 50rem; border-left: 4px solid var(--warn); }
-  .agents { margin-top: 28px; max-width: 50rem; color: var(--ink-2); }
+  .facts { margin: 1.25rem 0 0; font-size: var(--fs-sm); color: var(--ink-3); }
+
+  .map { padding-top: 2.5rem; border-top: 1px solid var(--rule); scroll-margin-top: 4.5rem; }
+  .map > h2 { margin-bottom: 0.5rem; }
+  .intro { color: var(--ink-2); max-width: 42rem; margin-bottom: 1.75rem; }
+
+  .ways { margin-top: 4.5rem; }
+  .ways > h2 { margin-bottom: 0.75rem; }
+  /* plain rows, not boxes: proximity and one rule per row do the grouping */
+  .way-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); column-gap: 3rem; }
+  .way-list li { margin: 0; border-top: 1px solid var(--rule); }
+  .way { display: flex; flex-direction: column; gap: 4px; padding: 1rem 0 1.25rem; text-decoration: none; color: var(--ink); }
+  .way strong { font-size: var(--fs-body); }
+  .way strong span { display: inline-block; transition: transform .15s ease-out; }
+  .way > span { color: var(--ink-2); font-size: var(--fs-ui); max-width: 34rem; }
+  .way:hover strong { color: var(--link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+  .way:hover strong span { transform: translateX(3px); }
+
+  /* footnotes to the funnel: smaller headings, one rule above */
+  .notes { margin-top: 4.5rem; padding-top: 2rem; border-top: 1px solid var(--rule); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1.5rem 3rem; }
+  .note > h2 { font-size: var(--fs-lg); margin-bottom: 0.5rem; }
+  .note p { color: var(--ink-2); font-size: var(--fs-ui); max-width: 38rem; }
+  .note p:last-child { margin-bottom: 0; }
 </style>

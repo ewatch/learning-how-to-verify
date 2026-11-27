@@ -5,7 +5,6 @@ import type { Locale } from '../../../data/types';
 import { GUIDES } from '../../../data/guides';
 import { href } from '../../../i18n/ui';
 import { langPaths } from '../../../lib/paths';
-import { devMark } from '../../../lib/dev-mark';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
 const en = lang === 'en';
@@ -13,7 +12,7 @@ const planned = ['Lean 4', 'Z3', 'fast-check / Hypothesis', 'Stryker / mutmut', 
 ---
 <Base lang={lang} path="guides/" md={`/${lang}/guides/index.md`} nav="guides" title={en ? 'Getting-started guides' : 'Einstiegsanleitungen'} description={en ? 'Step-by-step guides for verification tools, with real recorded output.' : 'Schritt-für-Schritt-Anleitungen für Verifikationswerkzeuge, mit echter aufgezeichneter Ausgabe.'}>
   <div class="wrap narrow">
-    <header {...devMark('tighter lede')}>
+    <header>
       <h1>{en ? 'Getting started' : 'Einstieg'}</h1>
       <p class="lede">{GUIDES_INDEX_COPY.intro[lang]}</p>
     </header>

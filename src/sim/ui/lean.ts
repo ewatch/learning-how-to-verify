@@ -1,5 +1,5 @@
 import { EXERCISE_DE } from '../../data/exercise-copy';
-import { h, highlight, rich, sleep, reducedMotion, devMark, type Lang } from './kit';
+import { h, highlight, rich, sleep, reducedMotion, type Lang } from './kit';
 import { LEAN_EXAMPLES, type LeanExample } from '../engine/lean';
 
 const KWS = new Set(['def', 'theorem', 'example', 'by', 'with', 'if', 'then', 'else', 'fun', 'match', 'induction', 'simp', 'omega', 'unfold', 'split', 'rw', 'exact', 'intro', 'decide', 'Nat', 'List']);
@@ -39,7 +39,7 @@ export function mount(root: HTMLElement, lang: Lang) {
   } }, e.name[lang])));
 
   root.append(h('div', { class: 'sim' },
-    h('p', { class: 'sim-intro', ...devMark('shorter sim intro') }, t.intro),
+    h('p', { class: 'sim-intro' }, t.intro),
     chips, desc,
     h('div', { class: 'sim-row' }, prev, next,
       h('button', { class: 'btn', type: 'button', onclick: () => play() }, t.play),

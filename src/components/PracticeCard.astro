@@ -7,18 +7,19 @@ interface Props { p: Practice; lang: Locale; compact?: boolean }
 const { p, lang, compact } = Astro.props;
 ---
 <a class:list={['pcard', { compact }]} href={href(lang, `practices/${p.id}/`)} style={`--c: var(--l-${p.layer})`}>
-  <span class="pname"><span class="nm">{p.name[lang]}</span>{p.sim && <span class="tag try-tag" title={t(lang, 'simLegend')}>{t(lang, 'tryIt')}</span>}</span>
+  <span class="pname"><span class="dot" aria-hidden="true"></span><span class="nm">{p.name[lang]}</span>{p.sim && <span class="tag try-tag" title={t(lang, 'simLegend')}>{t(lang, 'tryIt')}</span>}</span>
   {!compact && <span class="pline" set:html={inline(p.oneLiner[lang])} />}
   <PhaseDots phases={p.phases} lang={lang} />
 </a>
 <style>
-  .pcard { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px 12px 16px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; color: var(--ink); position: relative; transition: border-color .15s, transform .15s; }
-  .pcard::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--c); }
+  .pcard { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; color: var(--ink); position: relative; transition: border-color .15s, transform .15s; }
   .pcard:hover { border-color: var(--rule-strong); transform: translateY(-1px); }
   .pname { font-weight: 700; display: flex; flex-wrap: wrap; align-items: start; gap: 2px 8px; }
   /* long (German) names break inside the card; the tag moves to the next line instead of overflowing */
+  /* layer colour as a leading dot, not a side stripe */
+  .dot { flex: none; inline-size: 0.5rem; block-size: 0.5rem; margin-top: 0.55em; border-radius: 50%; background: var(--c); }
   .nm { flex: 1 1 8rem; min-width: 0; overflow-wrap: break-word; hyphens: auto; }
   .try-tag { flex: none; margin-top: 2px; }
   .pline { color: var(--ink-2); font-size: var(--fs-ui); line-height: 1.45; }
-  .compact { padding: 8px 12px 8px 14px; }
+  .compact { padding: 8px 12px; }
 </style>

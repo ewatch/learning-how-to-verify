@@ -51,6 +51,10 @@ export const codebase: Practice[] = [
       {
         lang: 'js',
         file: 'reservation.ts',
+        enforcedBy: l(
+          'TypeScript compiler (`tsc --noEmit`) enforces the union type; an architecture test tool (such as dependency-cruiser, Import Linter, Deptrac or ArchUnit) enforces module import rules in CI.',
+          'Der TypeScript-Compiler (`tsc --noEmit`) erzwingt den Union-Typ; ein Architecture-Test-Tool (wie dependency-cruiser, Import Linter, Deptrac oder ArchUnit) erzwingt Importgrenzen in CI.',
+        ),
         code: `// Invalid states are unrepresentable: a pet is either free or reserved by exactly one person.
 type PetStatus =
   | { kind: 'available' }
@@ -197,6 +201,10 @@ test.each([null, '', 'anna'])('preserves label for %s', (owner) => {
     evidence: { general: none(), ai: none() },
     tools: { python: ['pytm'], any: ['threat-dragon', 'threagile'] },
     snippets: [{ lang: "any", file: "reservation-threats.md",
+      enforcedBy: l(
+        'No tool enforces this Markdown table; people review it and enforce each control with automated tests or CI checks.',
+        'Kein Tool erzwingt diese Markdown-Tabelle; Menschen prüfen sie und setzen jede Schutzmaßnahme mit automatisierten Tests oder CI-Checks durch.',
+      ),
       description: l("Use this worksheet before implementation. Ask the coding agent to follow each data path. Ask it for a test for each control. Check authorization and atomicity with tests.",
         "Verwende das Arbeitsblatt vor der Implementierung. Lass den Coding-Agenten jeden Datenpfad verfolgen. Verlange einen Test pro Schutzmaßnahme. Prüfe Autorisierung und Atomarität mit Tests."),
       code: `# Asset: one trustworthy reservation per pet

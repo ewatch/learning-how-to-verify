@@ -47,7 +47,9 @@ ${TYPE_REVISIONS[0].code}`,
         { line: 9, note: l("With `noUncheckedIndexedAccess`, a lookup by ID can return `undefined` if the pet is absent.", "Mit `noUncheckedIndexedAccess` kann der Zugriff per id `undefined` liefern: der klassische Absturz bei einem unbekannten Tier.") },
         { line: 10, note: l("This access causes a compile error until a guard returns `missing` when the pet is absent.", "Dieser Zugriff scheitert beim Kompilieren, bis du den Guard ergänzt, der `missing` zurückgibt.") },
       ] },
-      { lang: 'js', file: 'tsconfig.json', code: `{
+      { lang: 'js', file: 'tsconfig.json',
+        enforcedBy: l('TypeScript compiler (`tsc --noEmit`) reads `tsconfig.json` and enforces these flags in your editor and in CI.', 'Der TypeScript-Compiler (`tsc --noEmit`) liest `tsconfig.json` und erzwingt diese Flags im Editor und in CI.'),
+        code: `{
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -60,7 +62,9 @@ ${TYPE_REVISIONS[0].code}`,
         { line: 4, note: l("An indexed lookup can have the type `T | undefined`. Code that uses the result must handle an index or key that is absent.", "Zugriffe auf Arrays und Maps werden zu `T | undefined`; das fängt Off-by-one- und Unknown-Key-Fehler.") },
         { line: 5, note: l("This setting makes a distinction between an omitted property and a property with an explicit `undefined` value.", "Unterscheidet „fehlt“ von „explizit undefined“, eine Falle bei teilweise gefüllten Reservierungen.") },
       ] },
-      { lang: 'python', file: 'pyproject.toml', code: `[tool.mypy]
+      { lang: 'python', file: 'pyproject.toml',
+        enforcedBy: l('mypy (`mypy src`) reads `[tool.mypy]` and enforces strict typing locally and in CI.', 'mypy (`mypy src`) liest `[tool.mypy]` und erzwingt strikte Typen lokal und in CI.'),
+        code: `[tool.mypy]
 strict = true
 warn_unreachable = true
 disallow_any_explicit = true`,
@@ -69,7 +73,9 @@ disallow_any_explicit = true`,
         { line: 3, note: l("The type checker reports code that cannot run. This can show an incorrect assumption about the program state.", "Meldet Code, der nie läuft, oft ein Zeichen für einen falsch angenommenen Zustand.") },
         { line: 4, note: l("This rule prohibits explicit `Any`.", "Verbietet explizites `Any`, den Notausgang, mit dem ein Agent den Checker zum Schweigen bringt.") },
       ] },
-      { lang: 'php', file: 'Reservation.php', code: `<?php declare(strict_types=1);
+      { lang: 'php', file: 'Reservation.php',
+        enforcedBy: l('PHP enforces `declare(strict_types=1)` at runtime; PHPStan (`vendor/bin/phpstan analyse --level=max src`) enforces the types statically in CI.', 'PHP erzwingt `declare(strict_types=1)` zur Laufzeit; PHPStan (`vendor/bin/phpstan analyse --level=max src`) erzwingt die Typen statisch in CI.'),
+        code: `<?php declare(strict_types=1);
 // composer require --dev phpstan/phpstan
 // vendor/bin/phpstan analyse --level=max src
 final readonly class Reservation
@@ -148,7 +154,9 @@ function owner(Reservation $reservation): string
     },
     tools: { php: ['phpcs', 'php-cs-fixer'], js: ['eslint', 'typescript-eslint', 'biome'], python: ['ruff'], java: ['checkstyle', 'detekt'], dotnet: ['roslyn-analyzers'], go: ['golangci-lint'], rust: ['clippy'], cpp: ['clang-tidy'], any: ['pre-commit'] },
     snippets: [
-      { lang: 'js', file: 'eslint.config.js', code: `import tseslint from 'typescript-eslint';
+      { lang: 'js', file: 'eslint.config.js',
+        enforcedBy: l('ESLint (with `typescript-eslint`) evaluates this config in your editor, in a `pre-commit` hook and in CI.', 'ESLint (mit `typescript-eslint`) prüft diese Konfiguration im Editor, im `pre-commit`-Hook und in CI.'),
+        code: `import tseslint from 'typescript-eslint';
 
 export default tseslint.config(...tseslint.configs.strictTypeChecked, {
   languageOptions: { parserOptions: { projectService: true } },
@@ -167,7 +175,9 @@ export default tseslint.config(...tseslint.configs.strictTypeChecked, {
         { line: 7, note: l("The rule prohibits `any`. It prevents a coding agent from using `any` to suppress type errors.", "Verbietet `any`, damit ein Agent die Typprüfung nicht durch einen aufgeweichten Typ umgeht.") },
         { line: [8, 11], note: l("Random values in domain code can make test results inconsistent. Supply the random value as an input.", "Eine Projektregel als Code: Zufall in der Fachlogik macht Tests flaky, also injizieren.") },
       ] },
-      { lang: 'python', file: 'pyproject.toml', code: `[tool.ruff.lint]
+      { lang: 'python', file: 'pyproject.toml',
+        enforcedBy: l('Ruff (`ruff check .`) reads `[tool.ruff.lint]` and enforces these rules in `pre-commit` and CI.', 'Ruff (`ruff check .`) liest `[tool.ruff.lint]` und erzwingt diese Regeln in `pre-commit` und CI.'),
+        code: `[tool.ruff.lint]
 select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "random".msg = "Inject a random source; domain code must be deterministic."`,
@@ -234,7 +244,9 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     },
     tools: { php: ['phpstan', 'psalm'], java: ['error-prone', 'spotbugs', 'infer'], go: ['staticcheck'], cpp: ['clang-analyzer', 'cppcheck', 'infer'], any: ['semgrep'] },
     snippets: [
-      { lang: 'any', file: '.semgrep/no-client-price.yml', code: `rules:
+      { lang: 'any', file: '.semgrep/no-client-price.yml',
+        enforcedBy: l('Semgrep (`semgrep --config .semgrep --error`) evaluates this rule and fails CI on any finding (add `--severity ERROR` to fail only on `ERROR` rules).', 'Semgrep (`semgrep --config .semgrep --error`) wertet diese Regel aus und lässt CI bei jedem Fund fehlschlagen (mit `--severity ERROR` nur bei `ERROR`-Regeln).'),
+        code: `rules:
   - id: trust-client-price
     message: The server must recompute the price; never trust req.body.price.
     severity: ERROR
@@ -243,7 +255,7 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
       focus: [
         { line: 2, note: l("The rule has a stable id, so a suppression is explicit and reviewable.", "Die Regel hat eine stabile id, damit ist eine Unterdrückung explizit und reviewbar.") },
         { line: 3, note: l("The message states the invariant and the fix; this is what the developer or agent reads on failure.", "Die Meldung nennt Invariante und Lösung; das liest die Entwicklerin oder der Agent beim Fehlschlag.") },
-        { line: 4, note: l("`ERROR` makes it block the build instead of becoming a warning nobody reads.", "`ERROR` lässt den Build scheitern, statt zur Warnung zu werden, die niemand liest.") },
+        { line: 4, note: l("Marks the finding as `ERROR` so CI can gate on high-severity findings (with `--severity ERROR --error`) instead of warnings nobody reads.", "Markiert den Fund als `ERROR`, sodass CI auf hohe Schweregrade prüfen kann (mit `--severity ERROR --error`) statt Warnungen zu sammeln, die niemand liest.") },
         { line: 6, note: l("The pattern matches the dangerous shape (client price assigned to the order) whatever the variable names.", "Das Pattern trifft die gefährliche Form (Client-Preis an die Bestellung zugewiesen), egal wie die Variablen heißen.") },
       ] },
     ],
@@ -307,7 +319,9 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     ],
     tools: { php: ['composer', 'psalm'], python: ['bandit'], go: ['gosec', 'govulncheck'], rust: ['cargo-audit'], any: ['gitleaks', 'osv-scanner', 'trivy', 'semgrep', 'syft', 'zap'] },
     snippets: [
-      { lang: 'any', file: '.pre-commit-config.yaml', code: `repos:
+      { lang: 'any', file: '.pre-commit-config.yaml',
+        enforcedBy: l('The `pre-commit` framework installs a local Git hook and runs Gitleaks before `git commit`. Because `--no-verify` can skip local hooks, also run Gitleaks in CI to enforce it.', 'Das `pre-commit`-Framework richtet einen lokalen Git-Hook ein und führt Gitleaks vor `git commit` aus. Da `--no-verify` lokale Hooks umgehen kann, Gitleaks zur Durchsetzung zusätzlich in CI ausführen.'),
+        code: `repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
@@ -380,7 +394,9 @@ select = ["E", "F", "B", "UP", "SIM", "S"]  # pyflakes, bugbear, security …
     ],
     tools: { any: ['act', 'woodpecker', 'jenkins', 'pre-commit'] },
     snippets: [
-      { lang: 'any', file: '.github/workflows/ci.yml', code: `name: ci
+      { lang: 'any', file: '.github/workflows/ci.yml',
+        enforcedBy: l('GitHub Actions runs this workflow on every pull request and push (or run it locally with `act`). Branch Protection / Rulesets on your Git host enforce the `verify` job as a required status check before merge.', 'GitHub Actions führt diesen Workflow bei jedem Pull Request und Push aus (lokal auch mit `act`). Branch Protection oder Rulesets beim Git-Host erzwingen den Job `verify` als erforderlichen Status Check vor dem Merge.'),
+        code: `name: ci
 on: [pull_request, push]
 jobs:
   verify:
@@ -402,7 +418,7 @@ jobs:
     steps: [
       l('Create one script named `ci` to run lint, type checks, tests and the build in order. Give this command in the pull request instructions.', 'Erstelle das Skript `ci`. Führe darin Lint, Type Checks, Tests und Build nacheinander aus. Dokumentiere das Skript in der Anleitung für Pull Requests.'),
       l('Run the same script in CI on each pull request.', 'Führe dasselbe Skript bei jedem Pull Request in CI aus.'),
-      l('Make the CI job a required status check on the main branch.', 'Mache den CI-Job zu einem erforderlichen Status Check auf dem Main Branch.'),
+      l('Make the CI job a required status check in your Git host\'s branch protection rules on the main branch.', 'Mache den CI-Job in der Branch Protection deines Git-Hosts zu einem erforderlichen Status Check auf dem Main Branch.'),
     ],
     done: l('A failing test blocks the merge. The `ci` script runs the same checks locally and in CI.', 'Ein fehlgeschlagener Test blockiert den Merge. Das Skript `ci` führt lokal und in CI dieselben Checks aus.'),
     think: [
@@ -457,7 +473,9 @@ jobs:
     },
     tools: { php: ['phpunit', 'pest'], js: ['vitest'], python: ['pytest'], java: ['junit'], dotnet: ['xunit'], go: ['go-test'], rust: ['cargo-test'], cpp: ['googletest'], any: ['spec-kit'] },
     snippets: [
-      { lang: 'js', file: 'reserve.test.ts', code: `// Written and approved by a human BEFORE the agent implements reserve().
+      { lang: 'js', file: 'reserve.test.ts',
+        enforcedBy: l('Vitest (or Jest) runs these approved tests; CODEOWNERS enforced by your Git host\'s branch protection keeps the file unchanged while the code is written.', 'Vitest (oder Jest) führt diese freigegebenen Tests aus; CODEOWNERS mit Branch Protection beim Git-Host hält die Datei während der Implementierung unverändert.'),
+        code: `// Written and approved by a human BEFORE the agent implements reserve().
 describe('reserve', () => {
   it('reserves an available pet', () => {
     const pets = store([{ id: 'rex' }]);
@@ -474,7 +492,9 @@ describe('reserve', () => {
         { line: [3, 6], note: l("The happy path pins what a successful reservation returns.", "Der Happy Path legt fest, was eine erfolgreiche Reservierung zurückgibt.") },
         { line: [7, 11], note: l("The invariant itself: a second reservation must fail with `taken`, the case an agent most easily gets wrong.", "Die Invariante selbst: Die zweite Reservierung muss mit `taken` scheitern, der Fall, den ein Agent am leichtesten falsch löst.") },
       ] },
-      { lang: 'php', file: 'ReservationTest.php', code: `<?php declare(strict_types=1);
+      { lang: 'php', file: 'ReservationTest.php',
+        enforcedBy: l('PHPUnit runs this approved test; CODEOWNERS enforced by your Git host\'s branch protection keeps the file unchanged during implementation.', 'PHPUnit führt diesen freigegebenen Test aus; CODEOWNERS mit Branch Protection beim Git-Host hält die Datei während der Implementierung unverändert.'),
+        code: `<?php declare(strict_types=1);
 // Write this test first. Implement PetStore only after seeing it fail.
 use PHPUnit\\Framework\\TestCase;
 
@@ -531,7 +551,7 @@ final class ReservationTest extends TestCase
     cost: 1,
     feedback: 'seconds',
     worth: [
-      l('Basic protection uses CODEOWNERS for test directories, a CI check for skips and a hidden holdout suite.', 'Eine einfache Einrichtung schützt Testordner mit CODEOWNERS. CI prüft Skip-Marker und führt Holdout-Tests aus.'),
+      l('Basic protection combines CODEOWNERS enforced by your Git host\'s branch protection (for example on GitHub or GitLab), a CI diff check for skips and a hidden holdout suite in CI.', 'Eine einfache Einrichtung schützt Testordner über CODEOWNERS mit Branch Protection am Git-Host (etwa GitHub oder GitLab). CI prüft Skip-Marker im Diff und führt Holdout-Tests aus.'),
       l('These checks help keep test results valid when a coding agent changes the code.', 'Diese Checks können verhindern, dass Änderungen am Test ein falsches Ergebnis verdecken.'),
       l('Repository rules and a small CI script are sufficient for basic protection.', 'Für den Einstieg reichen Regeln im Repository und ein kleines CI-Skript.'),
     ],
@@ -549,16 +569,20 @@ final class ReservationTest extends TestCase
     },
     tools: { any: ['pre-commit', 'danger'] },
     snippets: [
-      { lang: 'any', file: '.github/CODEOWNERS', code: `# Changes to tests and CI need a human owner's approval.
+      { lang: 'any', file: '.github/CODEOWNERS',
+        enforcedBy: l('GitHub reads `.github/CODEOWNERS` and enforces it only when branch protection or rulesets require Code Owner review before merge (GitLab uses `.gitlab/CODEOWNERS` or root `CODEOWNERS`, Premium plan). Without branch protection enabled, the file does not block merges.', 'GitHub liest `.github/CODEOWNERS` und erzwingt die Regel nur, wenn Branch Protection oder Rulesets vor dem Merge eine Code-Owner-Freigabe verlangen (GitLab nutzt `.gitlab/CODEOWNERS` oder `CODEOWNERS` im Root, Premium-Plan). Ohne aktivierte Branch Protection blockiert die Datei keinen Merge.'),
+        code: `# Changes to tests and CI need a human owner's approval.
 /test/          @your-team/maintainers
 /.github/       @your-team/maintainers
 *.test.ts       @your-team/maintainers`,
       focus: [
-        { line: 1, note: l("The CODEOWNERS entry gives people responsibility for changes to the tests and CI.", "Die Regel gilt für Tests und CI: Die Dateien, die „fertig“ definieren, brauchen eine menschliche Verantwortung.") },
+        { line: 1, note: l("The CODEOWNERS entry assigns people to test and CI paths; GitHub branch protection is what blocks merges without their approval.", "Der CODEOWNERS-Eintrag weist Tests und CI festen Personen zu; erst Branch Protection bei GitHub blockiert Merges ohne ihre Freigabe.") },
         { line: 3, note: l("The entry also protects the CI configuration. A change to that file could remove a failing check.", "Auch die CI-Konfiguration ist erfasst, sonst könnte ein Agent einfach die fehlschlagende Prüfung entfernen.") },
         { line: 4, note: l("The glob matches test files in different directories.", "Das Glob erfasst Tests, wo auch immer sie liegen, nicht nur in einem Ordner.") },
       ] },
-      { lang: 'js', file: 'dangerfile.ts', code: `import { danger, fail } from 'danger';
+      { lang: 'js', file: 'dangerfile.ts',
+        enforcedBy: l('Danger runs `dangerfile.ts` in CI on each pull request; `fail()` blocks the merge only when the Danger status check is configured as a required check in branch protection.', 'Danger führt `dangerfile.ts` bei jedem Pull Request in CI aus; `fail()` blockiert den Merge nur, wenn der Danger-Status-Check in der Branch Protection als erforderlich konfiguriert ist.'),
+        code: `import { danger, fail } from 'danger';
 const diff = await danger.git.diffForFile('test/reserve.test.ts');
 if (diff && /\\b(it|test|describe)\\.(skip|only)\\b/.test(diff.added)) {
   fail('Tests were skipped or focused in this change.');
@@ -570,7 +594,7 @@ if (diff && /\\b(it|test|describe)\\.(skip|only)\\b/.test(diff.added)) {
       ] },
     ],
     steps: [
-      l('Use CODEOWNERS or branch rules to require approval for changes to test directories and the CI configuration.', 'Verlange mit CODEOWNERS oder Branch-Regeln eine Freigabe für Änderungen an Tests und CI-Konfiguration.'),
+      l('Add CODEOWNERS for test directories and CI configuration, and enable "Require review from Code Owners" in your Git host\'s branch protection or rulesets.', 'Lege CODEOWNERS für Testordner und CI-Konfiguration an und aktiviere in der Branch Protection bzw. den Rulesets deines Git-Hosts die Pflicht zur Code-Owner-Freigabe.'),
       l('Add a CI check for new `skip`, `only` or `xfail` markers. Make CI fail if the test count decreases.', 'Prüfe in CI auf neue Marker wie `skip`, `only` und `xfail`. Lass CI bei weniger Tests fehlschlagen.'),
       l('Keep a small holdout suite outside the coding agent\'s workspace. Run that suite only in CI.', 'Lege die Holdout-Tests außerhalb des Arbeitsbereichs des Coding-Agenten ab. Führe sie nur in CI aus.'),
     ],

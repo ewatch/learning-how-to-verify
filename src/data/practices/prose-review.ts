@@ -20,13 +20,13 @@ export const proseReview: Practice[] = [
     cost: 1,
     feedback: 'days',
     worth: [
-      l('The file can give information that tools cannot check, such as design decisions and the structure of the repository.', 'Ein Eval liefert Messwerte für Änderungen an Regeln oder Modellen.'),
-      l('Short, specific rules are easier to use.', 'Eine kleine Auswahl früherer Aufgaben kann eine Baseline liefern.'),
-      l('A coding agent can read the file at the start of each task. The file can give the conditions that make a task complete.', 'Mit Evals kannst du Modelle und Setups anhand eigener Aufgaben vergleichen.'),
+      l('The file can give information that tools cannot check, such as design decisions and the structure of the repository.', 'Die Datei kann Informationen geben, die kein Tool prüfen kann, etwa Designentscheidungen und die Struktur des Repositorys.'),
+      l('Short, specific rules are easier to use.', 'Kurze, konkrete Regeln lassen sich leichter anwenden.'),
+      l('A coding agent can read the file at the start of each task. The file can give the conditions that make a task complete.', 'Ein Coding-Agent kann die Datei zu Beginn jeder Aufgabe lesen. Sie kann festlegen, wann eine Aufgabe fertig ist.'),
     ],
     limits: [
-      l('Use a lint rule, type, test or hook for each written rule that a tool can check.', 'Bestandene Tests können überschätzen, wie oft ein Maintainer die Änderung akzeptiert.'),
-      l('Long rules files increase token use on each task. A longer file can increase costs without an increase in task success.', 'Kleine Eval-Sätze können schwankende Ergebnisse liefern. Führe denselben Satz mehrmals aus.'),
+      l('Use a lint rule, type, test or hook for each written rule that a tool can check.', 'Nutze für jede schriftliche Regel, die ein Tool prüfen kann, eine Lint-Regel, einen Typ, einen Test oder einen Hook.'),
+      l('Long rules files increase token use on each task. A longer file can increase costs without an increase in task success.', 'Lange Regeldateien erhöhen den Token-Verbrauch pro Aufgabe. Das kann Kosten erhöhen, ohne die Erfolgsquote zu verbessern.'),
     ],
     ai: l(
       'One study found that context files increased inference cost by more than 20%. The files did not increase task success. Keep AGENTS.md short. Use evals to measure the effect of changes.',
@@ -40,7 +40,9 @@ export const proseReview: Practice[] = [
     },
     variants: [{ name: l('Sandboxing (guardrail, not verification)', 'Sandboxing (Leitplanke, keine Verifikation)'), text: l('Run coding agents in containers or virtual machines. Limit network access, file access and access to credentials. These limits can decrease damage from incorrect actions or prompt injection. The agents can run tests within these limits.', 'Führe Coding-Agenten in Containern oder virtuellen Maschinen aus. Begrenze den Netzwerkzugriff, den Dateizugriff und den Zugriff auf Zugangsdaten. Diese Grenzen können die Folgen falscher Aktionen oder einer Prompt Injection verringern.') }],
     tools: { any: ['agents-md', 'spec-kit', 'promptfoo'] },
-    snippets: [{ lang: 'any', file: 'AGENTS.md', code: `# Petstore
+    snippets: [{ lang: 'any', file: 'AGENTS.md',
+      enforcedBy: l('Not enforced by any tool: coding agents read `AGENTS.md` as prompt instructions. Enforcement comes only from the tools it points to (such as `npm run ci`, linters, type checkers and architecture tests).', 'Wird von keinem Tool erzwungen: Coding-Agenten lesen `AGENTS.md` als Prompt-Anweisung. Durchgesetzt werden nur die darin genannten Tools (wie `npm run ci`, Linter, Type Checker und Architecture Tests).'),
+      code: `# Petstore
 
 ## Verify before you finish
 - \`npm run ci\` must pass (lint, types, tests, build). Do not skip or edit tests in test/.
@@ -185,6 +187,7 @@ Repeat with the same budget; keep individual results.`, focus: [{ line: 3, note:
     ],
     tools: { any: ['reviewdog', 'danger', 'gerrit'] },
     snippets: [{ lang: "any", file: "reservation-review.md",
+      enforcedBy: l('Read by a human reviewer (or an AI review bot for a first pass); branch protection on your Git host (or Gerrit) enforces required human approval before merge.', 'Wird von einer Person im Review (oder einem KI-Review-Bot im ersten Durchgang) gelesen; Branch Protection beim Git-Host (oder Gerrit) erzwingt die erforderliche Freigabe vor dem Merge.'),
       description: l("Give the diff and the checklist to the coding agent. Ask the coding agent for a file and line number for each finding. Ask a person to examine the findings.",
         "Gib dem Coding-Agenten die Checkliste und den Diff. Verlange zu jedem Finding die Datei und Zeile. Lass die Findings von einer Person prüfen."),
       code: `# Review the reservation change
@@ -202,7 +205,7 @@ List assumptions you could not verify. Do not invent findings.`, focus: [{ line:
       l('Set CI to put lint findings, diff coverage and surviving mutants in the pull request.', 'Lass CI die Lint-Ergebnisse, die Diff Coverage und verbliebene Mutanten im Pull Request anzeigen.'),
       l('Use a short checklist for requirements, tests for new behavior, error handling and changes that affect security.', 'Verwende eine kurze Checkliste für Anforderungen, neue Tests, Fehlerbehandlung und sicherheitsrelevante Änderungen.'),
     ],
-    done: l('The main branch requires one approval from a person. Pull requests show the results of automatic checks. The pull request template contains the review checklist.', 'Der Main Branch verlangt die Freigabe einer Person. Pull Requests zeigen die Ergebnisse der automatischen Checks. Die Vorlage für Pull Requests enthält die Checkliste.'),
+    done: l('Branch protection on your Git host requires one approval from a person on the main branch. Pull requests show the results of automatic checks. The pull request template contains the review checklist.', 'Branch Protection auf dem Git-Host verlangt die Freigabe einer Person auf dem Main Branch. Pull Requests zeigen die Ergebnisse der automatischen Checks. Die Vorlage für Pull Requests enthält die Checkliste.'),
     think: [
       q('A coding agent opens a pull request with 2,000 changed lines. All checks pass. What do you request before the review?', 'Ein Agent öffnet einen PR mit 2.000 Zeilen, alle Checks sind grün. Worum bittet man vor dem Review?',
         'Divide the change into small parts that a person can review separately. Give the purpose of each part. A large diff makes it difficult to examine the full change.',

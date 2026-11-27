@@ -85,7 +85,7 @@ export const PARTS: DomainPart[] = [
     text: l('A person can see and change only their own reservations.', 'Eine Person kann nur ihre eigenen Reservierungen sehen und ändern.') },
   // system
   { id: 'agent', kind: 'system', zone: 'build', name: l('Agent setup', 'Agent-Setup'),
-    text: l('AGENTS.md gives the project rules. Evals measure the setup. Each coding agent has an identity with limited permissions.', 'AGENTS.md enthält die Regeln für Coding-Agenten. Evals prüfen das Setup. Jeder Coding-Agent hat eine Identität mit begrenzten Rechten.') },
+    text: l('Coding agents read AGENTS.md as instructions (not enforced by a tool). Evals measure the setup. Each coding agent has an identity with limited permissions.', 'Coding-Agenten lesen AGENTS.md als Anweisung (kein Tool erzwingt die Datei). Evals prüfen das Setup. Jeder Coding-Agent hat eine Identität mit begrenzten Rechten.') },
   { id: 'tests', kind: 'system', zone: 'build', name: l('Tests and CI', 'Tests und CI'),
     text: l('The test suite and the CI pipeline. CI runs lint, types, tests and the build before each merge.', 'Die Testsuite und die CI-Pipeline. Die CI führt vor jedem Merge Lint, Typen, Tests und Build aus.') },
   { id: 'config', kind: 'system', zone: 'build', name: l('Config and packages', 'Config und Pakete'),
@@ -96,7 +96,7 @@ export const PARTS: DomainPart[] = [
     text: l('The web app and mobile app use this HTTP interface. It supplies pet data and accepts requests to reserve, cancel or pay.', 'Die Web-App und die Mobile-App nutzen diese HTTP-Schnittstelle. Die API liefert Tierdaten und nimmt Requests für Reservierung, Stornierung und Zahlung an.'),
     sig: 'GET /api/pets · GET /api/pets/{id} · POST /reserve · cancel · pay' },
   { id: 'domain', kind: 'system', zone: 'run', name: l('Domain code', 'Domain-Code'),
-    text: l('The module with the business logic: data, operations and rules. It must not import code from the UI or the database.', 'Das Modul mit der Fachlogik: Daten, Operationen und Regeln. Es darf keinen Code aus UI oder Datenbank importieren.'),
+    text: l('The module with the business logic: data, operations and rules. An architecture test in CI forbids imports from the UI or the database.', 'Das Modul mit der Fachlogik: Daten, Operationen und Regeln. Ein Architecture Test in CI verbietet Imports aus UI oder Datenbank.'),
     sig: 'src/domain: reserve.ts, fee.ts, allocate.ts, search.ts' },
   { id: 'db', kind: 'system', zone: 'run', name: l('Database', 'Datenbank'),
     text: l('The database stores pets and reservations. A unique constraint prevents more than one active reservation for the same pet.', 'Die Datenbank speichert Tiere und Reservierungen. Ein Unique Constraint verhindert mehrere aktive Reservierungen für dasselbe Tier.') },

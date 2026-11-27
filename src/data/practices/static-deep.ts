@@ -246,13 +246,17 @@ module.exports.fuzz = (data) => {
     tools: { php: ['infection'], js: ['stryker-js'], python: ['mutmut', 'cosmic-ray'], java: ['pitest'], dotnet: ['stryker-net'], go: ['gremlins'], rust: ['cargo-mutants'], cpp: ['mull'] },
     sim: 'mutation',
     snippets: [
-      { lang: 'js', file: 'stryker.config.json', code: `{
+      { lang: 'js', file: 'stryker.config.json',
+        enforcedBy: l('StrykerJS (`npx stryker run`) mutates the listed files, runs Vitest on each mutant and fails CI if the score drops below `thresholds.break`.', 'StrykerJS (`npx stryker run`) mutiert die angegebenen Dateien, führt Vitest je Mutant aus und lässt CI unterhalb von `thresholds.break` fehlschlagen.'),
+        code: `{
   "testRunner": "vitest",
   "mutate": ["src/domain/**/*.ts"],
   "thresholds": { "high": 90, "low": 75, "break": 70 },
   "incremental": true
 }`, focus: [{ line: 3, note: l('Limit mutation testing to the domain code. Code outside the domain does not contain the business rules under test.', 'Nur den Domain-Code mutieren; alles zu mutieren verschwendet Zeit an Code ohne Geschäftsregeln.') }, { line: 4, note: l('The build fails if the mutation score is below the threshold.', 'Die Schwelle break lässt den Build fehlschlagen, wenn zu viele Mutanten überleben, die Tests also zu schwach sind.') }, { line: 5, note: l('Incremental mode uses earlier results again. This can decrease the time for later runs.', 'Incremental nutzt frühere Ergebnisse wieder, damit Wiederholungen schnell genug für jede Änderung bleiben.') }] },
-      { lang: 'python', file: 'pyproject.toml', code: `[tool.mutmut]
+      { lang: 'python', file: 'pyproject.toml',
+        enforcedBy: l('mutmut (`mutmut run`) reads `[tool.mutmut]` and runs your pytest suite against each generated mutant.', 'mutmut (`mutmut run`) liest `[tool.mutmut]` und führt die pytest-Suite gegen jeden erzeugten Mutant aus.'),
+        code: `[tool.mutmut]
 paths_to_mutate = ["src/domain/"]
 tests_dir = ["tests/"]
 # run:   mutmut run && mutmut results`, focus: [{ line: 2, note: l('Limit mutation testing to code that contains the rules, such as the reservation logic.', 'Mutation auf den Code mit den Regeln beschränken, etwa die Reservierungslogik.') }, { line: 3, note: l('The tool runs the tests with each mutant. A mutant survives if all the tests still pass.', 'Die Mutanten laufen gegen diese Tests; ein Überlebender heißt, kein Test hat die Änderung bemerkt.') }, { line: 4, note: l('Examine the surviving mutants as well as the score. A surviving mutant can show which behavior needs a stronger assertion.', 'Lies die überlebenden Mutanten, nicht nur den Score: Jeder nennt ein Verhalten, das kein Test festlegt.') }] },
@@ -307,6 +311,7 @@ tests_dir = ["tests/"]
     },
     tools: { php: ['php-code-coverage', 'phpunit'], js: ['c8', 'vitest'], python: ['coveragepy'], java: ['jacoco'], dotnet: ['coverlet'], go: ['go-cover'], rust: ['cargo-llvm-cov'], cpp: ['lcov'] },
     snippets: [{ lang: "js", file: "vitest.config.ts",
+      enforcedBy: l('Vitest with `@vitest/coverage-v8` (`npx vitest run --coverage`) measures coverage and fails CI if it drops below `thresholds`.', 'Vitest mit `@vitest/coverage-v8` (`npx vitest run --coverage`) misst die Abdeckung und lässt CI unterhalb von `thresholds` fehlschlagen.'),
       description: l("Install matching versions of Vitest and `@vitest/coverage-v8`. Run `npx vitest run --coverage`. A branch without coverage can make the check fail. Use mutation testing to examine assertion quality.",
         "Installiere passende Versionen von Vitest und `@vitest/coverage-v8`. Führe `npx vitest run --coverage` aus. Ein Branch ohne Coverage kann den Lauf fehlschlagen lassen. Prüfe die Assertions mit Mutation Testing."),
       code: `import { defineConfig } from 'vitest/config';
@@ -673,7 +678,9 @@ export default function () {
       ai: none(),
     },
     tools: { any: ['conftest', 'kubeconform', 'checkov', 'cue'] },
-    snippets: [{ lang: 'any', file: 'policy/deployment.rego', code: `package main
+    snippets: [{ lang: 'any', file: 'policy/deployment.rego',
+      enforcedBy: l('Conftest (Open Policy Agent / Rego) evaluates this file via `conftest test k8s/*.yaml` and fails CI when a `deny` rule matches; Kubernetes admission controllers can enforce similar policies at deploy time.', 'Conftest (Open Policy Agent / Rego) wertet diese Datei über `conftest test k8s/*.yaml` aus und lässt CI bei einem Treffer einer `deny`-Regel fehlschlagen; Kubernetes Admission Controller können ähnliche Policies beim Deploy erzwingen.'),
+      code: `package main
 
 deny contains msg if {
   input.kind == "Deployment"

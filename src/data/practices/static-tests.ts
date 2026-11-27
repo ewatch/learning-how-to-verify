@@ -418,7 +418,9 @@ test('a visitor can reserve a pet, and it disappears from the list', async ({ pa
     ai: l('Give the coding agent the approved acceptance tests as requirements. Protect the tests so the same change cannot change its target.', 'Gib dem Coding-Agenten die freigegebenen Acceptance Tests als Anforderungen. Schütze die Tests vor Änderungen durch denselben Pull Request.'),
     evidence: { general: none(), ai: ev('weak', f('patchdiff2026', 'Indirect evidence: PatchDiff found behavioral differences from reference fixes in 29.6% of test-passing agent patches. This exposes gaps in benchmark tests; it does not measure whether adding acceptance tests improves agent code.', 'Indirekte Evidenz: PatchDiff fand bei 29,6 % der testbestehenden Agenten-Patches Verhaltensunterschiede zur Referenzlösung. Das zeigt Lücken in Benchmark-Tests; die Wirkung zusätzlicher Akzeptanztests auf Agenten-Code wurde nicht gemessen.')) },
     tools: { php: ['behat', 'codeception'], js: ['cucumber', 'playwright'], python: ['behave', 'pytest'], java: ['cucumber'], dotnet: ['reqnroll'], go: ['cucumber'] },
-    snippets: [{ lang: 'any', file: 'reserve.feature', code: `Feature: Reserving a pet for adoption
+    snippets: [{ lang: 'any', file: 'reserve.feature',
+      enforcedBy: l('A BDD runner such as Cucumber, Behat, behave or Reqnroll parses this Gherkin file and runs its step definitions. Without step definitions and a runner, a `.feature` file is plain text.', 'Ein BDD-Runner wie Cucumber, Behat, behave oder Reqnroll liest diese Gherkin-Datei und führt passende Step Definitions aus. Ohne Step Definitions und Runner ist eine `.feature`-Datei nur Text.'),
+      code: `Feature: Reserving a pet for adoption
   Scenario: A pet cannot be reserved twice
     Given Rex is available
     And Anna has reserved Rex
@@ -534,7 +536,9 @@ test('regression: a rejected reservation preserves the first owner', () => {
     ),
     evidence: { general: none(), ai: none() },
     tools: { php: ['codeception'], js: ['playwright', 'vitest'], any: ['k6', 'hyperfine'] },
-    snippets: [{ lang: 'any', file: 'smoke.sh', code: `#!/usr/bin/env sh
+    snippets: [{ lang: 'any', file: 'smoke.sh',
+      enforcedBy: l('Your CI/CD deployment pipeline runs this shell script (using `curl`) immediately after deploy; a non-zero exit code blocks the rollout.', 'Deine CI/CD-Deploy-Pipeline führt dieses Shell-Skript (mit `curl`) direkt nach dem Deploy aus; ein Exit-Code ungleich 0 stoppt den Rollout.'),
+      code: `#!/usr/bin/env sh
 set -e
 curl -fsS "$BASE_URL/health"                 # service is up
 curl -fsS "$BASE_URL/api/pets?limit=1" | grep -q '"id"'   # can read data`,

@@ -63,6 +63,7 @@ export function practiceMarkdown(p: Practice, loc: Locale, opts: { short?: boole
       out.push(`**${T(loc, 'example')}${s.file ? ` (${s.file})` : ''}:**`, '');
       if (s.description) out.push(s.description[loc], '');
       out.push('```' + syntax, s.code, '```', '');
+      if (s.enforcedBy) out.push(`*${T(loc, 'enforcedBy')}:* ${s.enforcedBy[loc]}`, '');
       for (const f of s.focus ?? []) {
         const [a, b] = Array.isArray(f.line) ? f.line : [f.line, f.line];
         const label = a === b ? `${loc === 'de' ? 'Zeile' : 'Line'} ${a}` : `${loc === 'de' ? 'Zeilen' : 'Lines'} ${a}–${b}`;

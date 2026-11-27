@@ -50,7 +50,9 @@ export const verification: Practice[] = [
     sim: 'formal',
     guides: ['tla', 'dafny'],
     snippets: [
-      { lang: 'any', file: 'Reservation.tla (excerpt)', code: `\\* Two buyers, two pets. The client checks, then orders: two separate steps.
+      { lang: 'any', file: 'Reservation.tla (excerpt)',
+        enforcedBy: l('TLC (the TLA+ model checker) explores all reachable states of the model and reports a counterexample if `NoDoubleSale` fails.', 'TLC (der TLA+ Model Checker) prüft alle erreichbaren Zustände des Modells und liefert ein Gegenbeispiel, wenn `NoDoubleSale` verletzt wird.'),
+        code: `\\* Two buyers, two pets. The client checks, then orders: two separate steps.
 ClientCheck(b) == /\\ pc[b] = "shopping"
                   /\\ pc' = [pc EXCEPT ![b] = IF Free(Current(b)) THEN "ordering" ELSE "rollback"]
                   /\\ UNCHANGED <<position, held, owners>>
@@ -58,7 +60,9 @@ ClientCheck(b) == /\\ pc[b] = "shopping"
 \\* Invariant: no pet ever belongs to two buyers.
 NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
 \\* TLC finds a 7-step counterexample when the server does not re-check.`, focus: [{ line: [2,3], note: l('Check and order are two separate steps: the gap between them is where a second buyer slips in.', 'Prüfen und Bestellen sind zwei getrennte Schritte: In der Lücke dazwischen schlüpft ein zweiter Käufer durch.') }, { line: 7, note: l('The invariant states what must never happen; the model checker tries to break it.', 'Die Invariante nennt, was nie passieren darf; der Model Checker versucht, sie zu brechen.') }, { line: 8, note: l('The counterexample is a concrete step sequence you can turn into a test.', 'Das Gegenbeispiel ist eine konkrete Schrittfolge, die du in einen Test verwandeln kannst.') }] },
-      { lang: 'any', file: 'Allocate.dfy (contract)', code: `method Allocate(amount: nat, weights: seq<nat>) returns (shares: seq<nat>)
+      { lang: 'any', file: 'Allocate.dfy (contract)',
+        enforcedBy: l('Dafny (`dafny verify`, backed by the Z3 SMT solver) proves the `ensures` clauses for all valid inputs before compilation.', 'Dafny (`dafny verify`, gestützt auf den Z3-SMT-Solver) beweist die `ensures`-Klauseln für alle gültigen Eingaben vor dem Kompilieren.'),
+        code: `method Allocate(amount: nat, weights: seq<nat>) returns (shares: seq<nat>)
   requires amount <= Sum(weights)
   ensures |shares| == |weights|
   ensures Sum(weights) > 0 ==> Sum(shares) == amount
@@ -118,7 +122,9 @@ NoDoubleSale == \\A p \\in Pets: Cardinality(owners[p]) <= 1
     variants: [{ name: l('Runtime verification', 'Laufzeitverifikation'), text: l('Compare production logs or traces with a specification. For example, AWS checks log records against P specifications.', 'Vergleiche Produktionslogs oder Traces mit einer Spezifikation. AWS prüft zum Beispiel Log-Einträge mit P-Spezifikationen.') }],
     tools: { php: ['webmozart-assert'], js: ['zod'], python: ['icontract', 'deal', 'crosshair'], java: ['openjml'], rust: ['kani', 'prusti'], cpp: ['gsl'], any: ['dafny'] },
     snippets: [
-      { lang: 'js', file: 'allocate.ts', code: `import assert from 'node:assert/strict';
+      { lang: 'js', file: 'allocate.ts',
+        enforcedBy: l('Node.js `node:assert/strict` enforces these preconditions and postconditions at runtime whenever `allocate()` runs.', 'Node.js `node:assert/strict` prüft diese Preconditions und Postconditions zur Laufzeit bei jedem Aufruf von `allocate()`.'),
+        code: `import assert from 'node:assert/strict';
 
 export function allocate(amount: number, weights: number[]): number[] {
   const total = weights.reduce((a, b) => a + b, 0);
@@ -128,14 +134,18 @@ export function allocate(amount: number, weights: number[]): number[] {
   assert(shares.every((s, i) => s <= weights[i]), 'post: no share exceeds its weight');
   return shares;
 }`, focus: [{ line: 5, note: l('The precondition rejects bad calls at the boundary instead of producing silent wrong shares.', 'Die Vorbedingung weist schlechte Aufrufe an der Grenze ab, statt still falsche Anteile zu liefern.') }, { line: 7, note: l('The postcondition checks the result against the spec; a bug in computeShares fails here.', 'Die Nachbedingung prüft das Ergebnis gegen die Spezifikation; ein Bug in computeShares scheitert hier.') }, { line: 8, note: l('A second postcondition: no share exceeds its weight.', 'Eine zweite Nachbedingung: Kein Anteil überschreitet sein Gewicht.') }] },
-      { lang: 'python', file: 'allocate.py', code: `import icontract
+      { lang: 'python', file: 'allocate.py',
+        enforcedBy: l('`icontract` enforces `@require` and `@ensure` decorators at runtime on every call; CrossHair can also check them symbolically.', '`icontract` prüft `@require` und `@ensure` bei jedem Aufruf zur Laufzeit; CrossHair kann sie zusätzlich symbolisch prüfen.'),
+        code: `import icontract
 
 @icontract.require(lambda amount, weights: 0 <= amount <= sum(weights))
 @icontract.ensure(lambda amount, weights, result: sum(result) == (amount if sum(weights) else 0))
 @icontract.ensure(lambda weights, result: all(s <= w for s, w in zip(result, weights)))
 def allocate(amount: int, weights: list[int]) -> list[int]:
     ...`, focus: [{ line: 3, note: l('The require decorator documents and enforces what callers must provide.', 'Der require-Decorator dokumentiert und erzwingt, was Aufrufer liefern müssen.') }, { line: 4, note: l('The ensure checks the sum on every call, including those from tests and fuzzers.', 'Das ensure prüft die Summe bei jedem Aufruf, auch aus Tests und Fuzzern.') }, { line: 5, note: l('The contract lives next to the signature, so a changed function cannot drift from its rule unnoticed.', 'Der Vertrag steht neben der Signatur, sodass eine geänderte Funktion nicht unbemerkt von ihrer Regel abdriftet.') }] },
-      { lang: 'php', file: 'allocate.php', code: `<?php declare(strict_types=1);
+      { lang: 'php', file: 'allocate.php',
+        enforcedBy: l('`webmozart/assert` enforces these preconditions and postconditions at runtime, including in production (unlike PHP\'s built-in `assert()`).', '`webmozart/assert` erzwingt diese Preconditions und Postconditions zur Laufzeit, auch in Produktion (anders als PHPs `assert()`).'),
+        code: `<?php declare(strict_types=1);
 // composer require webmozart/assert
 use Webmozart\\Assert\\Assert;
 
@@ -201,10 +211,14 @@ function allocate(int $amount, array $weights): array
       ai: ev('weak', f('googlefuzz2024', 'Indirect: the vulnerabilities found by LLM-written fuzz targets were detected through sanitizers.', 'Indirekt: Die Schwachstellen, die LLM-geschriebene Fuzz-Targets fanden, wurden über Sanitizer erkannt.')),
     },
     tools: { go: ['go-race'], rust: ['miri', 'loom', 'sanitizers'], cpp: ['sanitizers', 'valgrind'] },
-    snippets: [{ lang: 'cpp', file: 'CMakeLists.txt', code: `# Test build with AddressSanitizer + UndefinedBehaviorSanitizer
+    snippets: [{ lang: 'cpp', file: 'CMakeLists.txt',
+      enforcedBy: l('CMake passes these flags to Clang or GCC, which instruments the test binary so AddressSanitizer (ASan) and UndefinedBehaviorSanitizer (UBSan) abort the test run in CI on memory errors.', 'CMake übergibt diese Flags an Clang oder GCC, die das Test-Binary instrumentieren, sodass AddressSanitizer (ASan) und UndefinedBehaviorSanitizer (UBSan) den Testlauf in CI bei Speicherfehlern abbrechen.'),
+      code: `# Test build with AddressSanitizer + UndefinedBehaviorSanitizer
 add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
 add_link_options(-fsanitize=address,undefined)
-# Separate build for data races:  -fsanitize=thread`, focus: [{ line: 2, note: l('AddressSanitizer and UBSan catch memory errors and undefined behaviour that tests pass silently.', 'AddressSanitizer und UBSan finden Speicherfehler und undefiniertes Verhalten, die Tests still durchlassen.') }, { line: 3, note: l('Link with the same flags, or the sanitizer runtime is missing and the instrumented build fails.', 'Mit denselben Flags linken, sonst fehlt die Sanitizer-Runtime und der instrumentierte Build scheitert.') }, { line: 4, note: l('Race detection needs its own build; it cannot be combined with the address sanitizer.', 'Race-Erkennung braucht einen eigenen Build; sie lässt sich nicht mit dem Address Sanitizer kombinieren.') }] }, { lang: 'go', file: 'Makefile', code: `test-race:
+# Separate build for data races:  -fsanitize=thread`, focus: [{ line: 2, note: l('AddressSanitizer and UBSan catch memory errors and undefined behaviour that tests pass silently.', 'AddressSanitizer und UBSan finden Speicherfehler und undefiniertes Verhalten, die Tests still durchlassen.') }, { line: 3, note: l('Link with the same flags, or the sanitizer runtime is missing and the instrumented build fails.', 'Mit denselben Flags linken, sonst fehlt die Sanitizer-Runtime und der instrumentierte Build scheitert.') }, { line: 4, note: l('Race detection needs its own build; it cannot be combined with the address sanitizer.', 'Race-Erkennung braucht einen eigenen Build; sie lässt sich nicht mit dem Address Sanitizer kombinieren.') }] }, { lang: 'go', file: 'Makefile',
+      enforcedBy: l('`go test -race` runs your Go tests with the Go race detector and fails CI when concurrent goroutines race on shared memory.', '`go test -race` führt Go-Tests mit dem Go Race Detector aus und lässt CI bei Data Races fehlschlagen.'),
+      code: `test-race:
 \tgo test -race ./...`, focus: [{ line: 1, note: l('A dedicated CI target means race checks run on every change, not when someone remembers.', 'Ein eigenes CI-Target heißt: Race-Checks laufen bei jeder Änderung, nicht wenn jemand daran denkt.') }, { line: 2, note: l('The race detector only sees executed paths, so concurrent tests are what make it useful.', 'Der Race Detector sieht nur ausgeführte Pfade, daher machen nebenläufige Tests ihn erst nützlich.') }] }],
     steps: [l('Add a CI job for the full test suite. Use ASan and UBSan for C or C++. Use the race detector for Go or Miri for Rust.', 'Füge einen CI-Job für alle Tests hinzu. Verwende ASan und UBSan für C oder C++. Verwende den Race Detector für Go oder Miri für Rust.'), l('Enable sanitizers when you run the fuzz targets.', 'Aktiviere die Sanitizer für die Fuzz Targets.'), l('Make the test fail if a sanitizer reports an error.', 'Lass den Test fehlschlagen, wenn ein Sanitizer einen Fehler meldet.')],
     done: l('The sanitizer job passes on the current code. The job fails if a test reads beyond the end of a buffer.', 'Der Sanitizer-Job besteht für den aktuellen Code. Er schlägt bei einem Test mit einem Zugriff außerhalb des Buffers fehl.'),
@@ -296,6 +310,7 @@ test('candidate preserves the reservation owner', () => {
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'istio'] },
     snippets: [{ lang: "any", file: "mirror-route.yaml",
+      enforcedBy: l('Envoy proxy enforces this mirror policy, copying 10% of GET requests to the `shadow` cluster while discarding shadow responses.', 'Der Envoy-Proxy setzt diese Mirror-Policy um, kopiert 10 % der GET-Requests an den `shadow`-Cluster und verwirft dessen Antworten.'),
       description: l("Add this fragment to an Envoy configuration with primary and shadow clusters. Mirror only read-only GET requests. Examine the shadow logs. The proxy discards the shadow responses. Prevent writes and notifications from the shadow.",
         "Füge das Fragment in eine Envoy-Konfiguration mit Primary Cluster und Shadow Cluster ein. Spiegele nur lesende GET-Requests. Prüfe die Shadow Logs. Der Proxy verwirft die Antworten des Shadow Deployment. Unterbinde Schreibzugriffe und Benachrichtigungen."),
       code: `match:
@@ -347,7 +362,9 @@ route:
     evidence: { general: ev('moderate', f('gandalf2020', 'Gandalf analyzed Azure deployments in production for more than 18 months. It automatically stopped rollouts that failed its checks.', 'Gandalf, Azures Analysedienst für sichere Deployments, lief über 18 Monate in Produktion und stoppte fehlerhafte Rollouts automatisch.')), ai: none() },
     tools: { any: ['argo-rollouts', 'flagger', 'istio', 'prometheus'] },
     sim: 'canary',
-    snippets: [{ lang: 'any', file: 'rollout.yaml (Argo Rollouts)', code: `strategy:
+    snippets: [{ lang: 'any', file: 'rollout.yaml (Argo Rollouts)',
+      enforcedBy: l('The Argo Rollouts Kubernetes controller executes each traffic weight step, queries metrics (such as Prometheus) via `error-rate`, and triggers automatic rollback on failure.', 'Der Kubernetes-Controller Argo Rollouts führt die Traffic-Stufen aus, wertet Metriken (etwa aus Prometheus) über `error-rate` aus und startet bei Verstößen einen automatischen Rollback.'),
+      code: `strategy:
   canary:
     steps:
       - setWeight: 5
@@ -397,6 +414,7 @@ route:
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'istio', 'argo-rollouts', 'flagger'] },
     snippets: [{ lang: "any", file: "weighted-route.yaml",
+      enforcedBy: l('Envoy proxy enforces this weighted route, splitting live traffic 95/5 between `stable` and `candidate`.', 'Der Envoy-Proxy setzt diese gewichtete Route um und verteilt Live-Traffic im Verhältnis 95/5 auf `stable` und `candidate`.'),
       description: l("This Envoy route sends approximately 5% of matching requests to the candidate. Users receive responses from that version. Use the existing cluster definitions. Test the route in staging. Use a separate check for error rates and rollback.",
         "Diese Envoy-Route sendet ungefähr 5 % der passenden Requests an die neue Version. Nutzer erhalten deren Antworten. Verwende die vorhandenen Cluster. Teste die Route in Staging. Richte Fehleranalyse und Rollback separat ein."),
       code: `match: { prefix: /pets/ }
@@ -446,7 +464,9 @@ route:
     evidence: { general: none(), ai: none() },
     tools: { any: ['openfeature', 'unleash', 'flagsmith', 'growthbook'] },
     sim: 'flags',
-    snippets: [{ lang: 'js', file: 'reserve.ts', code: `import { OpenFeature } from '@openfeature/server-sdk';
+    snippets: [{ lang: 'js', file: 'reserve.ts',
+      enforcedBy: l('The OpenFeature SDK evaluates this flag at runtime against your flag provider (such as Unleash, Flagsmith or GrowthBook), falling back to `false` if unavailable.', 'Das OpenFeature-SDK wertet dieses Flag zur Laufzeit gegen deinen Flag-Provider (etwa Unleash, Flagsmith oder GrowthBook) aus und fällt bei Ausfall auf `false` zurück.'),
+      code: `import { OpenFeature } from '@openfeature/server-sdk';
 const flags = OpenFeature.getClient();
 
 export async function reserve(petId: PetId, person: PersonId) {
@@ -497,6 +517,7 @@ export async function reserve(petId: PetId, person: PersonId) {
     },
     tools: { any: ['prometheus', 'grafana', 'alertmanager', 'opentelemetry'] },
     snippets: [{ lang: "any", file: "reservation-alerts.yml",
+      enforcedBy: l('Prometheus evaluates this PromQL rule continuously and sends firing alerts to Alertmanager for routing and paging.', 'Prometheus wertet diese PromQL-Regel laufend aus und sendet auslösende Alerts zum Routing und Paging an Alertmanager.'),
       description: l("Record `reservation_requests_total` with outcome labels. Load the rule group into Prometheus. Cause a controlled failure in staging. The alert becomes pending, then fires after five minutes. Set a threshold and a responder for your service.",
         "Erfasse `reservation_requests_total` mit Outcome-Labels. Lade die Rule Group in Prometheus. Löse einen kontrollierten Fehler in Staging aus. Der Alert zeigt zuerst pending. Nach fünf Minuten zeigt er firing. Lege den Grenzwert und die Zuständigkeit für deinen Service fest."),
       code: `groups:
@@ -609,6 +630,7 @@ export async function tracked<T>(operation: () => Promise<T>): Promise<T> {
     evidence: { general: none(), ai: none() },
     tools: { any: ['envoy', 'vector'] },
     snippets: [{ lang: "any", file: "vector.toml",
+      enforcedBy: l('Vector (`vector --config vector.toml`) reads the event stream and writes identical copies to both sinks.', 'Vector (`vector --config vector.toml`) liest den Event-Strom und schreibt identische Kopien in beide Sinks.'),
       description: l("Run `vector --config vector.toml`. Send one synthetic JSON line to standard input. Compare the two output files. Check retention and failures in each output separately.",
         "Führe `vector --config vector.toml` aus. Gib eine synthetische JSON-Zeile über stdin ein. Vergleiche die Ausgabedateien. Prüfe Aufbewahrung und Fehler pro Ausgabe separat."),
       code: `[sources.events]
@@ -1054,6 +1076,7 @@ onLCP(report);
     evidence: { general: none(), ai: none() },
     tools: { any: ['falco', 'osquery', 'opentelemetry'] },
     snippets: [{ lang: "any", file: "audit-trail.sql",
+      enforcedBy: l('PostgreSQL enforces the `PRIMARY KEY` and `CHECK` constraints on writes; database roles, append-only storage and external retention policies protect the log from tampering.', 'PostgreSQL erzwingt `PRIMARY KEY` und `CHECK` beim Schreiben; Datenbankrollen, Append-only-Speicher und externe Aufbewahrungsregeln schützen das Log vor Manipulation.'),
       description: l("Run the example in a disposable PostgreSQL database. A duplicate event ID must make the insert fail. In production, write the change and event in one transaction. Restrict changes to the log. Check retention separately.",
         "Führe das Beispiel in einer temporären PostgreSQL-Datenbank aus. Eine doppelte Event-ID muss den Insert fehlschlagen lassen. Schreibe in Produktion Änderung und Event in einer Transaktion. Begrenze Schreibrechte auf das Log. Prüfe die Aufbewahrung separat."),
       code: `CREATE TABLE reservation_audit (

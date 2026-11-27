@@ -8,9 +8,9 @@ const T = {
     intro: 'An agent proposes five patches to make a failing test green. Toggle gates one by one to see which cheats each catches — and which only hidden tests catch.',
     gatesLabel: 'Gates', patchCol: 'Patch', verdict: 'Result',
     gate: {
-      protected: ['Protected test paths', 'CODEOWNERS: tests/ needs a human'],
+      protected: ['Protected test paths', 'Git host enforces CODEOWNERS on tests/'],
       noskip: ['No new skip / only', 'CI greps the diff for .skip and .only'],
-      count: ['Assertion count must not drop', 'Counts toBe / toEqual / toThrow lines'],
+      count: ['Assertion count must not drop', 'CI script counts toBe / toEqual / toThrow lines'],
       holdout: ['Hidden holdout tests', 'Other pets and people, run only in CI'],
     } as Record<GateId, [string, string]>,
     patch: { a: 'Fix the check in src', b: 'Skip the test', c: 'Weaken the assertion', d: 'Special-case the test data', e: 'Change the expected value' } as Record<PatchId, string>,
@@ -32,9 +32,9 @@ const T = {
     intro: EXERCISE_DE.integrity.intro,
     gatesLabel: 'Gates', patchCol: 'Patch', verdict: 'Ergebnis',
     gate: {
-      protected: ['Geschützte Testpfade', 'CODEOWNERS: tests/ braucht einen Menschen'],
+      protected: ['Geschützte Testpfade', 'Git-Host erzwingt CODEOWNERS für tests/'],
       noskip: ['Kein neues skip / only', 'CI sucht im Diff nach .skip und .only'],
-      count: ['Assertion-Anzahl darf nicht sinken', 'Zählt toBe- / toEqual- / toThrow-Zeilen'],
+      count: ['Assertion-Anzahl darf nicht sinken', 'CI-Skript zählt toBe- / toEqual- / toThrow-Zeilen'],
       holdout: ['Versteckte Holdout-Tests', 'Andere Tiere und Personen, nur in CI'],
     } as Record<GateId, [string, string]>,
     patch: { a: 'Prüfung in src korrigieren', b: 'Test überspringen', c: 'Assertion abschwächen', d: 'Testdaten sonderbehandeln', e: 'Erwartungswert ändern' } as Record<PatchId, string>,

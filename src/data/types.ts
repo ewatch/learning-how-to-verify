@@ -37,6 +37,8 @@ export interface Snippet {
   lang: LangId;
   /** Setup, exercise and expected feedback, in both site languages. */
   description?: L;
+  /** Which tool, runtime or platform executes or enforces this file or rule. */
+  enforcedBy?: L;
   /** code shown as-is; comments in English (code is the lingua franca) */
   code: string;
   file?: string;

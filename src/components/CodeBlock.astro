@@ -7,8 +7,8 @@ import type { Locale, Focus } from '../data/types';
  * the step panel, then the code. Start, counter, Previous/Next/Close, the step text and the highlighted
  * line therefore sit together. `cmd` turns the block into a terminal output block ("$ cmd" as the label).
  */
-interface Props { code: string; file?: string; lang: Locale; id: string; focus?: Focus[]; cmd?: string; fail?: boolean }
-const { code, file, lang, id, focus, cmd, fail } = Astro.props;
+interface Props { code: string; file?: string; lang: Locale; id: string; focus?: Focus[]; cmd?: string; fail?: boolean; enforcedBy?: string }
+const { code, file, lang, id, focus, cmd, fail, enforcedBy } = Astro.props;
 const NUMS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
 const lines = code.split('\n');
 const range = (f: Focus): [number, number] => (Array.isArray(f.line) ? f.line : [f.line, f.line]);
@@ -68,8 +68,16 @@ const guideId = `${id}-steps`;
       </div>
     </>
   )}
+  {enforcedBy && (
+    <p class="enforcer">
+      <span class="enforcer-label">{t(lang, 'enforcedBy')}:</span>{' '}
+      <span set:html={inline(enforcedBy)} />
+    </p>
+  )}
 </div>
 <style>
+  .enforcer { margin: 0; padding: 8px 12px; font-size: var(--fs-sm); line-height: 1.45; color: var(--ink-2); background: var(--card); border-top: 1px solid var(--rule); }
+  .enforcer-label { font-weight: 600; color: var(--ink); }
   .view code { display: block; width: max-content; min-width: 100%; }
   .ln { display: block; min-height: 1.5em; padding-left: 1.9em; margin-left: -12px; border-left: 3px solid transparent; position: relative; transition: color .2s, background-color .2s; }
   .ln.f { background: color-mix(in srgb, var(--c, var(--link)) 13%, transparent); border-left-color: var(--c, var(--link)); }

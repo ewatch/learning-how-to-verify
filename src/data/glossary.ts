@@ -56,6 +56,7 @@ const BASE: Term[] = [
   g('agent', 'Coding agent', 'Coding-Agent', 'A coding agent uses a language model to change code, run commands and respond to their results.', 'Ein Coding-Agent verwendet ein Sprachmodell, um Code zu ändern, Befehle auszuführen und auf die Ergebnisse zu reagieren.', 'agent-rules'),
   g('eval', 'Eval', 'Eval', 'An eval measures a model or coding agent setup on a fixed set of tasks with a defined grading method.', 'Ein Eval misst ein Modell oder ein Agent-Setup mit festen Aufgaben. Eine festgelegte Methode bewertet die Ergebnisse.', 'evals'),
   g('reward-hacking', 'Test gaming / reward hacking', 'Tests austricksen (Reward Hacking)', 'Reward hacking occurs when a system meets a measured goal without meeting the intended goal. For example, a coding agent can weaken a test to make it pass.', 'Bei Reward Hacking erreicht ein System den Messwert ohne das beabsichtigte Ziel. Ein Coding-Agent kann zum Beispiel eine Assertion abschwächen, damit der Test besteht.', 'test-integrity'),
+  g('codeowners', 'CODEOWNERS & branch protection', 'CODEOWNERS & Branch Protection', 'A CODEOWNERS file assigns people or teams to file paths (for example .github/CODEOWNERS on GitHub or .gitlab/CODEOWNERS on GitLab). The file alone does not block a merge: your Git host enforces it only when branch protection or rulesets require Code Owner approval.', 'Eine CODEOWNERS-Datei weist Dateipfaden Personen oder Teams zu (zum Beispiel .github/CODEOWNERS bei GitHub oder .gitlab/CODEOWNERS bei GitLab). Die Datei allein blockiert keinen Merge: Erst Branch Protection oder Rulesets beim Git-Host, die eine Code-Owner-Freigabe verlangen, erzwingen die Regel.', 'test-integrity'),
 ];
 
 type Extra = { en?: string[]; de?: string[]; autolink?: boolean };
@@ -103,6 +104,7 @@ const EXTRA: Record<string, Extra> = {
   'test-double': { en: ['mock', 'mocks', 'stub', 'stubs', 'test double', 'test doubles'], de: ['Mocks', 'Stub', 'Stubs', 'Test Double', 'Test Doubles'] },
   eval: { en: ['evals'], de: ['Evals'] },
   'reward-hacking': { en: ['reward hacking', 'test gaming'], de: ['Reward Hacking'] },
+  codeowners: { en: ['CODEOWNERS', 'code owners', 'branch protection'], de: ['CODEOWNERS', 'Code Owner', 'Branch Protection'] },
 };
 
 export const GLOSSARY: Term[] = BASE.map((t) => {

@@ -1,16 +1,25 @@
 .sim { border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--card); padding: 16px; display: grid; gap: 14px; min-width: 0; }
 .sim > * { min-width: 0; }
-.sim-intro { margin: 0; color: var(--ink-2); max-width: 46rem; }
+.sim-intro { margin: 0; color: var(--ink-2); max-width: 36rem; /* ~75 characters; ch units run long in Atkinson */ text-wrap: pretty; }
 .sim-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .sim-cols { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: start; }
 .sim-card { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; background: var(--paper); min-width: 0; }
 /* a row per implementation: name first; the results move under it as one group when the row is too narrow */
 .sim-impl { min-width: 0; }
-.sim .sim-impl > summary { display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; padding-inline: 12px; }
+.sim .sim-impl > summary { display: flex; flex-wrap: wrap; align-items: center; row-gap: 6px; padding-inline: 12px; }
 .sim .sim-impl > summary::before { margin-block-start: 0; }
-.sim-impl-name { flex: 1 1 auto; min-width: 0; }
+/* a zero basis keeps the name on the chevron's line, however long it is */
+.sim-impl-name { flex: 1 1 0; min-width: 12ch; }
 .sim-impl-res { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; }
-.sim-card-title { font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+/* phones: the results get their own line under the name, indented to the name's start */
+@media (max-width: 40rem) {
+  .sim .sim-impl > summary { align-items: flex-start; }
+  .sim .sim-impl > summary::before { margin-block-start: calc(0.5lh - 0.25em); }
+  .sim-impl-res { flex-basis: 100%; box-sizing: border-box; flex-wrap: wrap; margin-inline-start: 0; padding-inline-start: calc(0.67em + 10px); }
+}
+.sim-card-title { font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+/* a counter beside the title drops to its own line as a whole, instead of both breaking into two (German phones) */
+.sim-card-title > b { white-space: nowrap; }
 
 .sim-code { font: var(--fs-code)/1.55 var(--font-mono); background: var(--code-bg); border-radius: 5px; padding: 6px 0; overflow-x: auto; color: var(--code-ink); }
 .sim-code .ln { display: flex; white-space: pre; padding-right: 10px; }
@@ -56,6 +65,15 @@
 .sim-pill.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 50%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
 .sim-pill.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
 .sim-pill.idle { color: color-mix(in srgb, var(--ink-3) 70%, var(--ink)); border-color: var(--rule-strong); }
+/* an example that fails on a buggy implementation: the runner's ✗, in ink, not a colour of its own */
+.sim-pill.hit { color: var(--ink); border-color: var(--ink-2); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+/* a wrong example says nothing about a buggy implementation */
+.sim-pill.void { color: var(--ink-3); border-style: dashed; border-color: var(--rule-strong); text-decoration: line-through; }
+.sim-pill .x { font-weight: 700; margin-inline-end: -1px; }
+.sim-cells .sim-pill { padding-inline: 6px; font-variant-numeric: tabular-nums; }
+.sim-sec { min-width: 0; }
+.sim-legend { margin: 0 0 8px; }
+.sim-legend .sim-pill { vertical-align: .06em; }
 
 .sim-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 .sim-table th { text-align: left; font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--rule); }
@@ -79,7 +97,10 @@
 .sim-seg input:focus-visible + label { outline: 2px solid var(--focus); }
 
 .sim-log { font: var(--fs-code)/1.5 var(--font-mono); max-height: 220px; overflow: auto; background: var(--code-bg); border-radius: 5px; padding: 6px 8px; margin: 0; list-style: none; }
-.sim-log li { margin: 0; white-space: pre-wrap; word-break: break-all; }
+/* break at the spaces after commas, never inside a number ("20" must not become "2" / "0") */
+.sim-log li { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding-inline-start: 2ch; text-indent: -2ch; }
+/* wrapped parts of a line hang under its text, not under its ✓ / ✗ */
+.sim-log li.empty { color: color-mix(in srgb, var(--ink-3) 75%, var(--ink)); font-family: var(--font-body); font-size: var(--fs-sm); }
 .sim-log .bad { color: var(--bad); font-weight: 700; }
 .sim-log .ok { color: var(--ok); }
 .sim-log .new { color: var(--l-static); }
@@ -87,6 +108,8 @@
 .sim-callout { border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); padding: 10px 12px; border-radius: 6px; font-size: var(--fs-ui); }
 .sim-callout.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
 .sim-callout.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
+/* on the way, no mistake: neutral, so the first correct step is not shown as a failure */
+.sim-callout.progress { border-color: var(--rule-strong); background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .sim-callout p { margin: 0 0 .4em; }
 .sim-callout p:last-child { margin: 0; }
 
@@ -149,6 +172,11 @@
 .sim-result.ok .sim-result-icon { background: var(--ok); }
 .sim-result.bad .sim-result-icon { background: var(--bad); }
 .sim-result.warn .sim-result-icon { background: var(--warn); }
+.sim-result.progress .sim-result-icon { background: var(--ink-2); }
+/* holds for the sample, not proven: an outline mark and a lighter panel, so it never looks like a found bug */
+.sim-result.held { background: color-mix(in srgb, var(--ok) 3%, transparent); }
+.sim-result.held .sim-result-icon { background: none; color: color-mix(in srgb, var(--ok) 85%, var(--ink)); box-shadow: inset 0 0 0 1.5px currentColor; }
+.sim-result-against { display: block; color: var(--ink-2); }
 .sim-result-sec { min-width: 0; }
 .sim-result h4 { margin: 0 0 2px; font: 600 var(--fs-xs)/1.2 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--ink-3) 75%, var(--ink)); }
 .sim-result p { margin: 0 0 .35em; }
@@ -157,7 +185,12 @@
 .sim-result-src { font-size: var(--fs-xs); color: color-mix(in srgb, var(--ink-3) 75%, var(--ink)); }
 .sim-result-out { font: var(--fs-code)/1.5 var(--font-mono); font-variant-ligatures: none; background: var(--code-bg); color: var(--code-ink); border-radius: 5px; padding: 8px 10px; margin: 2px 0 6px; overflow-x: auto; white-space: pre; max-width: 100%; }
 .sim-result-out:focus-visible { outline: 2px solid var(--focus); }
-.sim-log li.min { background: color-mix(in srgb, var(--bad) 12%, transparent); border-radius: 3px; padding: 0 4px; }
-@media (max-width: 40rem) { .sim-result-out { white-space: pre-wrap; overflow-wrap: anywhere; } }
+.sim-log li.min { background: color-mix(in srgb, var(--bad) 12%, transparent); border-radius: 3px; padding: 0 4px 0 calc(2ch + 4px); }
+/* phones: wrap tool output and code instead of hiding the end of a line (often the bug) off-screen */
+@media (max-width: 40rem) {
+  .sim-result-out { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .sim-code .ln { white-space: pre-wrap; }
+  .sim-code .tx { min-width: 0; overflow-wrap: anywhere; }
+}
 /* `hidden` must win over layout classes such as .grid (the lint mode switch relied on it) */
 .sim [hidden] { display: none !important; }

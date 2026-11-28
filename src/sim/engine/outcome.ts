@@ -7,14 +7,32 @@
  *   'warn' (no failure, but the run proves less than it seems, e.g. rules switched off).
  * - `causeId`: a short code for WHY this run ended like this (e.g. 'lost-cents').
  * - `values`: the numbers and inputs behind the explanation (e.g. the minimal counterexample).
+ * - `tone` (optional): how the run reads for the learner, which can differ from the tool's status.
+ *   A failing property run is the tool's 'fail' and the learner's success: the bug was found.
+ *   Without `tone`, `toneOf` derives it from `status`.
  * The UI maps `causeId` + `values` to bilingual text. It never decides the verdict itself.
  */
 export type OutcomeStatus = 'pass' | 'fail' | 'warn';
+
+/**
+ * The learner's view of a run:
+ * 'ok' the goal is reached (all bugs caught, the bug found, the correct code holds),
+ * 'progress' on the way (no mistake, the goal is not reached yet),
+ * 'warn' a green run that proves less than it seems,
+ * 'bad' a mistake by the learner (e.g. a test that fails on correct code).
+ */
+export type ReaderTone = 'ok' | 'progress' | 'warn' | 'bad';
 
 export interface Outcome<C extends string = string, V = Record<string, unknown>> {
   status: OutcomeStatus;
   causeId: C;
   values: V;
+  tone?: ReaderTone;
+}
+
+/** The learner's tone of an outcome: its own `tone`, else derived from `status`. */
+export function toneOf(o: { status: OutcomeStatus; tone?: ReaderTone }): ReaderTone {
+  return o.tone ?? (o.status === 'pass' ? 'ok' : o.status === 'warn' ? 'warn' : 'bad');
 }
 
 /** One test in a runner report. */

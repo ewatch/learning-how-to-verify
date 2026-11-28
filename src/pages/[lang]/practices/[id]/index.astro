@@ -33,6 +33,8 @@ const gl = glosser(lang); // first occurrence of each glossary term per page
 const thinkMore = p.think.slice(1);
 // phones only: the petstore sentence of the strip, shown under the first heading
 const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.domain.what[lang])}`;
+// phones only: with a simulator or visual, "Catches" moves below it so "Try it" / "See it" reaches the first screen
+const moveCatches = !!(p.sim || p.viz);
 ---
 <Base lang={lang} path={`practices/${p.id}/`} md={`/${lang}/practices/${p.id}/index.md`} title={p.name[lang]} description={p.oneLiner[lang]}>
   <article class="wrap practice" style={`--c: var(--l-${p.layer})`}>
@@ -49,7 +51,7 @@ const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.d
       <p class="intro" set:html={gl(p.intro[lang])} />
       <dl class="def">
         <div><dt>{t(lang, 'inOneSentence')}</dt><dd set:html={gl(p.oneLiner[lang])} /></div>
-        <div><dt>{t(lang, 'catches')}</dt><dd set:html={gl(p.catches[lang])} /></div>
+        <div class:list={{ 'm-hide': moveCatches }}><dt>{t(lang, 'catches')}</dt><dd set:html={gl(p.catches[lang])} /></div>
       </dl>
       <WhereItSits p={p} lang={lang} />
     </header>
@@ -77,6 +79,7 @@ const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.d
     )}
 
     <section class="layer-section" id="worth"><h2>{t(lang, 'strengthsLimits')}</h2>
+      {moveCatches && <dl class="def def-m"><div><dt>{t(lang, 'catches')}</dt><dd set:html={inline(p.catches[lang])} /></div></dl>}
       <div class="grid cols-2">
         <div><h3>{t(lang, 'strengths')}</h3><ul class="checks">{p.worth.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
         <div><h3>{t(lang, 'limits')}</h3><ul class="limits">{p.limits.map((x) => <li set:html={gl(x[lang])} />)}</ul></div>
@@ -162,21 +165,29 @@ const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.d
   /* the strip may use the full width, so the petstore line stays on one line */
   .head > :not(.strip) { max-width: 58rem; }
   /* why first (a concrete problem), then the definition and the bug class as a compact block */
-  .head .intro { max-width: 42rem; margin: 0 0 20px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+  .head .intro { max-width: 36rem; /* ~75 characters: Atkinson's narrow "0" makes ch units run long */ text-wrap: pretty; margin: 0 0 20px; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
   /* the two definitions: small label above, same pattern as the facts strip below */
   .def { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 14px 40px; font-size: var(--fs-ui); line-height: 1.5; color: var(--ink-2); max-width: 58rem; }
   .def dt { margin-bottom: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); }
-  .def dd { margin: 0; color: var(--ink); }
+  .def dd { margin: 0; color: var(--ink); text-wrap: pretty; }
   .toc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin: 4px 0 8px; padding: 10px 0; font-size: var(--fs-sm); border-block: 1px solid var(--rule); }
   .toc + .layer-section { border-top: 0; }
   .toc a { color: var(--ink-2); text-decoration: none; padding-block: 2px; }
   .toc a:hover, .toc a:focus-visible { color: var(--ink); text-decoration: underline; }
+  .def-m { display: none; }
   /* phones: keep "Try it" / "See it" on the first screen */
   @media (max-width: 560px) {
     .head h1 { margin-bottom: 10px; }
     .head .intro { font-size: var(--fs-ui); line-height: 1.5; margin-bottom: 10px; }
     .def { font-size: var(--fs-sm); line-height: 1.45; gap: 10px; }
-    .toc { gap: 4px 16px; padding-block: 8px; }
+    .def .m-hide { display: none; }
+    .def-m { display: grid; margin: 0 0 18px; }
+    /* one scrolling row instead of two wrapped ones; the fade shows that it continues */
+    .toc { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 18px; padding-block: 6px; mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc a { flex: none; padding-block: 8px; }
+    .toc a:last-child { padding-inline-end: 28px; }
+    .toc + .layer-section { padding-top: 1.25rem; }
     .head { padding-bottom: 12px; }
   }
   .ps-what-m { display: none; margin: -4px 0 6px; color: var(--ink-2); }
@@ -186,7 +197,7 @@ const psWhat = `<strong>${PETSTORE_COPY.inPetstore[lang]}:</strong> ${inline(p.d
   .ai { margin: 20px 0 0; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--rule)); background: color-mix(in srgb, var(--c) 7%, var(--card)); border-radius: var(--radius); }
   .ai-label { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-weight: 700; font-size: var(--fs-ui); color: var(--ink); }
   .ai-label svg { color: var(--c); flex: none; }
-  .ai-text { margin: 0; font-size: var(--fs-ui); }
+  .ai-text { margin: 0; font-size: var(--fs-ui); max-width: 33rem; }
   .more .think { margin: 6px 0 0; }
   .variants { margin: 0 0 20px; }
   .variants dt { font-weight: 700; margin-top: 8px; }

@@ -69,12 +69,12 @@ const R = {
       pass: 'Der Agent bekommt einen sauberen Compile und drei bestandene Tests. Er kann weitermachen. Andere Risiken brauchen andere Prüfungen.',
     },
     next: {
-      gate: () => `**${label('guard', 'de')}** (Tag: korrekt) wählen und erneut prüfen.`,
-      'assertion-crash': () => `**${label('overwrite', 'de')}** wählen und das Ergebnis vorhersagen.`,
-      'unchecked-crash': () => '**Strenge Prüfungen aktivieren** ankreuzen und erneut prüfen.',
-      'runtime-error': () => `**${label('guard', 'de')}** wählen und vergleichen.`,
-      'logic-bug': () => `**${label('guard', 'de')}** wählen und vergleichen.`,
-      pass: (v: TV) => v.strict ? `**${label('assertion', 'de')}** wählen und das Ergebnis vorhersagen.` : `**Strenge Prüfungen aktivieren** ankreuzen und **${label('unchecked', 'de')}** wählen.`,
+      gate: () => `Wähle **${label('guard', 'de')}** (Tag: korrekt) und prüfe erneut.`,
+      'assertion-crash': () => `Wähle **${label('overwrite', 'de')}** und sag das Ergebnis voraus.`,
+      'unchecked-crash': () => 'Kreuze **Strenge Prüfungen aktivieren** an und prüfe erneut.',
+      'runtime-error': () => `Wähle **${label('guard', 'de')}** und vergleiche.`,
+      'logic-bug': () => `Wähle **${label('guard', 'de')}** und vergleiche.`,
+      pass: (v: TV) => v.strict ? `Wähle **${label('assertion', 'de')}** und sag das Ergebnis voraus.` : `Kreuze **Strenge Prüfungen aktivieren** an und wähle **${label('unchecked', 'de')}**.`,
     },
   },
 };

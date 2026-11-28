@@ -73,10 +73,10 @@ const R = {
       green: 'Der Agent bekommt einen grünen Lauf. Weil die Tests gesperrt sind, heißt Grün: Der Agent hat den Code geändert, nicht die Tests.',
     },
     next: {
-      red: '`reserve` im Editor schreiben oder **Lösung zeigen** (Tag: korrekt) klicken.',
-      broken: 'Die Änderung korrigieren oder **Sauberere Version nutzen** (Tag: korrekt) klicken.',
-      green: 'Den Code sauberer machen oder **Sauberere Version nutzen** (Tag: korrekt) klicken. Dann die Tests ausführen.',
-      done: '**Tests ändern** klicken und lesen, warum das Gate es blockiert.',
+      red: 'Schreibe `reserve` im Editor oder klicke auf **Lösung zeigen** (Tag: korrekt).',
+      broken: 'Korrigiere die Änderung oder klicke auf **Sauberere Version nutzen** (Tag: korrekt).',
+      green: 'Mach den Code sauberer oder klicke auf **Sauberere Version nutzen** (Tag: korrekt). Führe dann die Tests aus.',
+      done: 'Klicke auf **Tests ändern** und lies, warum das Gate es blockiert.',
     },
   },
 };

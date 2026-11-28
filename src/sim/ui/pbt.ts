@@ -4,7 +4,9 @@ import { IMPLS, PROPERTIES, check, pbtOutcome, fastCheckReport, type Input, type
 
 /** Reference example for the shared result panel: see the comment block in kit.ts. */
 
-const fmt = (i: Input) => `amount=${i.amount}  weights=[${i.weights.join(', ')}]`;
+// arrays join with a no-break space: a narrow log wraps between the parts of a line, not inside a cart
+const arr = (xs: number[]) => `[${xs.join(',\u00a0')}]`;
+const fmt = (i: Input) => `amount=${i.amount}  weights=${arr(i.weights)}`;
 
 /** Map the engine outcome to panel text. Pure apart from reading the copy table. */
 export function pbtView(o: PbtOutcome, propId: string, report: string, lang: Lang): ResultView {
@@ -15,10 +17,13 @@ export function pbtView(o: PbtOutcome, propId: string, report: string, lang: Lan
     : propId === 'sum' ? t.next.holdsSum : t.next.holdsOther;
   return {
     status: o.status,
+    tone: o.tone,
     verdict: t.verdict[o.status](o.values),
     why: t.why[o.causeId](o.values, lang, propId),
     agent: { tool: 'fast-check', output: report, use: t.use[o.status] },
     next,
+    // green on correct code means "no counterexample in this sample", not proof
+    held: o.status === 'pass',
   };
 }
 
@@ -38,18 +43,23 @@ export function mount(root: HTMLElement, lang: Lang) {
     h('div', { class: 'sim-row' }, segmented(t.impl, implOptions, S.impl, (v) => { S.impl = v; renderCode(); clear(); })),
     h('div', { class: 'sim-row' }, segmented(t.prop, PROPERTIES.map((p) => ({ value: p.id, label: t.props[p.id as keyof typeof t.props] })), S.prop, (v) => { S.prop = v; clear(); })),
     codeBox,
-    h('div', { class: 'sim-row' }, runBtn, h('label', { class: 'inline' }, t.seed, seedInput), h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { S.seed = Math.floor(Math.random() * 1e6); seedInput.value = String(S.seed); clear(); } }, t.newSeed)),
-    panel.el,
+    // seed and "New seed" wrap as one group, so the button never sits alone on a row
+    h('div', { class: 'sim-row' }, runBtn, h('span', { class: 'sim-row', style: 'gap:8px' }, h('label', { class: 'inline' }, t.seed, seedInput), h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { S.seed = Math.floor(Math.random() * 1e6); seedInput.value = String(S.seed); clear(); } }, t.newSeed))),
     h('div', { class: 'sim-cols' },
       h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, t.tried), log),
       h('div', { class: 'sim-card' }, h('div', { class: 'sim-card-title' }, t.shrink), shrinkLog)),
+    // the verdict concludes the logs: below them, so showing or hiding it never moves what is being watched
+    panel.el,
   ));
 
   function renderCode() { codeBox.replaceChildren(codeView(IMPLS[S.impl].code)); }
-  function clear() { S.run++; runBtn.disabled = false; log.replaceChildren(); shrinkLog.replaceChildren(); panel.clear(); }
+  // a rerun empties both logs before refilling them: hold their height until the run ends,
+  // so stacked log cards (phones) do not collapse and jump back
+  const hold = (on: boolean) => { for (const l of [log, shrinkLog]) l.style.minHeight = on ? `${l.offsetHeight}px` : ''; };
+  function clear(keepHeight = false) { S.run++; runBtn.disabled = false; hold(keepHeight); log.replaceChildren(); shrinkLog.replaceChildren(); panel.clear(); }
 
   async function run() {
-    clear();
+    clear(true);
     const id = S.run;
     runBtn.disabled = true;
     const prop = PROPERTIES.find((p) => p.id === S.prop)!;
@@ -58,7 +68,7 @@ export function mount(root: HTMLElement, lang: Lang) {
     const show = r.tried.slice(-40);
     for (const [i, x] of show.entries()) {
       if (id !== S.run) return;
-      log.append(h('li', { class: x.ok ? '' : 'bad' }, `${x.ok ? '✓' : '✗'} ${fmt(x.input)} → [${x.out.join(', ')}]`));
+      log.append(h('li', { class: x.ok ? '' : 'bad' }, `${x.ok ? '✓' : '✗'} ${fmt(x.input)} → ${arr(x.out)}`));
       log.scrollTop = log.scrollHeight;
       if (!fast && i % 2 === 0) await sleep(25);
     }
@@ -74,9 +84,10 @@ export function mount(root: HTMLElement, lang: Lang) {
       }
       if (id !== S.run) return;
       const m = r.failure.minimal;
-      shrinkLog.append(h('li', { class: 'bad min' }, `✗ ${t.minimal}: ${fmt(m)} → [${r.failure.out.join(', ')}]`));
+      shrinkLog.append(h('li', { class: 'bad min' }, `✗ ${t.minimal}: ${fmt(m)} → ${arr(r.failure.out)}`));
       shrinkLog.scrollTop = shrinkLog.scrollHeight;
-    }
+    } else shrinkLog.append(h('li', { class: 'empty' }, t.noShrink));
+    hold(false);
     panel.show(pbtView(pbtOutcome(S.impl, S.prop, r), S.prop, fastCheckReport(S.prop, r), lang));
     runBtn.disabled = false;
   }

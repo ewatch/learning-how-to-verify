@@ -67,12 +67,12 @@ const R = {
       missed: 'Der Agent bekommt einen erfolgreichen Rollout. Der Fehler wird ausgeliefert, weil kein Schritt die Grenze überschritten hat.',
     } as Record<CanaryOutcome['causeId'], string>,
     next: {
-      'rollback-errors': 'Bei „Version 2 hat …“ **einen stillen Fehler** wählen und den Rollout erneut starten.',
-      'rollback-business': 'Bei „Version 2 hat …“ **keinen Fehler** wählen und den Rollout erneut starten.',
-      'false-alarm': 'Den Rollout erneut starten. Jeder Lauf schickt neuen zufälligen Verkehr.',
-      promoted: 'Bei „Version 2 hat …“ **einen Absturzfehler** wählen und den Rollout erneut starten.',
-      'silent-missed': 'Die Geschäftsmetrik einschalten und den Rollout erneut starten.',
-      missed: 'Den Rollout erneut starten. Jeder Lauf schickt neuen zufälligen Verkehr.',
+      'rollback-errors': 'Wähle bei „Version 2 hat …“ **einen stillen Fehler** und starte den Rollout erneut.',
+      'rollback-business': 'Wähle bei „Version 2 hat …“ **keinen Fehler** und starte den Rollout erneut.',
+      'false-alarm': 'Starte den Rollout erneut. Jeder Lauf schickt neuen zufälligen Verkehr.',
+      promoted: 'Wähle bei „Version 2 hat …“ **einen Absturzfehler** und starte den Rollout erneut.',
+      'silent-missed': 'Schalte die Geschäftsmetrik ein und starte den Rollout erneut.',
+      missed: 'Starte den Rollout erneut. Jeder Lauf schickt neuen zufälligen Verkehr.',
     } as Record<CanaryOutcome['causeId'], string>,
   },
 };

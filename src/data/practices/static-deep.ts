@@ -13,8 +13,8 @@ export const staticDeep: Practice[] = [
     oneLiner: l('A property gives a rule for all inputs. A tool generates hundreds of inputs and tries to make each input that fails smaller.', 'Eine Property legt eine Regel für alle zulässigen Eingaben fest. Das Tool prüft die Regel mit vielen erzeugten Eingaben. Bei einem Fehler sucht das Tool nach einer kleineren Eingabe, die denselben Fehler zeigt.'),
     catches: l('Cases without a test example, such as empty lists, zero values, rounding effects, unusual input orders and interleavings.', 'Randfälle ohne eigenen Test. Beispiele sind leere Listen, Nullwerte, Rundungsfehler und ungewöhnliche Reihenfolgen von Eingaben oder nebenläufigen Operationen.'),
     intro: l(
-      'Tests with ages 3 and 10 do not show what happens at ages 8 and 0. A property gives a rule for all ages. The tool can find inputs that break the rule.',
-      'Zwei Tests verwenden die Alterswerte 3 und 10. Die Fälle mit Alter 8 und 0 bleiben offen. Eine Property beschreibt die Regel für alle Alterswerte. Das Tool kann Eingaben finden, die die Regel verletzen.',
+      'Example tests check only the carts that someone wrote down. If each discount share is rounded on its own, another cart can lose a cent. A property gives the rule for all carts. The tool generates carts until one breaks it.',
+      'Beispieltests prüfen nur die Warenkörbe, die jemand aufgeschrieben hat. Wird jeder Rabattanteil einzeln gerundet, kann bei einem anderen Warenkorb ein Cent fehlen. Eine Property beschreibt die Regel für alle Warenkörbe. Das Tool erzeugt Warenkörbe, bis einer die Regel verletzt.',
     ),
     cost: 1,
     feedback: 'seconds',
@@ -25,7 +25,7 @@ export const staticDeep: Practice[] = [
     ],
     limits: [
       l('A useful property requires a rule for the behavior. Complex inputs can require additional work to write a generator.', 'Eine Property braucht eine klare Regel für das erwartete Verhalten. Ein Generator für komplexe Eingaben kann mehr Aufwand erfordern.'),
-      l('A run of 100 randomly generated inputs can miss a rare error. A passing run does not prove the property.', 'Ein Testlauf mit 100 zufälligen Eingaben kann einen seltenen Fehler übersehen. Ein bestandener Testlauf gilt nur für die geprüften Eingaben.'),
+      l('A run checks a few hundred random inputs (fast-check: 100 by default, the simulator: 200). It can miss a rare error. A passing run does not prove the property.', 'Ein Testlauf prüft einige hundert zufällige Eingaben (fast-check: standardmäßig 100, der Simulator: 200). Er kann einen seltenen Fehler übersehen. Ein bestandener Testlauf gilt nur für die geprüften Eingaben.'),
     ],
     ai: l(
       'Give the rule that the code must obey. The tool generates inputs instead of using only the examples from the coding agent. A small counterexample gives the coding agent a specific failure to examine.',

@@ -1,4 +1,5 @@
 import { tokenize } from '../engine/jsrun';
+import { toneOf, type ReaderTone } from '../engine/outcome';
 import './sim.css';
 
 export type Lang = 'en' | 'de';
@@ -41,9 +42,9 @@ export function highlightJs(src: string): string {
 
 export interface LineMark { line: number; cls: string }
 /** Read-only code view with line numbers and optional per-line classes. */
-export function codeView(src: string, marks: LineMark[] = [], replace?: { line: number; code: string }): HTMLElement {
+export function codeView(src: string, marks: LineMark[] = [], replace?: { line: number; code: string }, label = document.documentElement.lang === 'de' ? 'Code (nur lesen)' : 'Code (read-only)'): HTMLElement {
   const lines = src.split('\n');
-  const wrap = h('div', { class: 'sim-code', role: 'region', 'aria-label': 'code', tabindex: 0 });
+  const wrap = h('div', { class: 'sim-code', role: 'region', 'aria-label': label, tabindex: 0 });
   lines.forEach((l, i) => {
     const cls = marks.filter((m) => m.line === i).map((m) => m.cls).join(' ');
     if (replace && replace.line === i) {
@@ -137,7 +138,8 @@ export function segmented<T extends string>(label: string, options: { value: T; 
  *
  *      const panel = resultPanel(lang);          // panel.el goes into the simulator
  *      panel.show({
- *        status: o.status,                       // 'pass' | 'fail' | 'warn' → icon ✓ ✗ !
+ *        status: o.status,                       // 'pass' | 'fail' | 'warn': the tool's verdict
+ *        tone: o.tone,                           // optional learner tone (see ReaderTone) → colour and icon ✓ → ! ✗
  *        verdict: '✗-less verdict with counts',  // e.g. 'The property fails after 3 of 200 carts'
  *        why: ['One or two plain sentences.', …], // from causeId + values; `code`, **bold** allowed
  *        agent: { tool: 'fast-check', output: fastCheckReport(r), use: 'What the agent can do with it.' },
@@ -146,9 +148,13 @@ export function segmented<T extends string>(label: string, options: { value: T; 
  *      panel.clear();                            // hide when an option changes
  *
  *    All text comes from the simulator's own `T = { en, de }` table, keyed by `causeId`.
- *    The panel is a `role="status"` live region with a heading (h3) and three sections
- *    (h4: Why / What the agent gets / Next). It has the classes `sim-callout ok|bad|warn`,
- *    so older selectors such as `.sim-callout.bad` keep working.
+ *    The panel is a plain region with a heading (h3) and three sections
+ *    (h4: Why / What the agent gets / Next). Only the verdict line is announced: a separate,
+ *    visually hidden `role="status"` node next to the panel, updated when the verdict changes.
+ *    `held: true` marks a pass that holds for the sample tried, not for all inputs (outline icon).
+ *    `agent.against` names the implementation the tool output ran against. It has the classes `sim-callout ok|bad|warn`,
+ *    so older selectors such as `.sim-callout.bad` keep working. The class follows the tone:
+ *    red (`bad`) only for a learner mistake; a found bug or a counterexample is the goal, so `ok`.
  */
 
 export type TagKind = 'bug' | 'correct' | 'weak' | 'strong' | 'gate' | 'nogate' | 'blind' | 'guided'
@@ -181,47 +187,61 @@ export function roleTag(kind: TagKind, lang: Lang): HTMLElement {
 
 export interface ResultView {
   status: 'pass' | 'fail' | 'warn';
+  /** The learner's tone; defaults from `status` (pass → ok, warn → warn, fail → bad). */
+  tone?: ReaderTone;
   /** Verdict with counts, without icon: "The property fails after 3 of 200 carts". */
   verdict: string;
   /** One or two sentences (array = separate paragraphs). Supports `code`, **bold**, *italic*. */
   why: string | string[];
-  /** The feedback the real tool gives an agent in a coding loop. */
-  agent?: { tool: string; output: string; use: string };
+  /** The feedback the real tool gives an agent in a coding loop; `against` names the code it ran on. */
+  agent?: { tool: string; output: string; use: string; against?: string };
+  /** A pass that holds for the inputs tried, not a proof: drawn with an outline icon instead of a filled one. */
+  held?: boolean;
   /** One suggestion what to try next. */
   next?: string;
 }
 
 const RESULT_COPY = {
-  en: { why: 'Why', agent: 'What the agent gets', next: 'Next', example: (tool: string) => `Example of the ${tool} output format`, out: 'Tool output' },
-  de: { why: 'Warum', agent: 'Was der Agent bekommt', next: 'Als Nächstes', example: (tool: string) => `Beispiel für das Ausgabeformat von ${tool}`, out: 'Tool-Ausgabe' },
+  en: { why: 'Why', agent: 'What the agent gets', next: 'Next', example: (tool: string) => `Example of the ${tool} output format`, against: 'Run against', out: 'Tool output' },
+  de: { why: 'Warum', agent: 'Was der Agent bekommt', next: 'Als Nächstes', example: (tool: string) => `Beispiel für das Ausgabeformat von ${tool}`, against: 'Lauf gegen', out: 'Tool-Ausgabe' },
 };
-const ICON = { pass: '✓', fail: '✗', warn: '!' } as const;
-const TONE = { pass: 'ok', fail: 'bad', warn: 'warn' } as const;
+const ICON: Record<ReaderTone, string> = { ok: '✓', progress: '→', warn: '!', bad: '✗' };
 
 /** The shared result panel. See the comment block above. */
 export function resultPanel(lang: Lang): { el: HTMLElement; show: (v: ResultView) => void; clear: () => void } {
   const c = RESULT_COPY[lang];
   const id = `res-${Math.random().toString(36).slice(2)}`;
-  const el = h('div', { class: 'sim-result sim-callout', role: 'status', 'aria-labelledby': id, hidden: true });
+  const el = h('div', { class: 'sim-result sim-callout', role: 'region', 'aria-labelledby': id, hidden: true });
+  // only the verdict is announced, not the whole panel with its tool output; inserted next to the
+  // panel on first use, and filled a tick later so screen readers see the region before its text
+  const live = h('div', { class: 'visually-hidden', role: 'status' });
+  const announce = (text: string) => {
+    if (!live.isConnected) el.after(live);
+    if (live.textContent === text) return;
+    setTimeout(() => { live.textContent = text; }, 50);
+  };
   const section = (title: string, ...kids: (Node | string)[]) => h('div', { class: 'sim-result-sec' }, h('h4', {}, title), ...kids);
   return {
     el,
     show(v) {
-      const kids: Node[] = [h('h3', { id, class: 'sim-result-verdict' }, h('span', { class: 'sim-result-icon', 'aria-hidden': 'true' }, ICON[v.status]), h('span', {}, ...rich(v.verdict)))];
+      const tone = toneOf(v);
+      const kids: Node[] = [h('h3', { id, class: 'sim-result-verdict' }, h('span', { class: 'sim-result-icon', 'aria-hidden': 'true' }, ICON[tone]), h('span', {}, ...rich(v.verdict)))];
       kids.push(section(c.why, ...(Array.isArray(v.why) ? v.why : [v.why]).map((p) => h('p', {}, ...rich(p)))));
       if (v.agent) {
         kids.push(section(c.agent,
-          h('p', { class: 'sim-result-src' }, c.example(v.agent.tool)),
+          h('p', { class: 'sim-result-src' }, c.example(v.agent.tool), v.agent.against ? h('span', { class: 'sim-result-against' }, `${c.against}: `, h('b', {}, v.agent.against)) : null),
           h('pre', { class: 'sim-result-out', tabindex: 0, 'aria-label': `${c.out}: ${v.agent.tool}` }, v.agent.output),
           h('p', {}, ...rich(v.agent.use))));
       }
       if (v.next) kids.push(section(c.next, h('p', {}, ...rich(v.next))));
-      el.className = `sim-result sim-callout ${TONE[v.status]}`;
+      el.className = `sim-result sim-callout ${tone}${v.held ? ' held' : ''}`;
       el.setAttribute('data-status', v.status);
+      el.setAttribute('data-tone', tone);
       el.replaceChildren(...kids);
       el.hidden = false;
+      announce(v.verdict.replace(/\*\*|`/g, ''));
     },
-    clear() { el.hidden = true; el.replaceChildren(); el.removeAttribute('data-status'); },
+    clear() { el.hidden = true; el.replaceChildren(); el.removeAttribute('data-status'); el.removeAttribute('data-tone'); },
   };
 }
 

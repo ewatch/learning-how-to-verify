@@ -18,7 +18,7 @@ export const EXERCISE_DE = {
     note: 'Die Übung prüft einen kleinen Bereich ganzer Zahlen. Ein Verifier wie Dafny verwendet einen SMT Solver für einen symbolischen Beweis für alle zulässigen Eingaben.',
   },
   unit: {
-    intro: "Eine von sechs Implementierungen der Adoptionsgebühr ist korrekt. Die anderen fünf enthalten je einen Fehler. Ergänze Beispiele mit Eingabe und erwartetem Ergebnis. Jedes Beispiel muss mit der korrekten Implementierung bestehen. Ergänze Beispiele, bis sie alle Fehler erkennen.",
+    intro: "Sechs Implementierungen der Adoptionsgebühr: Eine ist korrekt, fünf enthalten einen plausiblen Bug. Ergänze Beispiele (Eingabe → erwartetes Ergebnis), bis deine Beispiele mit der korrekten Implementierung bestehen und jeden Bug fangen. Start: Die zwei Beispiele unten fangen keinen Bug.",
   },
   tdd: {
     intro: "Die vier Tests sind freigegeben und gesperrt. Schreibe `reserve`. Führe die Tests aus, bis alle bestehen. Führe danach ein Refactoring durch. Prüfe nach jeder Änderung, dass die Tests weiter bestehen.",

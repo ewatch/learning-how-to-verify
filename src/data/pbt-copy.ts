@@ -24,13 +24,13 @@ const how = (v: V, lang: Lang) => METHOD[lang][v.method] ?? METHOD[lang].cumulat
 
 export const PBT_COPY = {
   en: {
-    intro: 'Split a cart discount (in cents) proportionally across pet prices ("weights"). Pick an implementation and property; random carts are generated and any failing case is shrunk to a minimal counterexample.',
+    intro: 'The simulator splits a cart discount (in cents) across the pets in the cart. Each pet gets a share in proportion to its price. The prices are the "weights". Pick an implementation and a property, then generate random carts. When a cart breaks the property, the tool shrinks it to the smallest cart that still fails.',
     impl: 'Implementation', prop: 'Property', run: 'Generate 200 carts', seed: 'Seed', newSeed: 'New seed',
     props: { sum: 'Shares add up to the discount', bound: 'No share exceeds its weight', nonneg: 'No share is negative', length: 'One share per pet' },
-    tried: 'Generated inputs', shrink: 'Shrinking', step: 'step', minimal: 'minimal',
+    tried: 'Generated inputs', shrink: 'Shrinking', step: 'step', minimal: 'minimal', noShrink: 'No counterexample, so nothing to shrink.',
     verdict: {
-      fail: (v: V) => `The property fails on cart ${v.runs} of ${v.total}`,
-      pass: (v: V) => `The property holds for ${v.total} of ${v.total} carts`,
+      fail: (v: V) => `Bug found: the property fails on cart ${v.runs} of ${v.total}`,
+      pass: (v: V) => `No counterexample in ${v.total} of ${v.total} carts. The property holds for this sample`,
       warn: (v: V) => `The property holds for ${v.total} of ${v.total} carts, but the code has a bug`,
     },
     why: {
@@ -60,14 +60,14 @@ export const PBT_COPY = {
     },
   },
   de: {
-    intro: 'Der Simulator verteilt einen Rabatt in Cent auf die Tiere im Warenkorb. Die Tierpreise bestimmen die Gewichte. Wähle eine Implementierung. Wähle eine Property. Erzeuge zufällige Warenkörbe. Wenn ein Fall fehlschlägt, sucht das Tool mit Shrinking nach einem kleineren Gegenbeispiel.',
+    intro: 'Der Simulator verteilt einen Rabatt in Cent auf die Tiere im Warenkorb. Jedes Tier bekommt einen Anteil im Verhältnis zu seinem Preis. Die Preise sind die Gewichte (weights). Wähle eine Implementierung. Wähle eine Property. Erzeuge zufällige Warenkörbe. Wenn ein Fall fehlschlägt, sucht das Tool mit Shrinking nach einem kleineren Gegenbeispiel.',
     impl: 'Implementierung', prop: 'Property', run: '200 Warenkörbe erzeugen', seed: 'Seed', newSeed: 'Neuer Seed',
     props: { sum: 'Anteile ergeben genau den Rabatt', bound: 'Kein Anteil übersteigt sein Gewicht', nonneg: 'Kein Anteil ist negativ', length: 'Ein Anteil pro Tier' },
-    tried: 'Erzeugte Eingaben', shrink: 'Shrinking', step: 'Schritt', minimal: 'minimal',
+    tried: 'Erzeugte Eingaben', shrink: 'Shrinking', step: 'Schritt', minimal: 'minimal', noShrink: 'Kein Gegenbeispiel, also nichts zu verkleinern.',
     verdict: {
-      fail: (v: V) => `Die Property gilt für Warenkorb ${v.runs} von ${v.total} nicht.`,
-      pass: (v: V) => `Die Property gilt für alle ${v.total} geprüften Warenkörbe.`,
-      warn: (v: V) => `Die Property gilt für alle ${v.total} geprüften Warenkörbe. Die Implementierung enthält einen Fehler.`,
+      fail: (v: V) => `Bug gefunden: Die Property gilt für Warenkorb ${v.runs} von ${v.total} nicht.`,
+      pass: (v: V) => `Kein Gegenbeispiel in ${v.total} von ${v.total} Warenkörben. Die Property gilt für diese Stichprobe.`,
+      warn: (v: V) => `Die Property gilt für alle ${v.total} geprüften Warenkörbe. Die Implementierung enthält einen Bug.`,
     },
     why: {
       'lost-cents': (v: V, l: Lang) => [
@@ -89,12 +89,12 @@ export const PBT_COPY = {
         `Die Implementierung \`${IMPL_LABEL.de[v.impl] ?? v.impl}\` erfüllt diese Property. Sie ${v.method === 'floor' ? 'verteilt zu wenige Cent' : 'kann zu viele oder zu wenige Cent verteilen'}.`,
         'Diese Property prüft die Summe der Anteile nicht.',
       ],
-      'holds-missed': (v: V) => [`Die Implementierung kann die Property verletzen. Der Test mit ${v.total} Warenkörben hat diesen Fehler nicht gefunden.`, 'Ein neuer Seed erzeugt andere Warenkörbe.'],
+      'holds-missed': (v: V) => [`Die Implementierung kann die Property verletzen. Der Test mit ${v.total} Warenkörben hat diesen Bug nicht gefunden.`, 'Ein neuer Seed erzeugt andere Warenkörbe.'],
     } as Record<string, (v: V, l: Lang, prop: string) => string[]>,
     use: {
       fail: 'Gib dem Coding-Agenten das Gegenbeispiel und den Seed. Der Coding-Agent kann den Fehler damit reproduzieren.',
       pass: 'Gib dem Coding-Agenten das Ergebnis des Testlaufs. Das Ergebnis gilt für die geprüften Warenkörbe.',
-      warn: 'Der Test besteht. Gib dem Coding-Agenten eine Property, die den Fehler erkennt.',
+      warn: 'Der Test besteht. Gib dem Coding-Agenten eine Property, die den Bug erkennt.',
     },
     next: {
       fail: 'Wähle **Kumulativ**. Starte den Test erneut.',

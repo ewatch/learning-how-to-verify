@@ -38,6 +38,8 @@ export const UI = {
   stripPhase: { en: 'When it runs', de: 'Wann es läuft' },
   stripCost: { en: 'Cost to run', de: 'Kosten im Betrieb' },
   stripFeedback: { en: 'Time to feedback', de: 'Zeit bis Feedback' },
+  stripCostShort: { en: 'Cost', de: 'Kosten' },
+  stripFeedbackShort: { en: 'Feedback', de: 'Feedback' },
   seeIt: { en: 'See it', de: 'Anschauen' },
   tryIt: { en: 'Try it', de: 'Ausprobieren' },
   tryItHint: { en: 'This exercise runs in your browser and sends no data.', de: 'Diese Übung läuft im Browser und sendet keine Daten.' },

@@ -47,7 +47,7 @@ const R = {
       crash: 'Der Agent bekommt die Exception, die Zeile und eine minimale Eingabe, die abstürzt. Er kann die Eingabe als Regressionstest ergänzen und das fehlerhafte Escape behandeln.',
       none: 'Der Agent bekommt einen Lauf ohne Absturz. Er kann nicht unterscheiden, ob der Code sicher ist oder der Fuzzer nicht tief genug kam.',
     },
-    next: { dictOn: '**Wörterbuch mit Schlüsselwörtern nutzen** ankreuzen und erneut starten. Vergleiche, wie schnell der Absturz kommt.', dictOff: 'Das Wörterbuch abwählen und erneut starten. Vergleiche, wie schnell der Absturz kommt.', none: 'Erneut **Beide Fuzzer starten** klicken, oder das Wörterbuch ankreuzen.' },
+    next: { dictOn: 'Kreuze **Wörterbuch mit Schlüsselwörtern nutzen** an und starte erneut. Vergleiche, wie schnell der Absturz kommt.', dictOff: 'Wähle das Wörterbuch ab und starte erneut. Vergleiche, wie schnell der Absturz kommt.', none: 'Klicke erneut auf **Beide Fuzzer starten**, oder kreuze das Wörterbuch an.' },
   },
 };
 

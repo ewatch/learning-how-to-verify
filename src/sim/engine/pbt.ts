@@ -167,7 +167,7 @@ export function pbtOutcome(implId: string, propId: string, r: RunResult, total =
   if (!r.failure) {
     const impl = IMPLS[implId];
     const causeId: PbtCause = !impl || impl.correct ? 'holds' : impl.breaks.includes(propId) ? 'holds-missed' : 'holds-weak';
-    return { status: causeId === 'holds' ? 'pass' : 'warn', causeId, values: base };
+    return { status: causeId === 'holds' ? 'pass' : 'warn', tone: causeId === 'holds' ? 'ok' : 'warn', causeId, values: base };
   }
   const { minimal: m, out } = r.failure;
   const t = sum(m.weights);
@@ -175,11 +175,11 @@ export function pbtOutcome(implId: string, propId: string, r: RunResult, total =
   const values: PbtValues = { ...base, amount: m.amount, weights: m.weights, shares: out, exact, sum: sum(out), shrinks: r.failure.steps.length - 1 };
   if (propId === 'sum') {
     const diff = m.amount - sum(out);
-    return { status: 'fail', causeId: diff > 0 ? 'lost-cents' : 'extra-cents', values: { ...values, diff } };
+    return { status: 'fail', tone: 'ok', causeId: diff > 0 ? 'lost-cents' : 'extra-cents', values: { ...values, diff } };
   }
-  if (propId === 'bound') return { status: 'fail', causeId: 'over-weight', values: { ...values, index: out.findIndex((s, i) => s > m.weights[i]) } };
-  if (propId === 'nonneg') return { status: 'fail', causeId: 'negative', values: { ...values, index: out.findIndex((s) => s < 0) } };
-  return { status: 'fail', causeId: 'wrong-length', values };
+  if (propId === 'bound') return { status: 'fail', tone: 'ok', causeId: 'over-weight', values: { ...values, index: out.findIndex((s, i) => s > m.weights[i]) } };
+  if (propId === 'nonneg') return { status: 'fail', tone: 'ok', causeId: 'negative', values: { ...values, index: out.findIndex((s) => s < 0) } };
+  return { status: 'fail', tone: 'ok', causeId: 'wrong-length', values };
 }
 
 const ASSERT: Record<string, (i: Input, out: number[]) => string> = {

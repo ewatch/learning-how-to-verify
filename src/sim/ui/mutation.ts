@@ -14,7 +14,7 @@ export const EXAMPLES: Example[] = [
     name: { en: 'Fee: boundaries', de: 'Gebühr: Grenzwerte' },
     explain: {
       en: 'Senior pets (8 years or older) cost half. The tests cover <b>100% of the lines</b> and look complete. Run mutation testing and watch which mutants survive.',
-      de: 'Senioren (ab 8 Jahren) kosten die Hälfte. Die Tests decken <b>100 % der Zeilen</b> ab und wirken vollständig. Starte das Mutation Testing und achte darauf, welche Mutanten überleben.',
+      de: 'Tiere ab 8 Jahren kosten die Hälfte. Die Tests decken <b>100 % der Zeilen</b> ab und wirken vollständig. Starte das Mutation Testing und achte darauf, welche Mutanten überleben.',
     },
     code: `function adoptionFee(ageYears) {
   if (ageYears >= 8) {
@@ -189,12 +189,12 @@ const R = {
       'all-killed': 'Der Agent bekommt einen Score ohne Überlebende. Er kann für diesen Code aufhören, Tests zu ergänzen.',
     },
     next: {
-      reset: 'Auf **Tests zurücksetzen** klicken und erneut starten.',
-      better: 'Auf **Bessere Tests laden** (Tag: starke Tests) klicken und erneut starten.',
-      kill: (v: MV) => `Mutant #${v.first!.id} in der Tabelle anklicken. Dann **Tests bearbeiten** und einen Test ergänzen, der an dieser Änderung scheitert.`,
-      mark: 'Bei jedem Überlebenden auf **als äquivalent markieren** klicken.',
-      nextEx: (name: string) => `Das nächste Beispiel wählen: **${name}**.`,
-      edit: 'Auf **Tests bearbeiten** klicken, eine Assertion löschen und erneut starten.',
+      reset: 'Klicke auf **Tests zurücksetzen** und starte erneut.',
+      better: 'Klicke auf **Bessere Tests laden** (Tag: starke Tests) und starte erneut.',
+      kill: (v: MV) => `Klicke in der Tabelle auf Mutant #${v.first!.id}. Klicke dann auf **Tests bearbeiten** und ergänze einen Test, der an dieser Änderung scheitert.`,
+      mark: 'Klicke bei jedem Überlebenden auf **als äquivalent markieren**.',
+      nextEx: (name: string) => `Wähle das nächste Beispiel: **${name}**.`,
+      edit: 'Klicke auf **Tests bearbeiten**, lösche eine Assertion und starte erneut.',
     },
   },
 };

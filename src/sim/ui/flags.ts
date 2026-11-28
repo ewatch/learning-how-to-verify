@@ -67,10 +67,10 @@ const R = {
       'killed-none': 'Der Agent bekommt denselben Zustand wie vorher: 0 Nutzer auf v2.',
     } as Record<FlagsOutcome['causeId'], string>,
     next: {
-      'incident-exposed': '**Notschalter: Flag ausschalten** klicken.',
-      'incident-dark': 'Das Flag für **Mitarbeitende** einschalten und sehen, wer den Fehler bekommt.',
-      killed: 'Das Flag wieder für **Mitarbeitende** einschalten. Dann den Vorfall mit einem größeren Prozentsatz simulieren.',
-      'killed-none': 'Das Flag für **Mitarbeitende + Beta** einschalten und den Vorfall simulieren.',
+      'incident-exposed': 'Klicke auf **Notschalter: Flag ausschalten**.',
+      'incident-dark': 'Schalte das Flag für **Mitarbeitende** ein und sieh nach, wer den Fehler bekommt.',
+      killed: 'Schalte das Flag wieder für **Mitarbeitende** ein. Simuliere dann den Vorfall mit einem größeren Prozentsatz.',
+      'killed-none': 'Schalte das Flag für **Mitarbeitende + Beta** ein und simuliere den Vorfall.',
     } as Record<FlagsOutcome['causeId'], string>,
   },
 };

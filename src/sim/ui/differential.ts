@@ -51,7 +51,7 @@ const R = {
       pass: 'Der Agent bekommt einen grünen Lauf. Er kann das Refactoring mit mehr Sicherheit mergen. Zufällige Eingaben sind kein Beweis.',
       warn: 'Der Agent bekommt einen Fehlschlag für eine gewollte Änderung. Ohne Allow-List macht er das neue Feature vielleicht rückgängig.',
     },
-    next: { fail: '**Refactor 3** (Tag: korrekt) wählen und erneut vergleichen.', pass: '**Gewollte Änderung akzeptieren** abwählen und erneut vergleichen.', warn: '**Gewollte Änderung akzeptieren** ankreuzen.' },
+    next: { fail: 'Wähle **Refactor 3** (Tag: korrekt) und vergleiche erneut.', pass: 'Wähle **Gewollte Änderung akzeptieren** ab und vergleiche erneut.', warn: 'Kreuze **Gewollte Änderung akzeptieren** an.' },
   },
 };
 

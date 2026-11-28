@@ -17,7 +17,7 @@ const make = (id: string, buggy: boolean, code: string): Impl => ({
 
 export const SPEC = {
   en: ['A dog costs 12000 cents (120.00 €), a cat 8000 cents (80.00 €).', 'Seniors (8 years or older) pay half.', 'Pets younger than 1 year add 2000 cents (20.00 €) for vaccinations.', 'An age that is negative or not a whole number is rejected with an error.'],
-  de: ['Ein Hund kostet 12000 Cent (120,00 €), eine Katze 8000 Cent (80,00 €).', 'Senioren (ab 8 Jahren) zahlen die Hälfte.', 'Tiere unter 1 Jahr kosten 2000 Cent (20,00 €) mehr für Impfungen.', 'Ein negatives oder nicht ganzzahliges Alter wird mit einem Fehler abgelehnt.'],
+  de: ['Ein Hund kostet 12000 Cent (120,00 €), eine Katze 8000 Cent (80,00 €).', 'Tiere ab 8 Jahren zahlen die Hälfte.', 'Tiere unter 1 Jahr kosten 2000 Cent (20,00 €) mehr für Impfungen.', 'Ein negatives oder nicht ganzzahliges Alter wird mit einem Fehler abgelehnt.'],
 };
 
 const correct = `function adoptionFee(species, ageYears) {
@@ -39,11 +39,11 @@ export const IMPLS: Impl[] = [
 
 export const BUG_LABEL: Record<string, { en: string; de: string }> = {
   correct: { en: 'Correct implementation', de: 'Korrekte Implementierung' },
-  'senior-boundary': { en: 'Bug: seniors from 9, not 8', de: 'Fehler: Senioren erst ab 9 statt 8' },
-  'puppy-boundary': { en: 'Bug: 1-year-olds also pay vaccinations', de: 'Fehler: Auch 1-Jährige zahlen Impfungen' },
-  'no-vaccination': { en: 'Bug: vaccination fee forgotten', de: 'Fehler: Impfgebühr vergessen' },
-  'accepts-negative': { en: 'Bug: negative ages accepted', de: 'Fehler: negatives Alter akzeptiert' },
-  'ignores-species': { en: 'Bug: cats priced like dogs', de: 'Fehler: Katzen kosten wie Hunde' },
+  'senior-boundary': { en: 'Bug: seniors from 9, not 8', de: 'Bug: Halber Preis erst ab 9 statt 8 Jahren' },
+  'puppy-boundary': { en: 'Bug: 1-year-olds also pay vaccinations', de: 'Bug: Auch 1-Jährige zahlen Impfungen' },
+  'no-vaccination': { en: 'Bug: vaccination fee forgotten', de: 'Bug: Impfgebühr vergessen' },
+  'accepts-negative': { en: 'Bug: negative ages accepted', de: 'Bug: negatives Alter akzeptiert' },
+  'ignores-species': { en: 'Bug: cats priced like dogs', de: 'Bug: Katzen kosten wie Hunde' },
 };
 
 export type Outcome = 'pass' | 'fail';
@@ -126,18 +126,18 @@ export function unitOutcome(cases: Case[]): UnitOutcome {
   const r = evaluate(cases);
   const base = { caught: r.caught.length, total: r.total, examples: cases.length, species: [...new Set(cases.map((c) => c.species))], ages: [...new Set(cases.map((c) => c.age))].sort((a, b) => a - b) };
   const correct = IMPLS.find((i) => !i.buggy)!;
-  if (!cases.length) return { status: 'fail', causeId: 'no-examples', values: { ...base, report: vitestReport('fee.test.ts', []) } };
+  if (!cases.length) return { status: 'fail', tone: 'progress', causeId: 'no-examples', values: { ...base, report: vitestReport('fee.test.ts', []) } };
   const w = r.wrongCases.indexOf(true);
   if (w >= 0) {
     const c = cases[w];
-    return { status: 'fail', causeId: 'wrong-example', values: { ...base, wrong: { index: w + 1, species: c.species, age: c.age, expected: c.expect, correct: run(correct, c.species, c.age) }, report: reportFor(correct, cases) } };
+    return { status: 'fail', tone: 'bad', causeId: 'wrong-example', values: { ...base, wrong: { index: w + 1, species: c.species, age: c.age, expected: c.expect, correct: run(correct, c.species, c.age) }, report: reportFor(correct, cases) } };
   }
   const missedImpl = IMPLS.find((i) => i.buggy && !r.caught.includes(i.id));
   if (missedImpl) {
     const wit = witness(missedImpl)!;
-    return { status: 'fail', causeId: 'bugs-missed', values: { ...base, missed: { id: missedImpl.id, no: IMPLS.indexOf(missedImpl), witness: wit }, report: reportFor(missedImpl, cases) } };
+    return { status: 'fail', tone: 'progress', causeId: 'bugs-missed', values: { ...base, missed: { id: missedImpl.id, no: IMPLS.indexOf(missedImpl), witness: wit }, report: reportFor(missedImpl, cases) } };
   }
   // all caught: show what the agent sees when it writes the first bug
   const first = IMPLS.find((i) => i.buggy)!;
-  return { status: 'pass', causeId: 'all-caught', values: { ...base, report: reportFor(first, cases) } };
+  return { status: 'pass', tone: 'ok', causeId: 'all-caught', values: { ...base, report: reportFor(first, cases) } };
 }

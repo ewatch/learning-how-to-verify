@@ -5,15 +5,17 @@ import type { Locale } from '../../../data/types';
 import { WHY } from '../../../data/why';
 import { SOURCE_BY_ID } from '../../../data/sources';
 import { PRACTICE_BY_ID } from '../../../data/practices';
-import { t } from '../../../i18n/ui';
+import { t, href } from '../../../i18n/ui';
+import { START_TOUR } from '../../../data/start';
 import { langPaths } from '../../../lib/paths';
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Locale };
+const step = START_TOUR.findIndex((s) => s.id === 'why-layers') + 1;
 ---
 <Base lang={lang} path="why-layers/" md={`/${lang}/why-layers/index.md`} nav="start" title={WHY.title[lang]} description={WHY.intro[lang]}>
   <div class="wrap narrow">
     <header>
-      <p class="eyebrow">{lang === 'en' ? 'Getting Started · step 2' : 'Erste Schritte · Schritt 2'}</p>
+      <nav class="breadcrumb small" aria-label={lang === 'en' ? 'Breadcrumbs' : 'Brotkrumen'}><ol><li><a href={href(lang, 'start/')}>{t(lang, 'navStart')}</a></li><li><a href={href(lang, 'why-layers/')} aria-current="page">{lang === 'en' ? `Step ${step}` : `Schritt ${step}`}</a></li></ol></nav>
       <h1>{WHY.title[lang]}</h1>
       <p class="lede">{WHY.intro[lang]}</p>
     </header>
@@ -21,7 +23,6 @@ const { lang } = Astro.props as { lang: Locale };
       const s = SOURCE_BY_ID.get(f.src)!;
       return (
         <section class="finding" id={`finding-${i + 1}`}>
-          <p class="eyebrow">{String(i + 1).padStart(2, '0')}</p>
           <h2>{f.claim[lang]}</h2>
           <p>{f.text[lang]} <a class="src small" href={s.url} rel="noopener">{s.authors.split(',')[0]}, {s.venue} {s.year}</a>{s.preprint && <span class="badge">{t(lang, 'preprint')}</span>}</p>
           <p class="fix"><strong>{lang === 'en' ? 'Which layer catches it: ' : 'Welche Schicht es fängt: '}</strong>{f.fix[lang]}</p>
@@ -34,7 +35,7 @@ const { lang } = Astro.props as { lang: Locale };
 </Base>
 <style>
   .finding { padding: 26px 0; border-top: 1px solid var(--rule); }
-  .fix { background: var(--card); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+  .fix { background: color-mix(in srgb, var(--ok) 7%, var(--card)); border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--rule)); padding: 10px 14px; border-radius: var(--radius); }
   .src { color: var(--ink-3); }
   .badge { margin-left: 4px; }
   .outro { font-size: var(--fs-lg); margin-top: 28px; font-family: var(--font-display); }

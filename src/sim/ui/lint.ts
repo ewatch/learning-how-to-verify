@@ -69,16 +69,16 @@ const R = {
       solved: 'Der Agent bekommt keine Ausgabe und Exit-Code 0. Die CI lässt die Änderung diese Prüfung passieren.',
     },
     next: {
-      findings: (v: LV) => `Zeile ${v.first!.line} im Editor beheben.`,
-      'rules-off': () => 'Alle Regeln wieder einschalten.',
-      'code-removed': () => 'Die Seite neu laden, um den Code wiederherzustellen. Dann die Funde beheben, ohne die Funktion zu löschen.',
-      solved: () => '**Regel als Text vs. Lint** wählen und **Pull Request öffnen** klicken.',
+      findings: (v: LV) => `Behebe Zeile ${v.first!.line} im Editor.`,
+      'rules-off': () => 'Schalte alle Regeln wieder ein.',
+      'code-removed': () => 'Lade die Seite neu, um den Code wiederherzustellen. Behebe dann die Funde, ohne die Funktion zu löschen.',
+      solved: () => 'Wähle **Regel als Text vs. Lint** und klicke auf **Pull Request öffnen**.',
     },
     ci: {
       verdict: 'Das Lint-Gate blockiert den Pull Request. Die Regel als Text lässt ihn mergen',
       why: (f: Finding) => [`Der Patch entfernt \`await\` vor \`${f.token}(…)\` in Zeile ${f.line}. AGENTS.md verlangt await, aber nichts prüft den Satz, darum wird dieser Pull Request gemergt.`, `Die Lint-Regel findet das nicht awaitete Promise bei ${f.line}:${f.col} und lässt den CI-Lauf scheitern.`],
       use: 'Der Agent bekommt die Regel, die Zeile und einen roten CI-Lauf. Er ergänzt await und pusht erneut. Mit der Regel als Text bekommt er nichts.',
-      next: 'Die nächste Regel für den Agenten als Lint-Regel oder Test schreiben, nicht nur als Satz.',
+      next: 'Schreibe die nächste Regel für den Agenten als Lint-Regel oder Test, nicht nur als Satz.',
     },
   },
 };

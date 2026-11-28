@@ -23,11 +23,11 @@
   --l-static-light: #2a6f97; --l-static-dark: #5fa8d3;
   --l-verification-light: #5a55a6; --l-verification-dark: #9a95e0;
   --l-prose-light: #a86b12; --l-prose-dark: #e0a54a;
-  --l-review-light: #b24a32; --l-review-dark: #ec8a72;
+  --l-review-light: #a23b72; --l-review-dark: #e58bb9; /* berry: kept well away from the --bad red */
   /* lifecycle phases */
   --p-pre-light: #8a4fb0; --p-pre-dark: #c08ae0;
   --p-deploy-light: #575d69; --p-deploy-dark: #a1a8b3;
-  --p-release-light: #c07a2b; --p-release-dark: #e8a659;
+  --p-release-light: #9c5d18; --p-release-dark: #e8a659;
   --p-post-light: #3f5fb5; --p-post-dark: #86a3f0;
   /* status */
   --ok-light: #24764a; --ok-dark: #63c48d;

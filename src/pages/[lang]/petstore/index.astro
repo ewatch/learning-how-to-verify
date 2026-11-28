@@ -109,7 +109,7 @@ const acceptance = PRACTICE_BY_ID.get('acceptance-tests')!;
 
 <style>
   .ps-head { max-width: 46rem; padding-bottom: 4px; }
-  .story { margin: 0 0 18px; padding: 8px 12px; border-left: 4px solid var(--warn); background: var(--card); border-radius: 0 var(--radius) var(--radius) 0; font-size: var(--fs-ui); }
+  .story { margin: 0 0 18px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--rule)); background: color-mix(in srgb, var(--warn) 7%, var(--card)); border-radius: var(--radius); font-size: var(--fs-ui); }
 
   /* picture: three zones side by side on wide screens, stacked on phones */
   .map { margin: 0 0 20px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr); align-items: stretch; }
@@ -155,8 +155,9 @@ const acceptance = PRACTICE_BY_ID.get('acceptance-tests')!;
   .kind-operation .part, .kind-rule .part { break-inside: avoid; margin-bottom: 12px; }
   .part { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; scroll-margin-top: 5rem; min-width: 0; }
   @media (max-width: 560px) { .part { padding: 12px; } }
-  .part.k-rule { border-left: 4px solid var(--warn); }
-  .part.k-operation { border-left: 4px solid var(--link); }
+  /* kind shows as the outline colour, matching the chips in the map above */
+  .part.k-rule { border-color: color-mix(in srgb, var(--warn) 45%, var(--rule)); }
+  .part.k-operation { border-color: color-mix(in srgb, var(--link) 45%, var(--rule)); }
   .part.k-data { border-style: dashed; }
   .part:target, .part:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
   .part h3 { font-size: var(--fs-lg); margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }

@@ -12,12 +12,13 @@ const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
 ---
 <!-- facts strip: each fact has a small label above its value; the petstore line sits below its own rule -->
 <dl class="strip">
-  <div class="fact"><dt>{t(lang, 'stripLayer')}</dt><dd><a class="chip layer" href={href(lang, `#layer-${p.layer}`)} style={`--c: var(--l-${p.layer})`}><FunnelMark size={16} on={p.layer} />{layer.name[lang]}</a></dd></div>
+  <!-- the layer name alone can mislead ("Static analysis" on a test page): its examples say what the layer holds -->
+  <div class="fact"><dt>{t(lang, 'stripLayer')}</dt><dd class="layer-dd"><a class="chip layer" href={href(lang, `#layer-${p.layer}`)} style={`--c: var(--l-${p.layer})`}><FunnelMark size={16} on={p.layer} />{layer.name[lang]}</a><span class="layer-ex">{layer.examples[lang]}</span></dd></div>
   <div class="fact"><dt>{t(lang, 'stripPhase')}</dt><dd class="phases">
     {phases.map((ph) => <a href={href(lang, `lifecycle/#phase-${ph.id}`)} class="ph" style={`--pc: var(--p-${ph.id})`}>{ph.name[lang]}</a>)}
   </dd></div>
-  <div class="fact"><dt>{t(lang, 'stripCost')}</dt><dd><span class="meter" data-n={p.cost} aria-hidden="true"><i /><i /><i /></span> {COST_LABEL[p.cost][lang]}</dd></div>
-  <div class="fact"><dt>{t(lang, 'stripFeedback')}</dt><dd>{FEEDBACK_LABEL[p.feedback][lang]}</dd></div>
+  <div class="fact"><dt><span class="lbl-l">{t(lang, 'stripCost')}</span><span class="lbl-s">{t(lang, 'stripCostShort')}</span></dt><dd><span class="meter" data-n={p.cost} aria-hidden="true"><i /><i /><i /></span> {COST_LABEL[p.cost][lang]}</dd></div>
+  <div class="fact"><dt><span class="lbl-l">{t(lang, 'stripFeedback')}</span><span class="lbl-s">{t(lang, 'stripFeedbackShort')}</span></dt><dd>{FEEDBACK_LABEL[p.feedback][lang]}</dd></div>
   <!-- the petstore line: where this practice touches the running example; the label opens the petstore page -->
   <div class="ps"><dt><a class="ps-home" href={href(lang, 'petstore/')}>{PETSTORE_COPY.inPetstore[lang]}</a></dt>
     <dd><span class="ps-what" set:html={inline(p.domain.what[lang])} /></dd></div>
@@ -29,6 +30,8 @@ const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
   dd { margin: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 26px; font-size: var(--fs-ui); color: var(--ink); }
   .layer { gap: 6px; padding-block: 3px; border-color: var(--c); }
   .layer :global(svg) { flex: none; }
+  .layer-ex { color: var(--ink-2); font-size: var(--fs-sm); }
+  .lbl-s { display: none; }
   .phases { display: flex; flex-wrap: wrap; gap: 6px; }
   .ph { font-size: var(--fs-sm); padding: 2px 9px; border-radius: 4px; border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 16%, var(--card)); color: var(--ink); text-decoration: none; }
   .ph:hover { text-decoration: underline; }
@@ -40,9 +43,19 @@ const phases = PHASES.filter((ph) => p.phases.includes(ph.id));
   .ps dd { display: block; line-height: 24px; min-height: 0; font-size: inherit; color: inherit; }
   .ps-what { color: var(--ink-2); margin-inline-start: 3px; }
   .ps-what :global(code) { font-size: 0.92em; }
-  /* phones: facts in two columns; the mini-map stands for the label, and the sentence moves under the "Try it" / "See it" heading */
+  /* phones: the facts run as one wrapped line with inline labels, so "Try it" / "See it" reaches the first screen;
+     the petstore sentence moves under that heading */
   @media (max-width: 560px) {
-    .strip { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; margin-top: 18px; }
+    .strip { gap: 8px 16px; margin-top: 14px; }
+    .fact { display: flex; align-items: center; gap: 6px; }
+    .fact dt { font-weight: 400; color: var(--ink-3); }
+    .lbl-l { display: none; }
+    .lbl-s { display: inline; }
+    .fact dt::after { content: ':'; }
+    .fact:has(.layer-dd) dt, .fact:has(.phases) dt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .fact:has(.layer-dd) { flex-basis: 100%; }
+    .layer-dd { flex-wrap: wrap; row-gap: 2px; }
+    dd { min-height: 24px; font-size: var(--fs-sm); }
     .strip > .ps { display: none; }
   }
 </style>

@@ -22,13 +22,13 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
       <h2 id="where-start">{C.chooser[lang]}</h2>
       <div class="starting-points" role="group" aria-labelledby="where-start">
         {START_ROUTES.map((route, i) => <button type="button" class="starting-point" data-start-choice={route.id} aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`start-${route.id}`}>
-          <span class="small muted">{String(i + 1).padStart(2, '0')}</span><span>{route.label[lang]}</span>
+          {route.label[lang]}
         </button>)}
       </div>
-      <div aria-live="polite" aria-atomic="false">
+      <p class="visually-hidden" role="status" data-start-status></p>
+      <div>
         {START_ROUTES.map((route) => <section id={`start-${route.id}`} class="recommendation card" data-start-result={route.id} aria-labelledby={`heading-${route.id}`}>
-          <p class="eyebrow">{C.first[lang]}</p>
-          <h3 id={`heading-${route.id}`}><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
+          <h3 id={`heading-${route.id}`}><span class="lead">{C.first[lang]}: </span><a href={practiceUrl(route.practice)}>{practiceName(route.practice)}</a></h3>
           <p class="narrow">{route.why[lang]}</p>
           <dl class="exercise">
             <div><dt>{C.exercise[lang]}</dt><dd>{route.exercise[lang]}</dd></div>
@@ -59,12 +59,15 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
   for (const root of document.querySelectorAll<HTMLElement>('[data-start-picker]')) {
     const choices = [...root.querySelectorAll<HTMLButtonElement>('[data-start-choice]')];
     const results = [...root.querySelectorAll<HTMLElement>('[data-start-result]')];
-    function select(id: string) {
+    const status = root.querySelector<HTMLElement>('[data-start-status]')!;
+    // Announce only the chosen check, not the whole card, and only after a choice (not on load).
+    function select(id: string, announce: boolean) {
       choices.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.startChoice === id)));
       results.forEach((panel) => { panel.hidden = panel.dataset.startResult !== id; });
+      if (announce) status.textContent = root.querySelector(`#heading-${id}`)?.textContent ?? '';
     }
-    choices.forEach((button) => button.addEventListener('click', () => select(button.dataset.startChoice!)));
-    select(choices[0].dataset.startChoice!);
+    choices.forEach((button) => button.addEventListener('click', () => select(button.dataset.startChoice!, true)));
+    select(choices[0].dataset.startChoice!, false);
   }
 </script>
 <style>
@@ -73,9 +76,11 @@ const practiceName = (id: string) => PRACTICE_BY_ID.get(id)!.name[lang];
   .starting-points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 24px 0 14px; }
   .starting-point { display: flex; align-items: baseline; gap: 12px; text-align: left; cursor: pointer; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--card); line-height: 1.4; }
   .starting-point:hover { border-color: var(--l-static); }
-  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: inset 4px 0 var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
-  .recommendation { border-top: 3px solid var(--l-static); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
-  .recommendation h3 { font-size: var(--fs-h2); }
+  .starting-point[aria-pressed='true'] { border-color: var(--l-static); box-shadow: 0 0 0 1px var(--l-static); background: color-mix(in srgb, var(--l-static) 8%, var(--card)); }
+  .recommendation { border-color: color-mix(in srgb, var(--l-static) 45%, var(--rule)); padding: clamp(16px, 3vw, 28px); margin-bottom: 14px; }
+  /* long German compounds (spezifikationsgetriebene) need to break at 320px */
+  .recommendation h3 { font-size: var(--fs-h2); hyphens: auto; overflow-wrap: break-word; }
+  .recommendation h3 .lead { color: var(--ink-2); font-weight: 400; }
   .exercise { margin: 24px 0; display: grid; gap: 16px; }
   .exercise > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 16px; }
   .exercise dt { font-weight: 700; line-height: 1.4; }

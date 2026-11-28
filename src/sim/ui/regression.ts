@@ -53,9 +53,9 @@ const R = {
       good: 'Bricht ein Agent später den Fix, bekommt er diesen Fehlschlag mit der Eingabe aus dem Fehlerbericht. Er kann den Fix vor dem Merge wiederherstellen.',
     },
     next: {
-      repro: '`"rex"` für Anna reservieren, dann `"rex "` für Ben, und `{ ok: false, reason: "taken" }` erwarten. Oder **Beispieltest zeigen** (Tag: korrekt) klicken.',
-      'fix-fails': 'Deine Erwartung mit dem korrigierten Code oben vergleichen.',
-      good: 'Die `expect`-Zeile löschen und erneut ausführen. Dann besteht der Test auch auf dem alten Code.',
+      repro: 'Reserviere `"rex"` für Anna, dann `"rex "` für Ben, und erwarte `{ ok: false, reason: "taken" }`. Oder klicke auf **Beispieltest zeigen** (Tag: korrekt).',
+      'fix-fails': 'Vergleiche deine Erwartung mit dem korrigierten Code oben.',
+      good: 'Lösche die `expect`-Zeile und führe den Test erneut aus. Dann besteht er auch auf dem alten Code.',
     },
   },
 };
